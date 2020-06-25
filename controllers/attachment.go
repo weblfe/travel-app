@@ -1,9 +1,7 @@
 package controllers
 
-import "github.com/astaxie/beego"
-
 type AttachmentController struct {
-		beego.Controller
+		BaseController
 }
 
 func AttachmentControllerOf() *AttachmentController {
@@ -11,25 +9,25 @@ func AttachmentControllerOf() *AttachmentController {
 }
 
 // 上传令牌
-// @route /attachment/ticket
-func (this *AttachmentController) ticket() {
+// @router /attachment/ticket
+func (this *AttachmentController) Ticket() {
 
 }
 
 // 上传单个文件
-// @route /attachment/upload
+// @router /attachment/upload
 func (this *AttachmentController) Upload() {
 
 }
 
 // 上传多文件
-// @route /attachment/uploads
+// @router /attachment/uploads
 func (this *AttachmentController) Uploads() {
 
 }
 
 // 获取附件列表
-// @route /attachment/list
+// @router /attachment/list
 func (this *AttachmentController) List() {
 
 }

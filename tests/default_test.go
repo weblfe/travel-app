@@ -1,15 +1,15 @@
 package test
 
 import (
-	"net/http"
-	"net/http/httptest"
-	"testing"
-	"runtime"
-	"path/filepath"
-	_ "github.com/weblfe/travel-app/routers"
+		_ "github.com/weblfe/travel-app/routers"
+		"net/http"
+		"net/http/httptest"
+		"path/filepath"
+		"runtime"
+		"testing"
 
-	"github.com/astaxie/beego"
-	. "github.com/smartystreets/goconvey/convey"
+		"github.com/astaxie/beego"
+		. "github.com/smartystreets/goconvey/convey"
 )
 
 func init() {

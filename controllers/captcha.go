@@ -1,9 +1,7 @@
 package controllers
 
-import "github.com/astaxie/beego"
-
 type CaptchaController struct {
-		beego.Controller
+	BaseController
 }
 
 // 验证码模块 controller
@@ -11,17 +9,17 @@ func CaptchaControllerOf() *CaptchaController  {
 	 return new(CaptchaController)
 }
 
-// @route /captcha/mobile [post]
+// @router /captcha/mobile [post]
 func (this *CaptchaController)SendMobileCaptcha()  {
 
 }
 
-// @route /captcha/email [post]
+// @router /captcha/email [post]
 func (this *CaptchaController)SendEmailCaptcha()  {
 
 }
 
-// @route /captcha/wechat [post]
+// @router /captcha/wechat [post]
 func (this *CaptchaController)SendWeChatCaptcha()  {
 
 }
