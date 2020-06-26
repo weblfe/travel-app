@@ -1,5 +1,13 @@
 package routers
 
+// @APIVersion 1.0.0
+// @Title beego Test API
+// @Description api document
+// @Contact weblinuxgame@g126.com
+// @TermsOfServiceUrl http://api.word-server.com/
+// @License Apache 2.0
+// @LicenseUrl http://www.apache.org/licenses/LICENSE-2.0.html
+
 import (
 		"github.com/astaxie/beego"
 		"github.com/weblfe/travel-app/controllers"

@@ -16,6 +16,7 @@ func TestHashCode(t *testing.T) {
 				hash1 := HashCode(*obj)
 				hash2 := HashCode(*models.UserModelOf())
 				hash3 := HashCode(*obj)
+			//	fmt.Println(hash,hash2,hash1,hash3)
 				So(hash1, ShouldNotEqual, hash2)
 				So(hash1, ShouldNotEqual, hash3)
 		})

@@ -2,10 +2,10 @@ package libs
 
 import (
 		"crypto/md5"
+		"encoding/hex"
 		"fmt"
 		"io/ioutil"
 		"math/rand"
-		"os"
 		"reflect"
 		"unsafe"
 )
@@ -33,18 +33,6 @@ func FileHash(file string) string {
 		return ""
 }
 
-func IsExits(file string) bool {
-		if _, err := os.Stat(file); err != nil {
-				if os.IsExist(err) || os.IsNotExist(err) {
-						return false
-				}
-				if os.IsPermission(err) {
-						return false
-				}
-		}
-		return true
-}
-
 func HashCode(any interface{}) string {
 		if any == nil {
 				return ""
@@ -52,18 +40,21 @@ func HashCode(any interface{}) string {
 		if str, ok := any.(string); ok {
 				Md5Inst := md5.New()
 				Md5Inst.Write([]byte(str))
-				Result := Md5Inst.Sum([]byte(""))
-				return fmt.Sprintf("%x", Result)
+				return hex.EncodeToString(Md5Inst.Sum(nil))
+		}
+		if str, ok := any.([]byte); ok {
+				Md5Inst := md5.New()
+				Md5Inst.Write(str)
+				return hex.EncodeToString(Md5Inst.Sum(nil))
 		}
 		typ := reflect.TypeOf(any)
 		if typ.Kind() != reflect.Ptr && typ.Kind() != reflect.Interface {
-				any = fmt.Sprintf("%x", memhash(unsafe.Pointer(&any), 1, 36))
-				return HashCode(any)
+				data := fmt.Sprintf("%x", memhash(unsafe.Pointer(&any), 1, 36))
+				return hex.EncodeToString([]byte(data))
 		}
 		Md5Inst := md5.New()
 		Md5Inst.Write([]byte(fmt.Sprintf("%v", any)))
-		Result := Md5Inst.Sum([]byte(""))
-		return fmt.Sprintf("%x", Result)
+		return hex.EncodeToString(Md5Inst.Sum(nil))
 }
 
 func add(p unsafe.Pointer, x uintptr) unsafe.Pointer {
