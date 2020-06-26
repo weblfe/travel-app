@@ -6,6 +6,7 @@ type Errors interface {
 		Code() int
 		Msg() string
 		Parent() Errors
+		Set(key string, v interface{}) Errors
 		error
 }
 
@@ -63,4 +64,16 @@ func (this *ErrorImpl) Code() int {
 
 func (this *ErrorImpl) Msg() string {
 		return this.msg
+}
+
+func (this *ErrorImpl) Set(key string, v interface{}) Errors {
+		switch key {
+		case "code":
+				this.code = v.(int)
+		case "msg":
+				this.msg = v.(string)
+		case "parent":
+				this.parent = v.(Errors)
+		}
+		return this
 }

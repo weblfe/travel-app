@@ -1,5 +1,9 @@
 package controllers
 
+import (
+		"github.com/weblfe/travel-app/repositories"
+)
+
 type UserController struct {
 	BaseController
 }
@@ -18,7 +22,7 @@ func (this *UserController) Login() {
 // 用户注册接口
 // @router /register [post]
 func (this *UserController) Register() {
-
+		this.Send(repositories.NewUserRegisterRepository(&this.BaseController.Controller).Register())
 }
 
 // 获取用户基本信息接口
