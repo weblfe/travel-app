@@ -11,23 +11,23 @@ type Errors interface {
 }
 
 type ErrorImpl struct {
-		code   int
-		msg    string
-		parent Errors
+		ErrCode int    `json:"errno"`
+		ErrMsg  string `json:"errmsg"`
+		parent  Errors
 }
 
-// code string
-// msg  int
+// ErrCode string
+// ErrMsg  int
 func NewErrors(args ...interface{}) Errors {
 		var err = new(ErrorImpl)
-		err.code = -1
+		err.ErrCode = -1
 		err.init(args...)
 		return err
 }
 
 // err Errors
-// code string
-// msg  int
+// ErrCode string
+// ErrMsg  int
 func ErrorWrap(err Errors, args ...interface{}) Errors {
 		if len(args) == 0 {
 				args = []interface{}{}
@@ -41,17 +41,21 @@ func (this *ErrorImpl) init(args ...interface{}) {
 				if err, ok := arg.(Errors); ok && this.parent == nil {
 						this.parent = err
 				}
-				if msg, ok := arg.(string); ok && this.msg == "" {
-						this.msg = msg
+				if msg, ok := arg.(string); ok && this.ErrMsg == "" {
+						this.ErrMsg = msg
 				}
-				if code, ok := arg.(int); ok && this.code == -1 {
-						this.code = code
+				if code, ok := arg.(int); ok && this.ErrCode == -1 {
+						this.ErrCode = code
 				}
 		}
 }
 
 func (this *ErrorImpl) Error() string {
-		return fmt.Sprintf(`{"code":%d,"msg":"%s"}`, this.Code(), this.Msg())
+		return fmt.Sprintf(`{"errno":%d,"errmsg":"%s"}`, this.Code(), this.Msg())
+}
+
+func (this *ErrorImpl) String() string {
+		return this.Error()
 }
 
 func (this *ErrorImpl) Parent() Errors {
@@ -59,19 +63,22 @@ func (this *ErrorImpl) Parent() Errors {
 }
 
 func (this *ErrorImpl) Code() int {
-		return this.code
+		return this.ErrCode
 }
 
 func (this *ErrorImpl) Msg() string {
-		return this.msg
+		return this.ErrMsg
 }
 
 func (this *ErrorImpl) Set(key string, v interface{}) Errors {
 		switch key {
-		case "code":
-				this.code = v.(int)
-		case "msg":
-				this.msg = v.(string)
+		case "ErrCode":
+				fallthrough
+		case "errno":
+				this.ErrCode = v.(int)
+		case "ErrMsg":
+		case "errmsg":
+				this.ErrMsg = v.(string)
 		case "parent":
 				this.parent = v.(Errors)
 		}

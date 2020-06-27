@@ -6,6 +6,7 @@ type ConfigModel struct {
 
 func ConfigModelOf() *ConfigModel  {
 		var model = new(ConfigModel)
+		model._Self = model
 		model.Init()
 		return model
 }

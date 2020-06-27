@@ -6,6 +6,7 @@ type RecommendModel struct {
 
 func RecommendModelOf() *RecommendModel  {
 		var model = new(RecommendModel)
+		model._Self = model
 		model.Init()
 		return model
 }

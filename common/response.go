@@ -80,6 +80,8 @@ func (this *ResponseImpl) Get(key string, defaults ...interface{}) interface{} {
 				fallthrough
 		case "msg":
 				fallthrough
+		case "Message":
+				fallthrough
 		case "message":
 				return this.GetMsg()
 		case "code":

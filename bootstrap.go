@@ -13,6 +13,7 @@ func init() {
 		bootstrap()
 }
 
+// 引导逻辑
 func bootstrap() {
 		// swagger
 		initSwagger()
@@ -62,6 +63,8 @@ func initMongodb(data map[string]string) {
 // 初始middleware
 func initMiddleware()  {
 		 manger:=middlewares.GetMiddlewareManger()
-		 manger.Router("token","/user/info",beego.BeforeRouter)
+		 // 注册路由中间件
+		 manger.Router(middlewares.AuthMiddlewareName,"/user/info",beego.BeforeRouter)
+		 // 启用中间
 		 manger.Boot()
 }

@@ -6,6 +6,7 @@ type PostsModel struct {
 
 func PostsModelOf() *PostsModel  {
 		var model = new(PostsModel)
+		model._Self = model
 		model.Init()
 		return model
 }

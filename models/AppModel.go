@@ -6,6 +6,7 @@ type AppModel struct {
 
 func AppModelOf() *AppModel {
 		var model = new(AppModel)
+		model._Self = model
 		model.Init()
 		return model
 }

@@ -41,6 +41,10 @@ func (this *middlewareImpl) SetHandler(handlers ...func(ctx *context.Context) bo
 						handlers = append(handlers, nil)
 				}
 				for {
+						if i == argc {
+								fn = this.Wrapper(handler, nil)
+								break
+						}
 						if i+1 == argc {
 								fn = this.Wrapper(handler, handlers[i+1])
 								break

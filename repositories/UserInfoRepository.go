@@ -30,7 +30,7 @@ func (this *UserInfoRepositoryImpl)FocusOn()common.ResponseJson  {
 }
 
 func (this *UserInfoRepositoryImpl) GetUserInfo() common.ResponseJson {
-		panic("implement me")
+		return common.NewInvalidParametersResp()
 }
 
 func (this *UserInfoRepositoryImpl) ResetPassword() common.ResponseJson {

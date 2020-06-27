@@ -19,6 +19,13 @@ type UserLoginLog struct {
 		CreatedAt     time.Time     `json:"created_at" bson:"created_at"`
 }
 
+func UserLoginLogModelOf() *UserLoginLogModel {
+		var model = new(UserLoginLogModel)
+		model._Self = model
+		model.Init()
+		return model
+}
+
 func (this *UserLoginLogModel) TableName() string {
 		return "user_login_log"
 }
