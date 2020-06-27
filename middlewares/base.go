@@ -113,21 +113,28 @@ type middlewareEntry struct {
 }
 
 var (
-		locks         map[string]*sync.Once
+		locks          map[string]*sync.Once
 		instanceManger *middlewareManager
+)
+
+const (
+		MiddlewareManger = "manager"
 )
 
 func init() {
 		if instanceManger == nil {
-				getLock("manager").Do(func() {
+				getLock(MiddlewareManger).Do(func() {
 						instanceManger = new(middlewareManager)
 						instanceManger.Init()
 				})
 		}
 }
 
-func getLock(name string) *sync.Once  {
-		if l,ok:=locks[name];ok {
+func getLock(name string) *sync.Once {
+		if locks == nil {
+				locks = make(map[string]*sync.Once)
+		}
+		if l, ok := locks[name]; ok {
 				return l
 		}
 		locks[name] = &sync.Once{}

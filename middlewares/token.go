@@ -18,6 +18,7 @@ const (
 		AppAccessTokenHeader = "authorization"
 		AuthUser             = "user"
 		AuthUserId           = "userId"
+		TokenMiddleware      = "token"
 )
 
 func newToken() {
@@ -29,12 +30,12 @@ func GetTokenMiddleware() *tokenMiddleware {
 		if tokenInstance != nil {
 				return tokenInstance
 		}
-		getLock("token").Do(newToken)
+		getLock(TokenMiddleware).Do(newToken)
 		return tokenInstance
 }
 
 func (this *tokenMiddleware) Init() {
-		this.Name = "token"
+		this.Name = TokenMiddleware
 		this.handler = this.filter
 		Register(this.Middleware(), this)
 }
