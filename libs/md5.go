@@ -6,6 +6,10 @@ import (
 		"github.com/astaxie/beego"
 )
 
+const (
+		PasswordAPPKey="71e920133ebb7d0a94b9daed8f6c2d9a"
+)
+
 // md5
 func Md5(str string) string {
 		var ins = md5.New()
@@ -20,13 +24,12 @@ func PasswordHash(pass string, salt ...string) string {
 				ins     = md5.New()
 		)
 		if len(salt) == 0 {
-				saltKey = beego.AppConfig.String("app_key")
-				if saltKey == "" {
-						saltKey = beego.AppConfig.String("appname")
+				salt = append(salt, beego.AppConfig.String("app_key"))
+				if salt[0] == "" {
+						salt = append(salt, PasswordAPPKey)
 				}
-		} else {
-				saltKey = salt[0]
 		}
+		saltKey = salt[0]
 		ins.Write([]byte(pass + saltKey))
 		return hex.EncodeToString(ins.Sum(nil))
 }

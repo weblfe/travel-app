@@ -5,6 +5,7 @@ import (
 		_ "github.com/astaxie/beego/session/redis"
 		_ "github.com/go-sql-driver/mysql"
 		"github.com/weblfe/travel-app/libs"
+		"github.com/weblfe/travel-app/middlewares"
 		"github.com/weblfe/travel-app/models"
 )
 
@@ -19,8 +20,11 @@ func bootstrap() {
 		initSession()
 		// database
 		initDatabase()
+		// middleware
+		initMiddleware()
 }
 
+// 配置 session
 func initSession() {
 		if libs.InArray(beego.AppConfig.String("session_on"), []string{"on", "1", "true", "yes"}) {
 				beego.BConfig.WebConfig.Session.SessionOn = true
@@ -29,6 +33,7 @@ func initSession() {
 		}
 }
 
+// 初始 swagger
 func initSwagger() {
 		if beego.BConfig.RunMode == "dev" {
 				beego.BConfig.WebConfig.DirectoryIndex = true
@@ -47,8 +52,16 @@ func initDatabase() {
 
 }
 
+// 初始 mongodb
 func initMongodb(data map[string]string) {
 		for key, v := range data {
 				models.SetProfile(key, v)
 		}
+}
+
+// 初始middleware
+func initMiddleware()  {
+		 manger:=middlewares.GetMiddlewareManger()
+		 manger.Router("token","/user/info",beego.BeforeRouter)
+		 manger.Boot()
 }
