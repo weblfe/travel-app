@@ -19,6 +19,7 @@ type ResponseJson interface {
 		Set(key string, v interface{}) ResponseJson
 		Has(key string) bool
 		Empty() bool
+		IsSuccess() bool
 		Get(key string, defaults ...interface{}) interface{}
 		GetDataByKey(key string, defaults ...interface{}) interface{}
 }
@@ -246,6 +247,13 @@ func (this *ResponseImpl) Empty() bool {
 				return true
 		}
 		return false
+}
+
+func (this *ResponseImpl) IsSuccess() bool {
+		if this.Empty() {
+				return false
+		}
+		return this.Code == SuccessCode
 }
 
 func (this *ResponseImpl) init(args ...interface{}) {

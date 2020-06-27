@@ -22,7 +22,12 @@ func (this *UserController) Login() {
 // 用户注册接口
 // @router /register [post]
 func (this *UserController) Register() {
-		this.Send(repositories.NewUserRegisterRepository(&this.BaseController.Controller).Register())
+		var res = repositories.NewUserRegisterRepository(&this.BaseController.Controller).Register()
+		// 注册成功后 记录相关
+		if res.IsSuccess() {
+				repositories.GetEventProvider().Dispatch("registerSuccess", res.GetData(), "UserRegister")
+		}
+		this.Send(res)
 }
 
 // 获取用户基本信息接口

@@ -24,5 +24,7 @@ const (
 		VerifyNotMatch = 1003
 		PasswordOrAccountNotMatch = "password or account not match"
 		UserAccountForbid = "user account forbid"
+		RegisterFail = 1004
+		RegisterFailTip = "register failed!"
 )
 
