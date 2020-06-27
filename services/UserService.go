@@ -126,6 +126,7 @@ func (this *UserServiceImpl) GetByUserName(name string) *models.User {
 }
 
 func (this *UserServiceImpl) Init() {
+		this.init()
 		this.userModel = models.UserModelOf()
 		this.Constructor = func(args ...interface{}) interface{} {
 				return UserServiceOf()

@@ -72,10 +72,10 @@ func (this *tokenMiddleware) Filter(ctx *context.Context) bool {
 
 func (this *tokenMiddleware) initSessionByToken(token string, ctx *context.Context) bool {
 		user, err := services.AuthServiceOf().GetByAccessToken(token)
-		if err == nil || user == nil {
+		if err != nil || user == nil {
 				return false
 		}
-		if err := ctx.Input.CruSession.Set(AuthUser, user); err == nil {
+		if err := ctx.Input.CruSession.Set(AuthUser, user.M()); err == nil {
 				_ = ctx.Input.CruSession.Set(AuthUserId, user.Id.Hex())
 				this.dispatch(token, user)
 				return true

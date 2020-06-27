@@ -17,6 +17,7 @@ type AuthService interface {
 		LoginByUserPassword(typ string, value string, password string, args ...interface{}) (*models.User, string, common.Errors)
 		GetByAccessToken(string) (*models.User, common.Errors)
 		Keep(token string, duration ...time.Duration)
+		Token(user *models.User,args...interface{}) string
 }
 
 type AuthServiceImpl struct {

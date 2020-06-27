@@ -322,6 +322,12 @@ func (this *BaseModel) Update(query interface{}, data interface{}) error {
 		return table.Update(query, data)
 }
 
+func (this *BaseModel) UpdateById(id string, data interface{}) error {
+		table := this.Collection()
+		defer this.destroy()
+		return table.Update(bson.M{"_id":bson.ObjectIdHex(id)}, data)
+}
+
 func (this *BaseModel) Updates(query interface{}, data interface{}) (*mgo.ChangeInfo, error) {
 		table := this.Collection()
 		defer this.destroy()
@@ -378,4 +384,22 @@ func (this *BaseModel) Lists(query interface{}, result interface{}, limit ListsP
 				return total, table.Find(query).Select(selects[0]).Limit(size).Skip(skip).All(result)
 		}
 		return total, table.Find(query).Limit(limit.Count()).Skip(skip).All(result)
+}
+
+func (this *BaseModel) FindOne(query interface{}, result interface{}, selects ...interface{}) error {
+		table := this.Collection()
+		defer this.destroy()
+		if len(selects) > 0 {
+				return table.Find(query).Select(selects[0]).One(result)
+		}
+		return table.Find(query).One(result)
+}
+
+func (this *BaseModel) Gets(query interface{}, result interface{}, selects ...interface{}) error {
+		table := this.Collection()
+		defer this.destroy()
+		if len(selects) > 0 {
+				return table.Find(query).Select(selects[0]).All(result)
+		}
+		return table.Find(query).All(result)
 }

@@ -39,6 +39,11 @@ func UserModelOf() *UserModel {
 		return model
 }
 
+func NewUser() *User {
+		var user = new(User)
+		return user
+}
+
 func (this *User) Load(data map[string]interface{}) *User {
 		for key, v := range data {
 				this.Set(key, v)
@@ -61,6 +66,8 @@ func (this *User) Set(key string, v interface{}) *User {
 				if pass, ok := v.(string); ok {
 						this.Password = libs.PasswordHash(pass)
 				}
+		case "register_way":
+				this.RegisterWay = v.(string)
 		case "nickname":
 				this.NickName = v.(string)
 		case "mobile":
@@ -116,6 +123,32 @@ func (this *User) Defaults() *User {
 				this.Password = libs.PasswordHash(beego.AppConfig.DefaultString("default_password", "123456&Hex"))
 		}
 		return this
+}
+
+func (this *User) M(filter ...func(m beego.M) beego.M) beego.M {
+		data := beego.M{
+				"id":                   this.Id.Hex(),
+				"avatar_id":            this.AvatarId,
+				"password":             this.Password,
+				"username":             this.UserName,
+				"nickname":             this.NickName,
+				"register_way":         this.RegisterWay,
+				"mobile":               this.Mobile,
+				"email":                this.Email,
+				"user_num_id":          this.UserNumId,
+				"reset_password_times": this.ResetPasswordTimes,
+				"created_at":           this.CreatedAt,
+				"status":               this.Status,
+				"last_login_at":        this.LastLoginAt,
+				"last_login_location":  this.LastLoginLocation,
+				"deleted_at":           this.DeletedAt,
+		}
+		if len(filter) != 0 {
+				for _, fn := range filter {
+						data = fn(data)
+				}
+		}
+		return data
 }
 
 func (this *UserModel) CreateIndex() {

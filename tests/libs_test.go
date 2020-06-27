@@ -68,3 +68,21 @@ func BenchmarkIsMobile(b *testing.B) {
 				}
 		}
 }
+
+func BenchmarkRandomWords(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+				for i := 0; i < 10; i++ {
+						_ = libs.RandomAnyWord(i + 1)
+						_ = libs.RandomWord(i + 1)
+				}
+		}
+}
+
+func TestRandomWords(t *testing.T) {
+		Convey("Test Random Word", t, func() {
+				for i := 0; i < 10; i++ {
+						word := libs.RandomAnyWord(i + 1)
+						So(len([]rune(word)), ShouldEqual, i+1)
+				}
+		})
+}

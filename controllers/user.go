@@ -1,6 +1,7 @@
 package controllers
 
 import (
+		"github.com/weblfe/travel-app/common"
 		"github.com/weblfe/travel-app/repositories"
 )
 
@@ -16,7 +17,14 @@ func UserControllerOf() *UserController {
 // 用户登录接口
 // @router /login [post]
 func (this *UserController) Login() {
-		this.Send(repositories.NewLoginRepository(&this.BaseController.Controller).Login())
+		var res = repositories.NewLoginRepository(&this.BaseController.Controller).Login()
+		if res.IsSuccess() {
+				token := res.GetDataByKey("token", "")
+				if token != "" && token != nil {
+						this.Ctx.SetCookie(common.AppTokenCookie, token.(string))
+				}
+		}
+		this.Send(res)
 }
 
 // 用户注册接口

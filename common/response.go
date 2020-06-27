@@ -4,6 +4,7 @@ import (
 		"encoding/json"
 		"fmt"
 		"github.com/astaxie/beego"
+		"github.com/globalsign/mgo/bson"
 		"strings"
 		"sync"
 )
@@ -115,6 +116,16 @@ func (this *ResponseImpl) GetDataByKey(key string, defaults ...interface{}) inte
 				return get.Get(key, defaults...)
 		}
 		if mp, ok := this.Data.(map[string]interface{}); ok {
+				if v, ok := mp[key]; ok {
+						return v
+				}
+		}
+		if mp, ok := this.Data.(bson.M); ok {
+				if v, ok := mp[key]; ok {
+						return v
+				}
+		}
+		if mp, ok := this.Data.(beego.M); ok {
 				if v, ok := mp[key]; ok {
 						return v
 				}
@@ -328,7 +339,7 @@ func NewSuccessResp(data interface{}, args ...interface{}) ResponseJson {
 		if len(args) < 2 {
 				args = append(args, SuccessCode)
 		}
-		var res = NewResponse()
+		var res = NewResponse(args...)
 		res.Set("data", data)
 		if !res.Has("code") {
 				res.Set("code", args[0])

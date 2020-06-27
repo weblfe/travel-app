@@ -3,8 +3,10 @@ package repositories
 import (
 		"github.com/astaxie/beego"
 		"github.com/weblfe/travel-app/common"
+		"github.com/weblfe/travel-app/libs"
 		"github.com/weblfe/travel-app/models"
 		"github.com/weblfe/travel-app/services"
+		"time"
 )
 
 type UserRegisterRepository interface {
@@ -27,7 +29,14 @@ const (
 func NewUserRegisterRepository(ctx *beego.Controller) UserRegisterRepository {
 		var repository = new(UserRegisterRepositoryImpl)
 		repository.ctx = ctx
+		repository.init()
 		return repository
+}
+
+// 初始化
+func (this *UserRegisterRepositoryImpl) init() {
+		this.smsService = services.SmsCodeServiceOf()
+		this.userService = services.UserServiceOf()
 }
 
 // username + password
@@ -37,8 +46,13 @@ func NewUserRegisterRepository(ctx *beego.Controller) UserRegisterRepository {
 // 注册逻辑
 func (this *UserRegisterRepositoryImpl) Register() common.ResponseJson {
 		var (
-				ctx = this.ctx
-				typ = ctx.GetString("type")
+				mobile   string
+				password string
+				username string
+				email    string
+				code     string
+				ctx      = this.ctx
+				typ      = ctx.GetString("type")
 		)
 		if typ == "" {
 				if typ = this.choose(ctx); typ == "" {
@@ -47,10 +61,16 @@ func (this *UserRegisterRepositoryImpl) Register() common.ResponseJson {
 		}
 		switch typ {
 		case RegisterByAccount:
-				return this.registerAccount(ctx.GetString("username"), ctx.GetString("password"), ctx)
+				_ = ctx.Ctx.Input.Bind(&password, "password")
+				_ = ctx.Ctx.Input.Bind(&username, "username")
+				return this.registerAccount(username, password, ctx)
 		case RegisterByMobile:
-				return this.registerByMobile(ctx.GetString("mobile"), ctx.GetString("code"), ctx)
+				_ = ctx.Ctx.Input.Bind(&mobile, "mobile")
+				_ = ctx.Ctx.Input.Bind(&code, "code")
+				return this.registerByMobile(mobile, code, ctx)
 		case RegisterByEmail:
+				_ = ctx.Ctx.Input.Bind(&email, "email")
+				_ = ctx.Ctx.Input.Bind(&code, "code")
 				return this.registerByEmail(ctx.GetString("email"), ctx.GetString("code"), ctx)
 		case RegisterByThird:
 				return this.registerThirdParty(ctx)
@@ -61,13 +81,18 @@ func (this *UserRegisterRepositoryImpl) Register() common.ResponseJson {
 // 自动选择注册方式
 func (this *UserRegisterRepositoryImpl) choose(ctx *beego.Controller) string {
 		var (
-				code     = ctx.GetString("code")
-				mobile   = ctx.GetString("mobile")
-				account  = ctx.GetString("username")
-				password = ctx.GetString("password")
-				email    = ctx.GetString("email")
+				code     string
+				mobile   string
+				account  string
+				password string
+				email    string
 				third    = ctx.GetString(RegisterByThird)
 		)
+		_ = ctx.Ctx.Input.Bind(&code, "code")
+		_ = ctx.Ctx.Input.Bind(&mobile, "mobile")
+		_ = ctx.Ctx.Input.Bind(&account, "username")
+		_ = ctx.Ctx.Input.Bind(&password, "password")
+		_ = ctx.Ctx.Input.Bind(&email, "email")
 		if mobile != "" && code != "" {
 				return RegisterByMobile
 		}
@@ -93,7 +118,7 @@ func (this *UserRegisterRepositoryImpl) registerAccount(account string, password
 		}
 		var (
 				user = new(models.User)
-				data = beego.M{"username": account, "password": password}
+				data = beego.M{"username": account, "password": password, "register_way": "account"}
 		)
 		err := this.getUserService().Create(user.Load(data).Defaults())
 		if err == nil {
@@ -109,6 +134,24 @@ func (this *UserRegisterRepositoryImpl) registerByEmail(email string, code strin
 
 // 手机号注册
 func (this *UserRegisterRepositoryImpl) registerByMobile(mobile string, code string, ctx *beego.Controller) common.ResponseJson {
+		if !this.smsService.Verify(mobile, code, "register") {
+				return common.NewResponse(common.RegisterFail, common.RegisterFailTip, common.NewErrors(common.VerifyNotMatch, "验证码错误"))
+		}
+		var user = models.NewUser()
+		// 创建用户
+		user.Load(beego.M{
+				"mobile":       mobile,
+				"nickname":     "nick_" + mobile,
+				"register_way": "mobile",
+				"username":     mobile,
+				"created_at":   time.Now(),
+		})
+		if u := this.userService.GetByMobile(mobile); u != nil {
+				return common.NewResponse(common.RegisterFail, common.RegisterFailTip, common.NewErrors(common.RegisterFail, "手机号已注册"))
+		}
+		if err := this.userService.Create(user.Defaults()); err == nil {
+				return common.NewSuccessResp(beego.M{"user": user.M(filterUser)}, "注册成功")
+		}
 		return common.NewResponse(common.RegisterFail, common.RegisterFailTip)
 }
 
@@ -136,4 +179,13 @@ func (this *UserRegisterRepositoryImpl) getEmailService() services.SmsCodeServic
 				this.smsService = services.SmsCodeServiceOf()
 		}
 		return this.smsService
+}
+
+func filterUser(m beego.M) beego.M {
+		delete(m, "deleted_at")
+		delete(m, "password")
+		if str,ok:=m["mobile"];ok && str!="" {
+				m["mobile"] = libs.MarkerMobile(str.(string))
+		}
+		return m
 }

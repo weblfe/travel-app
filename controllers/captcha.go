@@ -1,5 +1,7 @@
 package controllers
 
+import "github.com/weblfe/travel-app/repositories"
+
 type CaptchaController struct {
 	BaseController
 }
@@ -11,7 +13,7 @@ func CaptchaControllerOf() *CaptchaController  {
 
 // @router /captcha/mobile [post]
 func (this *CaptchaController)SendMobileCaptcha()  {
-
+   this.Send(repositories.NewCaptchaRepository(&this.BaseController.Controller).SendMobileCaptcha())
 }
 
 // @router /captcha/email [post]

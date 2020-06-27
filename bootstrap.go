@@ -23,6 +23,8 @@ func bootstrap() {
 		initDatabase()
 		// middleware
 		initMiddleware()
+		// 结构注册
+		initRegisterGob()
 }
 
 // 配置 session
@@ -67,4 +69,9 @@ func initMiddleware()  {
 		 manger.Router(middlewares.AuthMiddlewareName,"/user/info",beego.BeforeRouter)
 		 // 启用中间
 		 manger.Boot()
+}
+
+// 数据结构注册
+func initRegisterGob()  {
+	//	gob.Register(models.User{})
 }
