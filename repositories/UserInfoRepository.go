@@ -1,7 +1,6 @@
 package repositories
 
 import (
-		"fmt"
 		"github.com/astaxie/beego"
 		"github.com/weblfe/travel-app/common"
 		"github.com/weblfe/travel-app/middlewares"
@@ -43,7 +42,6 @@ func (this *UserInfoRepositoryImpl) GetUserInfo() common.ResponseJson {
 				id string
 				v = this.ctx.GetSession(middlewares.AuthUserId)
 		)
-		fmt.Println("123231")
 		if v != nil {
 				id = v.(string)
 		}

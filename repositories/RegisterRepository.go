@@ -3,7 +3,6 @@ package repositories
 import (
 		"github.com/astaxie/beego"
 		"github.com/weblfe/travel-app/common"
-		"github.com/weblfe/travel-app/libs"
 		"github.com/weblfe/travel-app/models"
 		"github.com/weblfe/travel-app/services"
 		"time"
@@ -181,11 +180,4 @@ func (this *UserRegisterRepositoryImpl) getEmailService() services.SmsCodeServic
 		return this.smsService
 }
 
-func filterUser(m beego.M) beego.M {
-		delete(m, "deleted_at")
-		delete(m, "password")
-		if str,ok:=m["mobile"];ok && str!="" {
-				m["mobile"] = libs.MarkerMobile(str.(string))
-		}
-		return m
-}
+
