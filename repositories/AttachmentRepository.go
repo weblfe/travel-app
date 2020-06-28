@@ -76,8 +76,7 @@ func (this *AttachmentRepositoryImpl) Upload() common.ResponseJson {
 		}
 		dir := path.Join(beego.AppPath, "static/storage")
 		if !libs.IsExits(dir) {
-				err = os.MkdirAll(dir, os.ModePerm)
-				logs.Error(err)
+				_ = os.MkdirAll(dir, os.ModePerm)
 		}
 		filename := path.Join(dir, fs.Filename)
 		fd, errs := os.OpenFile(filename, os.O_WRONLY|os.O_APPEND|os.O_CREATE, os.ModePerm)

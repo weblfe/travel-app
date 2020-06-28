@@ -5,3 +5,4 @@ travel-app
 travel-app.exe
 travel-app.out
 routers/commentsRouter*.go
+static/storage/*
