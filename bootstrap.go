@@ -2,11 +2,17 @@ package main
 
 import (
 		"github.com/astaxie/beego"
+		"github.com/astaxie/beego/config/env"
 		_ "github.com/astaxie/beego/session/redis"
 		_ "github.com/go-sql-driver/mysql"
+		"github.com/joho/godotenv"
 		"github.com/weblfe/travel-app/libs"
 		"github.com/weblfe/travel-app/middlewares"
 		"github.com/weblfe/travel-app/models"
+		"github.com/weblfe/travel-app/services"
+		"os"
+		"path"
+		"strings"
 )
 
 func init() {
@@ -15,6 +21,8 @@ func init() {
 
 // 引导逻辑
 func bootstrap() {
+		// 环境注册
+		initRegisterEnv()
 		// swagger
 		initSwagger()
 		// session
@@ -23,8 +31,6 @@ func bootstrap() {
 		initDatabase()
 		// middleware
 		initMiddleware()
-		// 结构注册
-		initRegisterGob()
 }
 
 // 配置 session
@@ -52,7 +58,9 @@ func initDatabase() {
 						initMongodb(database)
 				}
 		}
-
+		service:=services.GetInitDataServiceInstance()
+		service.SetInit("./static/database")
+		service.Init()
 }
 
 // 初始 mongodb
@@ -63,15 +71,39 @@ func initMongodb(data map[string]string) {
 }
 
 // 初始middleware
-func initMiddleware()  {
-		 manger:=middlewares.GetMiddlewareManger()
-		 // 注册路由中间件
-		 manger.Router(middlewares.AuthMiddlewareName,"/user/info",beego.BeforeRouter)
-		 // 启用中间
-		 manger.Boot()
+func initMiddleware() {
+		manger := middlewares.GetMiddlewareManger()
+		// 注册路由中间件
+		manger.Router(middlewares.AuthMiddlewareName, "/user/info", beego.BeforeRouter)
+		// 启用中间
+		manger.Boot()
 }
 
 // 数据结构注册
-func initRegisterGob()  {
-	//	gob.Register(models.User{})
+func initRegisterEnv() {
+		pwd, _ := os.Getwd()
+		envFile := env.Get("ENV_FILE", path.Join(pwd, "/.env"))
+		if envFile == "" {
+				return
+		}
+		var arr []string
+		envs := strings.SplitN(envFile, ",", -1)
+
+		for _, fs := range envs {
+				state, err := os.Stat(fs)
+				if err != nil {
+						continue
+				}
+				if state.IsDir() {
+						continue
+				}
+				arr = append(arr, fs)
+		}
+		if len(arr) < 0 {
+				return
+		}
+		_ = godotenv.Load(arr...)
+		// 加载 主配置
+		_ = beego.LoadAppConfig("ini", "conf/main.conf")
+
 }

@@ -1,13 +1,16 @@
 package services
 
 import (
+		"encoding/json"
 		"fmt"
 		"github.com/aliyun/alibaba-cloud-sdk-go/services/dysmsapi"
 		"github.com/astaxie/beego"
 		"github.com/astaxie/beego/cache"
 		_ "github.com/astaxie/beego/cache/memcache"
 		_ "github.com/astaxie/beego/cache/redis"
+		"github.com/astaxie/beego/config/env"
 		"github.com/astaxie/beego/logs"
+		"github.com/globalsign/mgo/bson"
 		"github.com/weblfe/travel-app/libs"
 		"github.com/weblfe/travel-app/models"
 		"os"
@@ -85,24 +88,40 @@ func (this *SmsCodeServiceAliCloudImpl) CreateClient() *dysmsapi.Client {
 		return nil
 }
 
+// 发送短信
 func (this *SmsCodeServiceAliCloudImpl) Send(mobile string, content string, extras map[string]string) error {
 		if this.Debug() {
 				return this.mock.Send(mobile, content, extras)
 		}
+		// 填写消息内容
 		extras["content"] = content
 		req := this.CreateSmsRequest(mobile, extras)
+		if req == nil {
+				return fmt.Errorf("参数不足 %v", extras)
+		}
+		// sdk 发送
 		rep, err := this.client.SendSms(req)
+		// 派发结果
 		this.dispatch(mobile, map[string]interface{}{
 				"response": rep,
 				"mobile":   mobile,
 				"extras":   extras,
+				"request" : req,
 		})
 
 		log := new(models.SmsLog)
 		log.Defaults()
 		log.Content = content
+		log.Type = extras["type"]
+		tmp, _ := json.Marshal(extras)
+		log.Extras = string(tmp)
 		if rep != nil {
 				log.Result = rep.String()
+		}
+		if err !=nil {
+       log.State = 2
+		}else{
+				log.State = 1
 		}
 		log.Mobile = mobile
 		this.addLog(log)
@@ -116,7 +135,8 @@ func (this *SmsCodeServiceAliCloudImpl) SendCode(mobile string, typ string, extr
 		var (
 				code = libs.RandomNumLimitN(this.getCodeLimit())
 		)
-		extras["type"] = typ
+		extras["name"] = typ
+		extras["code"] = code
 		return code, this.Send(mobile, code, extras)
 }
 
@@ -130,19 +150,121 @@ func (this *SmsCodeServiceAliCloudImpl) getCodeLimit() int {
 }
 
 func (this *SmsCodeServiceAliCloudImpl) dispatch(mobile string, data map[string]interface{}) {
-
+		logs.Debug("mobile :" + mobile + fmt.Sprintf("result: %v", data))
 }
 
+// 创建请求体
 func (this *SmsCodeServiceAliCloudImpl) CreateSmsRequest(mobile string, extras map[string]string) *dysmsapi.SendSmsRequest {
 		req := dysmsapi.CreateSendSmsRequest()
-		req.Scheme = "https"
 		req.PhoneNumbers = mobile
-		req.SignName = extras["sign_name"]
-		req.TemplateCode = extras["template_code"]
+		req.Scheme = this.getScheme(extras)
+		req.SignName = this.getSignName(extras)
+		req.TemplateCode = this.getTemplateCode(&extras)
+		this.cleanExtras(extras)
+		if len(extras) > 0 {
+				req.FormParams = extras
+				tmp,_ := json.Marshal(extras)
+				if len(tmp) >0 {
+						req.TemplateParam = string(tmp)
+				}
+		}
+		if req.TemplateCode == "" || len(req.FormParams) <= 0 {
+				return nil
+		}
+		return req
+}
+
+func (this *SmsCodeServiceAliCloudImpl) cleanExtras(extras map[string]string) map[string]string {
 		delete(extras, "sign_name")
 		delete(extras, "template_code")
-		req.FormParams = extras
-		return req
+		delete(extras, "type")
+		delete(extras, "name")
+		delete(extras, "platform")
+		delete(extras, "scheme")
+		delete(extras, "content")
+		return extras
+}
+
+func (this *SmsCodeServiceAliCloudImpl) getScheme(extras map[string]string) string {
+		if v, ok := extras["scheme"]; ok {
+				if libs.InArray(v, []string{"http", "https"}) {
+						return v
+				}
+		}
+		return env.Get("DYSMS_SCHEME", "https")
+}
+
+func (this *SmsCodeServiceAliCloudImpl) getSignName(extras map[string]string) string {
+		if v, ok := extras["sign_name"]; ok && v != "" {
+				return v
+		}
+		return env.Get("DYSMS_SIGN_NAME", "绿游App")
+}
+
+// 设置 模版code 和相关请求参数
+func (this *SmsCodeServiceAliCloudImpl) getTemplateCode(extras *map[string]string) string {
+		var (
+				_extras     = *extras
+				name, _     = _extras["name"]
+				typ, _      = _extras["type"]
+				platform, _ = _extras["platform"]
+		)
+		if platform == "" {
+				platform = "ali_dy"
+		}
+		if name == ""  {
+				if v, ok := _extras["template_code"]; ok && v != "" {
+						return v
+				}
+				return ""
+		}
+		// @todo 常量 默认验证码类型
+		if  typ == "" {
+				typ = "sms_verify_code"
+		}
+		if !strings.Contains(name,"_sms_code") {
+				name += "_sms_code"
+		}
+		var (
+				tpl   = models.NewMessageTemplate()
+				model = models.MessageTemplateModelOf()
+				query = bson.M{
+						"name":     name,
+						"type":     typ,
+						"platform": platform,
+				}
+		)
+		if err := model.FindOne(query, tpl); err == nil && tpl.TemplateId != "" {
+				// 设置请求参数
+				this.setFromDataByTemplate(tpl, extras)
+				return tpl.TemplateId
+		}
+		return ""
+}
+
+// 填充请求参数
+func (this *SmsCodeServiceAliCloudImpl) setFromDataByTemplate(tpl *models.MessageTemplate, extras *map[string]string) {
+		var (
+				_extras = *extras
+				data    = tpl.Template
+				smsTemp = models.NewSmsTemplate().Load(data)
+		)
+		for _, it := range smsTemp.Variables {
+				if v, ok := _extras[it.Key]; ok {
+						_extras[it.Value] = v
+						continue
+				}
+				if v, ok := _extras[it.Value]; ok {
+						_extras[it.Value] = v
+						continue
+				}
+				if it.Value != "code" {
+						continue
+				}
+				if v, ok := _extras["content"]; ok && v != "" {
+						_extras[it.Value] = v
+				}
+		}
 }
 
 func (this *SmsCodeServiceAliCloudImpl) Verify(mobile string, code string, typ string) bool {
@@ -196,7 +318,7 @@ func (this *SmsCodeServiceAliCloudImpl) addLog(log *models.SmsLog) {
 }
 
 func (this *SmsCodeServiceAliCloudImpl) Debug() bool {
-		return beego.BConfig.RunMode == "dev" || os.Getenv("sms_debug_on") == "1"
+		return beego.BConfig.RunMode == "dev" && os.Getenv("sms_debug_on") == "1"
 }
 
 type smsCodeMockService struct {

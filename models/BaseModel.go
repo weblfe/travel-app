@@ -325,7 +325,7 @@ func (this *BaseModel) Update(query interface{}, data interface{}) error {
 func (this *BaseModel) UpdateById(id string, data interface{}) error {
 		table := this.Collection()
 		defer this.destroy()
-		return table.Update(bson.M{"_id":bson.ObjectIdHex(id)}, data)
+		return table.Update(bson.M{"_id": bson.ObjectIdHex(id)}, data)
 }
 
 func (this *BaseModel) Updates(query interface{}, data interface{}) (*mgo.ChangeInfo, error) {
@@ -402,4 +402,17 @@ func (this *BaseModel) Gets(query interface{}, result interface{}, selects ...in
 				return table.Find(query).Select(selects[0]).All(result)
 		}
 		return table.Find(query).All(result)
+}
+
+func (this *BaseModel) Exists(query interface{}) bool {
+		table := this.Collection()
+		defer this.destroy()
+		var tmp beego.M
+		if err := table.Find(query).One(&tmp); err == nil {
+				if _, ok := tmp["_id"]; ok {
+						return true
+				}
+				return len(tmp) > 0
+		}
+		return false
 }

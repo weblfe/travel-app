@@ -9,6 +9,7 @@ require (
 	github.com/globalsign/mgo v0.0.0-20181015135952-eeefdecb41b8
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/jmespath/go-jmespath v0.3.0 // indirect
+	github.com/joho/godotenv v1.3.0
 	github.com/jordan-wright/email v0.0.0-20200602115436-fd8a7622303e
 	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect

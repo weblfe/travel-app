@@ -38,7 +38,9 @@ func (this *CaptchaRepositoryImpl) SendMobileCaptcha() common.ResponseJson {
 		if mobile == "" || typ == "" {
 				return common.NewInvalidParametersResp(common.NewErrors(common.InvalidParametersCode, "手机号和发送类型不能为空"))
 		}
-		code, err := this.smsService.SendCode(mobile, typ, nil)
+		code, err := this.smsService.SendCode(mobile, typ, map[string]string{
+				"type" : "sms_verify_code",
+		})
 		if err != nil {
 				return common.NewErrorResp(common.NewErrors(common.ServiceFailed, err.Error()))
 		}
