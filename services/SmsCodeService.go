@@ -116,10 +116,11 @@ func (this *SmsCodeServiceAliCloudImpl) Send(mobile string, content string, extr
 		tmp, _ := json.Marshal(extras)
 		log.Extras = string(tmp)
 		if rep != nil {
-				log.Result = rep.String()
+				log.Result = rep.GetHttpContentString()
 		}
 		if err !=nil {
        log.State = 2
+       log.Result = "error: "+ err.Error() + " response: " + log.Result
 		}else{
 				log.State = 1
 		}
