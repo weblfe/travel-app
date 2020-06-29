@@ -95,6 +95,7 @@ func (this *SmsCodeServiceAliCloudImpl) Send(mobile string, content string, extr
 		}
 		// 填写消息内容
 		extras["content"] = content
+		typ  :=extras["type"]
 		req := this.CreateSmsRequest(mobile, extras)
 		if req == nil {
 				return fmt.Errorf("参数不足 %v", extras)
@@ -112,7 +113,7 @@ func (this *SmsCodeServiceAliCloudImpl) Send(mobile string, content string, extr
 		log := new(models.SmsLog)
 		log.Defaults()
 		log.Content = content
-		log.Type = extras["type"]
+		log.Type = typ
 		tmp, _ := json.Marshal(extras)
 		log.Extras = string(tmp)
 		if rep != nil {
