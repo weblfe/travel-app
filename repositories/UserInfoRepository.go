@@ -52,8 +52,7 @@ func (this *UserInfoRepositoryImpl) GetUserInfo() common.ResponseJson {
 		if user == nil || isForbid(user) {
 				return common.NewErrorResp(common.NewErrors(common.PermissionCode,"账号禁用状态"))
 		}
-		data:=user.M(filterUser)
-		delete(data,"access_tokens")
+		data:=user.M(filterUserBase)
 		return common.NewSuccessResp(beego.M{"user":data},"获取成功")
 }
 
