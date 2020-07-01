@@ -58,7 +58,7 @@ func initDatabase() {
 						initMongodb(database)
 				}
 		}
-		service:=services.GetInitDataServiceInstance()
+		service := services.GetInitDataServiceInstance()
 		service.SetInit("./static/database")
 		service.Init()
 }
@@ -105,5 +105,23 @@ func initRegisterEnv() {
 		_ = godotenv.Load(arr...)
 		// 加载 主配置
 		_ = beego.LoadAppConfig("ini", "conf/main.conf")
+		// 重新载入配置
+		reloadConfig()
+}
 
+// 重新载入配置
+func reloadConfig() {
+		beego.BConfig.RunMode = beego.AppConfig.DefaultString(SetConfGlobalScope("runmode"), beego.BConfig.RunMode)
+		beego.BConfig.AppName = beego.AppConfig.DefaultString(SetConfGlobalScope("appname"), beego.BConfig.AppName)
+		beego.BConfig.ServerName = beego.AppConfig.DefaultString(SetConfGlobalScope("servername"), beego.BConfig.ServerName)
+		beego.BConfig.Listen.HTTPPort = beego.AppConfig.DefaultInt(SetConfGlobalScope("httpport"), beego.BConfig.Listen.HTTPPort)
+		beego.BConfig.Listen.HTTPSPort = beego.AppConfig.DefaultInt(SetConfGlobalScope("httpsport"), beego.BConfig.Listen.HTTPSPort)
+}
+
+// 全局
+func SetConfGlobalScope(key string) string {
+		if strings.Contains(key, "::") {
+				return key
+		}
+		return "default::" + key
 }
