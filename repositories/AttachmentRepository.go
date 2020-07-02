@@ -4,12 +4,8 @@ import (
 		"github.com/astaxie/beego"
 		"github.com/astaxie/beego/logs"
 		"github.com/weblfe/travel-app/common"
-		"github.com/weblfe/travel-app/libs"
 		"github.com/weblfe/travel-app/services"
 		"io"
-		"os"
-		"path"
-		"time"
 )
 
 type AttachmentRepository interface {
@@ -20,8 +16,8 @@ type AttachmentRepository interface {
 }
 
 type AttachmentRepositoryImpl struct {
-		ctx        *beego.Controller
-		filesystem services.FileSystem
+		ctx               *beego.Controller
+		attachmentService services.AttachmentService
 }
 
 const (
@@ -36,7 +32,7 @@ func NewAttachmentRepository(ctx *beego.Controller) AttachmentRepository {
 }
 
 func (this *AttachmentRepositoryImpl) init() {
-		this.filesystem = services.GetFileSystem()
+		this.attachmentService = services.AttachmentServiceOf()
 }
 
 func (this *AttachmentRepositoryImpl) List() common.ResponseJson {
@@ -50,8 +46,9 @@ func (this *AttachmentRepositoryImpl) Ticket() common.ResponseJson {
 
 func (this *AttachmentRepositoryImpl) Upload() common.ResponseJson {
 		var (
-				ctx = this.ctx
-				typ = ctx.GetString("type")
+				ctx    = this.ctx
+				typ    = ctx.GetString("type")
+				ticket = ctx.GetString("ticket")
 		)
 		if typ == "" {
 				typ = DefaultFileKey
@@ -74,26 +71,16 @@ func (this *AttachmentRepositoryImpl) Upload() common.ResponseJson {
 		if fs == nil {
 				return common.NewErrorResp(common.NewErrors(common.InvalidTokenCode, "文件传输异常"))
 		}
-		dir := path.Join(beego.AppPath, "static/storage")
-		if !libs.IsExits(dir) {
-				_ = os.MkdirAll(dir, os.ModePerm)
+		// 保存
+		result := this.attachmentService.Save(m, beego.M{"fileInfo": fs, "ticket": ticket})
+		if result == nil {
+				return common.NewErrorResp(common.NewErrors(common.InvalidTokenCode, "文件保存失败"))
 		}
-		filename := path.Join(dir, fs.Filename)
-		fd, errs := os.OpenFile(filename, os.O_WRONLY|os.O_APPEND|os.O_CREATE, os.ModePerm)
-		if errs != nil {
-				return common.NewErrorResp(common.NewErrors(common.ServiceFailed, errs.Error()))
-		}
-		defer func() {
-				_ = fd.Close()
-		}()
-		_, err = io.Copy(fd, m)
-		if err != nil {
-				return common.NewErrorResp(common.NewErrors(common.ServiceFailed, "文件保存失败"))
-		}
-		id := libs.FileHash(filename)
-		return common.NewSuccessResp(beego.M{"mediaId": id, "time": time.Now().Unix()}, "上传成功")
+		return common.NewSuccessResp(result.M(filterAttachment), "上传成功")
 }
 
 func (this *AttachmentRepositoryImpl) Uploads() common.ResponseJson {
 		panic("implement me")
 }
+
+

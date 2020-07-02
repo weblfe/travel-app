@@ -59,3 +59,10 @@ func filterEmpty(m beego.M, number ...bool) beego.M {
 		}
 		return m
 }
+
+func filterAttachment(m beego.M) beego.M {
+		if v, ok := m["id"]; ok {
+				m["mediaId"] = v
+		}
+		return filterEmpty(m)
+}

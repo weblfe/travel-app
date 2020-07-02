@@ -4,6 +4,7 @@ import (
 		"encoding/json"
 		"fmt"
 		"github.com/astaxie/beego"
+		"github.com/weblfe/travel-app/libs"
 		"io"
 		"io/ioutil"
 		"os"
@@ -11,6 +12,7 @@ import (
 		"path/filepath"
 		"strings"
 		"sync"
+		"time"
 )
 
 type FileService interface {
@@ -20,6 +22,7 @@ type FileService interface {
 		Save(file string, data []byte, disk ...string) (string, interface{})
 		GetReader(file string, disk ...string) (io.Reader, error)
 		GetWriter(file string, disk ...string) (io.Writer, error)
+		SaveByReader(reader io.ReadCloser, extras beego.M) (beego.M, bool)
 }
 
 type FileSchemaWrapper interface {
@@ -264,4 +267,52 @@ func (this *fileSystemServiceImpl) AddDisk(disk string, root string, fn ...func(
 				Path: fn[0],
 		}
 		return this
+}
+
+func (this *fileSystemServiceImpl) SaveByReader(reader io.ReadCloser, extras beego.M) (beego.M, bool) {
+		var (
+				filePath = extras["path"]
+		)
+		if filePath == "" || filePath == nil {
+				filePath = this.getFileName()
+		}
+		filename := extras["filename"]
+		if filename == "" || filename == nil {
+				filename = this.getFileNameByMapper(extras)
+		}
+		filePath = filepath.Join(filePath.(string), filename.(string))
+		fs, err := os.OpenFile(filePath.(string), os.O_CREATE|os.O_WRONLY, os.ModePerm)
+		defer func() {
+				_ = fs.Close()
+		}()
+		if err == nil {
+				return extras, false
+		}
+		n, err := io.Copy(fs, reader)
+		if err != nil && n > 0 {
+				info,_:= fs.Stat()
+				extras["filename"] = info.Name()
+				extras["size"] = info.Size()
+				extras["hash"] = libs.FileHash(info.Name())
+				return extras, true
+		}
+		return nil, false
+}
+
+func (this *fileSystemServiceImpl) getFileName() string {
+		var (
+				t       = time.Now()
+				y, m, d = t.Date()
+				date    = fmt.Sprintf("%d-%d-%d", y, m, d)
+		)
+		return fmt.Sprintf("%s/%s/tmp_%d", PathsServiceOf().StoragePath(), date, t.Unix())
+}
+
+func (this *fileSystemServiceImpl) getFileNameByMapper(m beego.M) string {
+		if fileInfo, ok := m["fileInfo"]; ok {
+				if info, ok := fileInfo.(os.FileInfo); ok {
+						return info.Name()
+				}
+		}
+		return fmt.Sprintf("tmp_%d", time.Now().Unix())
 }
