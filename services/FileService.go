@@ -7,6 +7,7 @@ import (
 		"github.com/weblfe/travel-app/libs"
 		"io"
 		"io/ioutil"
+		"mime/multipart"
 		"os"
 		"path"
 		"path/filepath"
@@ -285,15 +286,16 @@ func (this *fileSystemServiceImpl) SaveByReader(reader io.ReadCloser, extras bee
 		defer func() {
 				_ = fs.Close()
 		}()
-		if err == nil {
+		if err != nil {
 				return extras, false
 		}
 		n, err := io.Copy(fs, reader)
-		if err != nil && n > 0 {
+		if err == nil && n > 0 {
 				info,_:= fs.Stat()
-				extras["filename"] = info.Name()
 				extras["size"] = info.Size()
-				extras["hash"] = libs.FileHash(info.Name())
+				extras["filePath"] = filePath
+				extras["hash"] = libs.FileHash(filePath.(string))
+				extras["filename"] = info.Name()
 				return extras, true
 		}
 		return nil, false
@@ -312,6 +314,9 @@ func (this *fileSystemServiceImpl) getFileNameByMapper(m beego.M) string {
 		if fileInfo, ok := m["fileInfo"]; ok {
 				if info, ok := fileInfo.(os.FileInfo); ok {
 						return info.Name()
+				}
+				if info, ok := fileInfo.(*multipart.FileHeader); ok {
+						return info.Filename
 				}
 		}
 		return fmt.Sprintf("tmp_%d", time.Now().Unix())

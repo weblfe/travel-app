@@ -72,7 +72,7 @@ func (this *AttachmentRepositoryImpl) Upload() common.ResponseJson {
 				return common.NewErrorResp(common.NewErrors(common.InvalidTokenCode, "文件传输异常"))
 		}
 		// 保存
-		result := this.attachmentService.Save(m, beego.M{"fileInfo": fs, "ticket": ticket})
+		result := this.attachmentService.Save(m, beego.M{"fileInfo": fs, "ticket": ticket,"path":services.PathsServiceOf().StoragePath()})
 		if result == nil {
 				return common.NewErrorResp(common.NewErrors(common.InvalidTokenCode, "文件保存失败"))
 		}

@@ -44,10 +44,14 @@ func filterEmpty(m beego.M, number ...bool) beego.M {
 						continue
 				}
 				ty := reflect.TypeOf(v)
-				if ty.Kind() == reflect.Slice || ty.Kind() == reflect.Array {
+				if ty.Kind() == reflect.Array {
 						if ty.Len() <= 0 {
 								delete(m, k)
 						}
+						continue
+				}
+				if ty.Kind() == reflect.Slice &&	0==ty.Size() {
+						delete(m, k)
 						continue
 				}
 				if t, ok := v.(time.Time); ok {

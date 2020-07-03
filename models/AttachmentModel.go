@@ -15,7 +15,7 @@ type AttachmentModel struct {
 
 // 附件模型
 type Attachment struct {
-		Id            bson.ObjectId `json:"id" bson:"id"`                                             // id media_id
+		Id            bson.ObjectId `json:"id" bson:"_id"`                                             // id media_id
 		FileName      string        `json:"filename" bson:"filename"`                                 // 文件名
 		Hash          string        `json:"hash" bson:"hash"`                                         // 文件hash值
 		Ticket        string        `json:"ticket" bson:"ticket"`                                     // 文件上传时的密钥
@@ -46,6 +46,10 @@ type Attachment struct {
 		CreatedAt     time.Time     `json:"created_at" bson:"created_at"`                             // 创建时间
 		DeletedAt     int64         `json:"deleted_at" bson:"deleted_at"`                             // 删除时间
 }
+
+const (
+		AttachmentTable = "attachments"
+)
 
 func NewAttachment() *Attachment {
 		return new(Attachment)
@@ -237,6 +241,9 @@ func (this *Attachment) Defaults() *Attachment {
 		if this.Id == "" {
 				this.Id = bson.NewObjectId()
 		}
+		if this.UserId == "" {
+				this.UserId = ""
+		}
 		return this
 }
 
@@ -297,6 +304,10 @@ func (this *AttachmentModel) CreateIndex() {
 				Unique: false,
 				Sparse: true,
 		})
+}
+
+func (this *AttachmentModel) TableName() string {
+		return AttachmentTable
 }
 
 func (this *AttachmentModel) GetByMediaId(id string) (*Attachment, error) {

@@ -61,9 +61,9 @@ func (this *AttachmentServiceImpl) Save(reader io.ReadCloser, extras ...beego.M)
 
 func (this *AttachmentServiceImpl) Create(attach *models.Attachment) bool {
 		if err := this.model.Add(attach); err == nil {
-				return false
+				return true
 		}
-		return true
+		return false
 }
 
 func (this *AttachmentServiceImpl) defaultsExtras(m beego.M) beego.M {
@@ -82,12 +82,14 @@ func (this *AttachmentServiceImpl) save(reader io.ReadCloser, extras beego.M) *m
 		if reader == nil {
 				return nil
 		}
+
 		if path != "" {
 				extras["path"] = path
 				res, ok := GetFileSystem().SaveByReader(reader, extras)
 				if ok && len(res) > 0 {
 						return models.NewAttachment().Load(res).Defaults()
 				}
+				return nil
 		}
 		if oss != "" && ossBucket != "" {
 				extras["schema"] = "@oss(" + oss.(string) + ")://" + ossBucket.(string)
