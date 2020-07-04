@@ -84,11 +84,16 @@ func (this *AttachmentServiceImpl) delete(fs string) {
 		}
 }
 
+// 文件仅保存一份
 func (this *AttachmentServiceImpl) onlySaveOne(attach *models.Attachment) *models.Attachment {
 		if attach.Hash != "" {
 				oldAttach := this.GetByHash(attach.Hash)
 				if oldAttach != nil && attach.Path != "" && attach.FileName != "" {
 						fs := filepath.Join(attach.Path, attach.FileName)
+						existsFs := filepath.Join(oldAttach.Path, oldAttach.FileName)
+						if !libs.IsExits(existsFs) {
+								return attach
+						}
 						defer this.delete(fs)
 						attach.ExtrasInfo["originSavePath"] = attach.Path
 						attach.ExtrasInfo["originSaveFileName"] = attach.FileName
