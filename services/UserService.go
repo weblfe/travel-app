@@ -38,6 +38,12 @@ func (this *UserServiceImpl) RemoveByUid(uid string) bool {
 }
 
 func (this *UserServiceImpl) Create(user *models.User) common.Errors {
+		if user.AvatarId == "" {
+				avatar := AvatarServerOf().GetDefaultAvatar(user.Gender)
+				if avatar != nil {
+						user.AvatarId = avatar.Id.Hex()
+				}
+		}
 		err := this.userModel.Add(user)
 		if err == nil {
 				return nil

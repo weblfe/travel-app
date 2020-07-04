@@ -96,6 +96,7 @@ func (this *AttachmentServiceImpl) delete(fs string) {
 
 // 文件仅保存一份
 func (this *AttachmentServiceImpl) onlySaveOne(attach *models.Attachment) *models.Attachment {
+		// 开关文件保存一份 通过hash
 		if env.Get("ATTACHMENT_ONLY_ONE_SAVE","on") == "off" {
 				return attach
 		}
