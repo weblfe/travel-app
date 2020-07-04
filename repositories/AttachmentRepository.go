@@ -1,6 +1,7 @@
 package repositories
 
 import (
+		"fmt"
 		"github.com/astaxie/beego"
 		"github.com/astaxie/beego/logs"
 		"github.com/weblfe/travel-app/common"
@@ -8,6 +9,7 @@ import (
 		"io"
 		"net/http"
 		"path/filepath"
+		"time"
 )
 
 type AttachmentRepository interface {
@@ -76,11 +78,20 @@ func (this *AttachmentRepositoryImpl) Upload() common.ResponseJson {
 				return common.NewErrorResp(common.NewErrors(common.InvalidTokenCode, "文件传输异常"))
 		}
 		// 保存
-		result := this.attachmentService.Save(m, beego.M{"fileInfo": fs, "ticket": ticket, "path": services.PathsServiceOf().StoragePath()})
+		result := this.attachmentService.Save(m, beego.M{"fileInfo": fs, "ticket": ticket, "path": this.getAttachmentPath()})
 		if result == nil {
 				return common.NewErrorResp(common.NewErrors(common.InvalidTokenCode, "文件保存失败"))
 		}
-		return common.NewSuccessResp(result.M(FilterWrapper(filterAttachment, filterEmptyMapper)), "上传成功")
+		filter := FilterWrapper(filterAttachment, filterEmptyMapper, FieldsFilter([]string{"path", "id", "createdAt","extrasInfo"}))
+		return common.NewSuccessResp(result.M(filter), "上传成功")
+}
+
+func (this *AttachmentRepositoryImpl) getAttachmentPath() string {
+		var (
+				year, month, day = time.Now().Date()
+				date             = fmt.Sprintf("%d-%d-%d", year, month, day)
+		)
+		return services.PathsServiceOf().StoragePath("/" + date)
 }
 
 func (this *AttachmentRepositoryImpl) Uploads() common.ResponseJson {
@@ -88,7 +99,7 @@ func (this *AttachmentRepositoryImpl) Uploads() common.ResponseJson {
 }
 
 // 下载文件
-func (this *AttachmentRepositoryImpl) DownloadByMediaId(mediaIds...string) {
+func (this *AttachmentRepositoryImpl) DownloadByMediaId(mediaIds ...string) {
 		var (
 				id   = this.ctx.GetString(":mediaId")
 				info = this.attachmentService.Get(id)
@@ -96,7 +107,7 @@ func (this *AttachmentRepositoryImpl) DownloadByMediaId(mediaIds...string) {
 		if id == "" && len(mediaIds) > 0 {
 				id = mediaIds[0]
 		}
-		if info == nil || id == ""{
+		if info == nil || id == "" {
 				this.ctx.Ctx.Output.Status = 404
 				this.ctx.Ctx.WriteString("media file not found!")
 				return
@@ -111,7 +122,7 @@ func (this *AttachmentRepositoryImpl) DownloadByMediaId(mediaIds...string) {
 }
 
 // 文件服务
-func (this *AttachmentRepositoryImpl) GetByMediaId(mediaIds...string) {
+func (this *AttachmentRepositoryImpl) GetByMediaId(mediaIds ...string) {
 		var (
 				id   = this.ctx.GetString(":mediaId")
 				info = this.attachmentService.Get(id)
@@ -119,7 +130,7 @@ func (this *AttachmentRepositoryImpl) GetByMediaId(mediaIds...string) {
 		if id == "" && len(mediaIds) > 0 {
 				id = mediaIds[0]
 		}
-		if info == nil || id == ""{
+		if info == nil || id == "" {
 				this.ctx.Ctx.Output.Status = 404
 				this.ctx.Ctx.WriteString("media file not found!")
 				return
@@ -129,6 +140,6 @@ func (this *AttachmentRepositoryImpl) GetByMediaId(mediaIds...string) {
 				this.ctx.Ctx.WriteString("media file not found!")
 				return
 		}
-		http.ServeFile(this.ctx.Ctx.ResponseWriter,this.ctx.Ctx.Request,filepath.Join(info.Path, info.FileName))
+		http.ServeFile(this.ctx.Ctx.ResponseWriter, this.ctx.Ctx.Request, filepath.Join(info.Path, info.FileName))
 		return
 }

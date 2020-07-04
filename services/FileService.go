@@ -275,14 +275,20 @@ func (this *fileSystemServiceImpl) SaveByReader(reader io.ReadCloser, extras bee
 				filePath = extras["path"]
 		)
 		if filePath == "" || filePath == nil {
-				filePath = this.getFileName()
+				filePath = this.getFileSavePath()
 		}
 		filename := extras["filename"]
 		if filename == "" || filename == nil {
 				filename = this.getFileNameByMapper(extras)
 		}
-		filePath = filepath.Join(filePath.(string), filename.(string))
-		fs, err := os.OpenFile(filePath.(string), os.O_CREATE|os.O_WRONLY, os.ModePerm)
+		root := filePath.(string)
+		name := filename.(string)
+		savePath := filepath.Join(root, name)
+		// 文件是否存在
+		if libs.IsExits(savePath) {
+				savePath = filepath.Join(root, fmt.Sprintf("%d", time.Now().Unix())+"_"+name)
+		}
+		fs, err := os.OpenFile(savePath, os.O_CREATE|os.O_WRONLY, os.ModePerm)
 		defer func() {
 				_ = fs.Close()
 		}()
@@ -291,23 +297,25 @@ func (this *fileSystemServiceImpl) SaveByReader(reader io.ReadCloser, extras bee
 		}
 		n, err := io.Copy(fs, reader)
 		if err == nil && n > 0 {
-				info,_:= fs.Stat()
+				info, _ := fs.Stat()
 				extras["size"] = info.Size()
-				extras["filePath"] = filePath
-				extras["hash"] = libs.FileHash(filePath.(string))
+				extras["filePath"] = savePath
+				extras["hash"] = libs.FileHash(savePath)
 				extras["filename"] = info.Name()
 				return extras, true
 		}
 		return nil, false
 }
 
-func (this *fileSystemServiceImpl) getFileName() string {
+func (this *fileSystemServiceImpl) getFileSavePath() string {
 		var (
 				t       = time.Now()
 				y, m, d = t.Date()
 				date    = fmt.Sprintf("%d-%d-%d", y, m, d)
+				dir     = fmt.Sprintf("%s/%s", PathsServiceOf().StoragePath(), date)
 		)
-		return fmt.Sprintf("%s/%s/tmp_%d", PathsServiceOf().StoragePath(), date, t.Unix())
+		_ = os.MkdirAll(dir, os.ModePerm)
+		return dir
 }
 
 func (this *fileSystemServiceImpl) getFileNameByMapper(m beego.M) string {

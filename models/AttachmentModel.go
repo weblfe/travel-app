@@ -261,6 +261,9 @@ func (this *Attachment) Defaults() *Attachment {
 		if this.SizeText == "" && this.Size != 0 {
 				this.SizeText = libs.FormatFileSize(this.Size)
 		}
+		if this.ExtrasInfo == nil {
+				this.ExtrasInfo = make(bson.M)
+		}
 		return this
 }
 

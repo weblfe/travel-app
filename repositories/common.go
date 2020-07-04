@@ -112,3 +112,26 @@ func FilterWrapper(filters ...func(m beego.M) beego.M) func(m beego.M) beego.M {
 				return m
 		}
 }
+
+// 字段过滤器
+func FieldsFilter(fields []string, exclude ...bool) func(m beego.M) beego.M {
+		if len(exclude) == 0 {
+				exclude = append(exclude, true)
+		}
+		return func(m beego.M) beego.M {
+				for key, _ := range m {
+						for _, k := range fields {
+								if k != key {
+										// 保存
+										if !exclude[0] {
+												continue
+										}
+										continue
+								}
+								// 排除
+								delete(m, key)
+						}
+				}
+				return m
+		}
+}

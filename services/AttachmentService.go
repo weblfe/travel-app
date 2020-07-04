@@ -1,10 +1,15 @@
 package services
 
 import (
+		"fmt"
 		"github.com/astaxie/beego"
+		"github.com/astaxie/beego/logs"
 		"github.com/weblfe/travel-app/libs"
 		"github.com/weblfe/travel-app/models"
 		"io"
+		"os"
+		"path/filepath"
+		"time"
 )
 
 type AttachmentService interface {
@@ -60,18 +65,54 @@ func (this *AttachmentServiceImpl) Save(reader io.ReadCloser, extras ...beego.M)
 }
 
 func (this *AttachmentServiceImpl) Create(attach *models.Attachment) bool {
+		if attach == nil {
+				return false
+		}
+		attach = this.onlySaveOne(attach)
 		if err := this.model.Add(attach); err == nil {
 				return true
 		}
 		return false
 }
 
+func (this *AttachmentServiceImpl) delete(fs string) {
+		if fs != "" {
+				err := os.Remove(fs)
+				if err != nil {
+						logs.Error(err)
+				}
+		}
+}
+
+func (this *AttachmentServiceImpl) onlySaveOne(attach *models.Attachment) *models.Attachment {
+		if attach.Hash != "" {
+				oldAttach := this.GetByHash(attach.Hash)
+				if oldAttach != nil && attach.Path != "" && attach.FileName != "" {
+						fs := filepath.Join(attach.Path, attach.FileName)
+						defer this.delete(fs)
+						attach.ExtrasInfo["originSavePath"] = attach.Path
+						attach.ExtrasInfo["originSaveFileName"] = attach.FileName
+						attach.Path = oldAttach.Path
+						attach.FileName = oldAttach.FileName
+				}
+		}
+		return attach
+}
+
 func (this *AttachmentServiceImpl) defaultsExtras(m beego.M) beego.M {
 		_, ok := m["path"]
 		if len(m) == 0 || !ok {
-				m["path"] = PathsServiceOf().StoragePath()
+				m["path"] = this.getAttachmentPath()
 		}
 		return m
+}
+
+func (this *AttachmentServiceImpl) getAttachmentPath() string {
+		var (
+				year, month, day = time.Now().Date()
+				date             = fmt.Sprintf("%d-%d-%d", year, month, day)
+		)
+		return PathsServiceOf().StoragePath("/" + date)
 }
 
 func (this *AttachmentServiceImpl) save(reader io.ReadCloser, extras beego.M) *models.Attachment {
@@ -85,6 +126,7 @@ func (this *AttachmentServiceImpl) save(reader io.ReadCloser, extras beego.M) *m
 
 		if path != "" {
 				extras["path"] = path
+				_ = os.MkdirAll(path.(string), os.ModePerm)
 				res, ok := GetFileSystem().SaveByReader(reader, extras)
 				if ok && len(res) > 0 {
 						return models.NewAttachment().Load(res).Defaults()
@@ -97,6 +139,14 @@ func (this *AttachmentServiceImpl) save(reader io.ReadCloser, extras beego.M) *m
 				if ok && len(res) > 0 {
 						return models.NewAttachment().Load(res).Defaults()
 				}
+		}
+		return nil
+}
+
+func (this *AttachmentServiceImpl) GetByHash(hash string) *models.Attachment {
+		var attach = models.NewAttachment()
+		if err := this.model.GetByKey("hash", hash, attach); err == nil {
+				return attach
 		}
 		return nil
 }
