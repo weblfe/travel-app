@@ -27,7 +27,8 @@ type AttachmentRepositoryImpl struct {
 }
 
 const (
-		DefaultFileKey = "file"
+		DefaultFileKey  = "file"
+		DefaultFilesKey = "files"
 )
 
 func NewAttachmentRepository(ctx *beego.Controller) AttachmentRepository {
@@ -42,12 +43,11 @@ func (this *AttachmentRepositoryImpl) init() {
 }
 
 func (this *AttachmentRepositoryImpl) List() common.ResponseJson {
-
-		return common.NewInvalidParametersResp()
+		return common.NewInDevResp(this.ctx.Ctx.Request.URL.String())
 }
 
 func (this *AttachmentRepositoryImpl) Ticket() common.ResponseJson {
-		panic("implement me")
+		return common.NewInDevResp(this.ctx.Ctx.Request.URL.String())
 }
 
 func (this *AttachmentRepositoryImpl) Upload() common.ResponseJson {
@@ -55,6 +55,7 @@ func (this *AttachmentRepositoryImpl) Upload() common.ResponseJson {
 				ctx    = this.ctx
 				typ    = ctx.GetString("type")
 				ticket = ctx.GetString("ticket")
+				uid    = ctx.Ctx.Input.Param("_userId")
 		)
 		if typ == "" {
 				typ = DefaultFileKey
@@ -78,24 +79,64 @@ func (this *AttachmentRepositoryImpl) Upload() common.ResponseJson {
 				return common.NewErrorResp(common.NewErrors(common.InvalidTokenCode, "文件传输异常"))
 		}
 		// 保存
-		result := this.attachmentService.Save(m, beego.M{"fileInfo": fs, "ticket": ticket, "path": this.getAttachmentPath()})
+		result := this.attachmentService.Save(m, beego.M{"userId": uid, "fileInfo": fs, "ticket": ticket, "path": this.getAttachmentPath()})
 		if result == nil {
 				return common.NewErrorResp(common.NewErrors(common.InvalidTokenCode, "文件保存失败"))
 		}
-		filter := FilterWrapper(filterAttachment, filterEmptyMapper, FieldsFilter([]string{"path", "id", "createdAt","extrasInfo"}))
+		filter := FilterWrapper(filterAttachment, filterEmptyMapper, FieldsFilter([]string{"path", "id", "createdAt", "extrasInfo"}))
 		return common.NewSuccessResp(result.M(filter), "上传成功")
 }
 
-func (this *AttachmentRepositoryImpl) getAttachmentPath() string {
-		var (
-				year, month, day = time.Now().Date()
-				date             = fmt.Sprintf("%d-%d-%d", year, month, day)
-		)
-		return services.PathsServiceOf().StoragePath("/" + date)
-}
-
 func (this *AttachmentRepositoryImpl) Uploads() common.ResponseJson {
-		panic("implement me")
+		var (
+				ctx    = this.ctx
+				typ    = ctx.GetString("type")
+				uid    = ctx.Ctx.Input.Param("_userId")
+				ticket = ctx.GetString("ticket")
+		)
+		if typ == "" {
+				typ = DefaultFilesKey
+		}
+		fsArr, err := ctx.GetFiles(typ)
+		if err != nil {
+				return common.NewErrorResp(common.NewErrors(common.ServiceFailed, err.Error()))
+		}
+		var (
+				failCount    int
+				successCount int
+				results      []beego.M
+				filter       = FilterWrapper(filterAttachment, filterEmptyMapper, FieldsFilter([]string{"path", "id", "createdAt", "extrasInfo"}))
+		)
+		// 文件保存
+		for _, m := range fsArr {
+				fs, openErr := m.Open()
+				if openErr != nil {
+						results = append(results, beego.M{"filename": m.Filename, "status": 0, "error": openErr.Error()})
+						continue
+				}
+				data := beego.M{
+						"userId": uid, "fileInfo": m,
+						"ticket": ticket, "path": this.getAttachmentPath(),
+				}
+				// 保存
+				result := this.attachmentService.Save(fs, data)
+				_ = fs.Close()
+				if result == nil {
+						failCount++
+						results = append(results, beego.M{"filename": m.Filename, "status": -1, "error": "save failed!"})
+				} else {
+						successCount++
+						results = append(results, result.M(filter))
+				}
+		}
+		if successCount == 0 {
+				return common.NewErrorResp(common.NewErrors("all save failed!", common.ServiceFailed), "文保存失败")
+		}
+		data := beego.M{
+				"items": results,
+				"meta":  beego.M{"successCount": successCount, "failCount": failCount, "total": len(fsArr)},
+		}
+		return common.NewSuccessResp(data, "上传成功")
 }
 
 // 下载文件
@@ -142,4 +183,12 @@ func (this *AttachmentRepositoryImpl) GetByMediaId(mediaIds ...string) {
 		}
 		http.ServeFile(this.ctx.Ctx.ResponseWriter, this.ctx.Ctx.Request, filepath.Join(info.Path, info.FileName))
 		return
+}
+
+func (this *AttachmentRepositoryImpl) getAttachmentPath() string {
+		var (
+				year, month, day = time.Now().Date()
+				date             = fmt.Sprintf("%d-%d-%d", year, month, day)
+		)
+		return services.PathsServiceOf().StoragePath("/" + date)
 }

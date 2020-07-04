@@ -4,6 +4,7 @@ const (
 		WarnCode                  = 3000
 		SuccessCode               = 0
 		ErrorCode                 = 5000
+		DevelopCode               = 3111
 		UnLoginCode               = 4001
 		CreateFailCode            = 1001
 		PermissionCode            = 4003
@@ -28,4 +29,5 @@ const (
 		RegisterFail              = 1004
 		RegisterFailTip           = "register failed!"
 		AppTokenCookie            = "authorization"
+		DevelopCodeError            = "developing"
 )

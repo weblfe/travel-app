@@ -4,6 +4,7 @@ import (
 		"encoding/json"
 		"fmt"
 		"github.com/astaxie/beego"
+		"github.com/astaxie/beego/config/env"
 		"github.com/globalsign/mgo/bson"
 		"strings"
 		"sync"
@@ -404,6 +405,25 @@ func NewErrorResp(err Errors, args ...interface{}) ResponseJson {
 		}
 		if !resp.Has("msg") {
 				resp.Set("msg", Error)
+		}
+		return resp
+}
+
+// 请求参数异常
+// err Errors
+// msg  string
+// code int
+// data interface{}
+func NewInDevResp(api string, args ...interface{}) ResponseJson {
+		var resp = NewResponse(args...)
+		server:=env.Get("SERVER_DOMAIN","")
+		errMsg := server+" api: "+api
+		resp.Set("err", NewErrors(errMsg, DevelopCode))
+		if !resp.Has("code") {
+				resp.Set("code", DevelopCode)
+		}
+		if !resp.Has("msg") {
+				resp.Set("msg", DevelopCodeError)
 		}
 		return resp
 }
