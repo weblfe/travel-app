@@ -1,10 +1,13 @@
 package models
 
 import (
+		"fmt"
 		"github.com/astaxie/beego"
+		"github.com/astaxie/beego/config/env"
 		"github.com/astaxie/beego/orm"
 		"github.com/globalsign/mgo"
 		"github.com/globalsign/mgo/bson"
+		"github.com/weblfe/travel-app/libs"
 		"strings"
 		"time"
 )
@@ -15,36 +18,36 @@ type AttachmentModel struct {
 
 // 附件模型
 type Attachment struct {
-		Id            bson.ObjectId `json:"id" bson:"_id"`                                             // id media_id
+		Id            bson.ObjectId `json:"id" bson:"_id"`                                            // id media_id
 		FileName      string        `json:"filename" bson:"filename"`                                 // 文件名
 		Hash          string        `json:"hash" bson:"hash"`                                         // 文件hash值
 		Ticket        string        `json:"ticket" bson:"ticket"`                                     // 文件上传时的密钥
-		AppId         string        `json:"app_id" bson:"app_id"`                                     // 文件上传的应用
+		AppId         string        `json:"appId" bson:"appId"`                                     // 文件上传的应用
 		UserId        bson.ObjectId `json:"user_id,omitempty" bson:"user_id,omitempty"`               // 文件上传用户
-		ExtrasInfo    bson.M        `json:"extras_info,omitempty" bson:"extras_info,omitempty"`       // 文件扩展信息
+		ExtrasInfo    bson.M        `json:"extrasInfo,omitempty" bson:"extrasInfo,omitempty"`       // 文件扩展信息
 		Tags          []string      `json:"tags,omitempty" bson:"tags,omitempty"`                     // 文件标签
 		Url           string        `json:"url" bson:"url"`                                           // 远程访问链接
 		Cdn           string        `json:"cdn,omitempty" bson:"cdn,omitempty"`                       // cdn 服务名
-		CdnUrl        string        `json:"cdn_url,omitempty" bson:"cdn_url,omitempty"`               // cdn访问链接
-		OssBucket     string        `json:"oss_bucket,omitempty" bson:"oss_bucket,omitempty"`         // oss bucket
+		CdnUrl        string        `json:"cdnUrl,omitempty" bson:"cdnUrl,omitempty"`               // cdn访问链接
+		OssBucket     string        `json:"ossBucket,omitempty" bson:"ossBucket,omitempty"`         // oss bucket
 		Oss           string        `json:"oss,omitempty" bson:"oss,omitempty"`                       // oss 服务名
-		AccessTimes   int64         `json:"access_times,omitempty" bson:"access_times,omitempty"`     // 被访问次数
-		DownloadTimes int64         `json:"download_times,omitempty" bson:"download_times,omitempty"` // 被下载次数
+		AccessTimes   int64         `json:"accessTimes,omitempty" bson:"accessTimes,omitempty"`     // 被访问次数
+		DownloadTimes int64         `json:"downloadTimes,omitempty" bson:"downloadTimes,omitempty"` // 被下载次数
 		Path          string        `json:"path" bson:"path"`                                         // 系统本地存储路径
-		ReferName     string        `json:"refer_name" bson:"refer_name"`                             // 记录涉及的document名
-		ReferId       string        `json:"refer_id" bson:"refer_id"`                                 // 记录涉及的document的ID
+		ReferName     string        `json:"referName" bson:"referName"`                             // 记录涉及的document名
+		ReferId       string        `json:"referId" bson:"referId"`                                 // 记录涉及的document的ID
 		Size          int64         `json:"size" bson:"size"`                                         // 文件大小 单位: byte
-		SizeText      string        `json:"size_text" bson:"size_text"`                               // 带单的文件大小 eg: ..1G,120MB,1KB,1B,1byte
-		FileType      string        `json:"file_type" bson:"file_type"`                               // 文件类型 [doc,image,mp4,mp3,txt....]
+		SizeText      string        `json:"sizeText" bson:"sizeText"`                               // 带单的文件大小 eg: ..1G,120MB,1KB,1B,1byte
+		FileType      string        `json:"fileType" bson:"fileType"`                               // 文件类型 [doc,image,mp4,mp3,txt....]
 		Status        int           `json:"status" bson:"status"`                                     // 文件状态
 		Privately     bool          `json:"privately" bson:"privately"`                               // 文件是否私有
 		Watermark     bool          `json:"watermark" bson:"watermark"`                               // 文件是否有水印
-		UpdatedAt     time.Time     `json:"updated_at" bson:"updated_at"`                             // 记录更新时间
+		UpdatedAt     time.Time     `json:"updatedAt" bson:"updatedAt"`                             // 记录更新时间
 		Duration      time.Duration `json:"duration,omitempty" bson:"duration,omitempty"`             // 音视频文件时长
 		Width         int           `json:"width,omitempty" bson:"width,omitempty"`                   // 图片文件时宽
 		Height        int           `json:"height,omitempty" bson:"height,omitempty"`                 // 图片文件时高
-		CreatedAt     time.Time     `json:"created_at" bson:"created_at"`                             // 创建时间
-		DeletedAt     int64         `json:"deleted_at" bson:"deleted_at"`                             // 删除时间
+		CreatedAt     time.Time     `json:"createdAt" bson:"createdAt"`                             // 创建时间
+		DeletedAt     int64         `json:"deletedAt" bson:"deletedAt"`                             // 删除时间
 }
 
 const (
@@ -83,7 +86,7 @@ func (this *Attachment) set(key string, v interface{}) *Attachment {
 				fallthrough
 		case "ticket":
 				this.Ticket = v.(string)
-		case "app_id":
+		case "appId":
 				fallthrough
 		case "AppId":
 				this.AppId = v.(string)
@@ -98,7 +101,7 @@ func (this *Attachment) set(key string, v interface{}) *Attachment {
 				}
 		case "ExtrasInfo":
 				fallthrough
-		case "extras_info":
+		case "extrasInfo":
 				if m, ok := v.(map[string]interface{}); ok {
 						this.ExtrasInfo = bson.M(m)
 				}
@@ -127,21 +130,21 @@ func (this *Attachment) set(key string, v interface{}) *Attachment {
 				this.Cdn = v.(string)
 		case "CdnUrl":
 				fallthrough
-		case "cdn_url":
+		case "cdnUrl":
 				this.CdnUrl = v.(string)
 		case "OssBucket":
 				fallthrough
-		case "oss_bucket":
+		case "ossBucket":
 				this.OssBucket = v.(string)
 		case "Oss":
 				fallthrough
 		case "oss":
 				this.Oss = v.(string)
-		case "access_times":
+		case "accessTimes":
 				fallthrough
 		case "AccessTimes":
 				this.AccessTimes = orm.ToInt64(v)
-		case "download_times":
+		case "downloadTimes":
 				fallthrough
 		case "DownloadTimes":
 				this.DownloadTimes = orm.ToInt64(v)
@@ -149,22 +152,22 @@ func (this *Attachment) set(key string, v interface{}) *Attachment {
 				fallthrough
 		case "Path":
 				this.Path = orm.ToStr(v)
-		case "refer_name":
+		case "referName":
 		case "ReferName":
 				this.ReferName = orm.ToStr(v)
 		case "ReferId":
 				fallthrough
-		case "refer_id":
+		case "referId":
 				this.ReferId = orm.ToStr(v)
 		case "Size":
 				fallthrough
 		case "size":
 				this.Size = orm.ToInt64(v)
-		case "size_text":
+		case "sizeText":
 				fallthrough
 		case "SizeText":
 				this.SizeText = orm.ToStr(v)
-		case "file_type":
+		case "fileType":
 				fallthrough
 		case "FileType":
 
@@ -222,11 +225,11 @@ func (this *Attachment) set(key string, v interface{}) *Attachment {
 				fallthrough
 		case "Height":
 				this.Height = int(orm.ToInt64(v))
-		case "created_at":
+		case "createdAt":
 				fallthrough
 		case "CreatedAt":
 				this.CreatedAt = v.(time.Time)
-		case "deleted_at":
+		case "deletedAt":
 				fallthrough
 		case "DeletedAt":
 				this.DeletedAt = orm.ToInt64(v)
@@ -244,6 +247,20 @@ func (this *Attachment) Defaults() *Attachment {
 		if this.UserId == "" {
 				this.UserId = ""
 		}
+		if this.Url == "" {
+				if this.CdnUrl == "" && this.Path != "" && this.FileName != "" {
+						this.Url = fmt.Sprintf(
+								"%s://%s/%s/%s",
+								env.Get("SERVER_SCHEMA", "http"),
+								env.Get("SERVER_DOMAIN", "localhost"),
+								env.Get("ATTACHMENT_PATH", "attachments"),
+								this.Id.Hex(),
+						)
+				}
+		}
+		if this.SizeText == "" && this.Size != 0 {
+				this.SizeText = libs.FormatFileSize(this.Size)
+		}
 		return this
 }
 
@@ -253,31 +270,31 @@ func (this *Attachment) M(filters ...func(m beego.M) beego.M) beego.M {
 				"filename":       this.FileName,
 				"hash":           this.Hash,
 				"ticket":         this.Ticket,
-				"app_id":         this.AppId,
+				"appId":         this.AppId,
 				"user_id":        this.UserId.Hex(),
-				"extras_info":    this.ExtrasInfo,
+				"extrasInfo":    this.ExtrasInfo,
 				"tags":           this.Tags,
 				"url":            this.Url,
 				"cdn":            this.Cdn,
-				"cdn_url":        this.CdnUrl,
-				"oss_bucket":     this.OssBucket,
+				"cdnUrl":        this.CdnUrl,
+				"ossBucket":     this.OssBucket,
 				"oss":            this.Oss,
-				"access_times":   this.AccessTimes,
-				"download_times": this.DownloadTimes,
+				"accessTimes":   this.AccessTimes,
+				"downloadTimes": this.DownloadTimes,
 				"path":           this.Path,
-				"refer_name":     this.ReferName,
-				"refer_id":       this.ReferId,
+				"referName":     this.ReferName,
+				"referId":       this.ReferId,
 				"size":           this.Size,
-				"size_text":      this.SizeText,
-				"file_type":      this.FileType,
+				"sizeText":      this.SizeText,
+				"fileType":      this.FileType,
 				"status":         this.Status,
 				"privately":      this.Privately,
 				"watermark":      this.Watermark,
 				"duration":       this.Duration,
 				"width":          this.Width,
 				"height":         this.Height,
-				"created_at":     this.CreatedAt,
-				"deleted_at":     this.DeletedAt,
+				"createdAt":     this.CreatedAt,
+				"deletedAt":     this.DeletedAt,
 		}
 		if len(filters) != 0 {
 				for _, filter := range filters {
@@ -291,16 +308,16 @@ func (this *Attachment) M(filters ...func(m beego.M) beego.M) beego.M {
 }
 
 func (this *AttachmentModel) CreateIndex() {
-		_ = this.Collection().EnsureIndexKey("app_id")
+		_ = this.Collection().EnsureIndexKey("appId")
 		_ = this.Collection().EnsureIndexKey("filename")
-		_ = this.Collection().EnsureIndexKey("refer_name", "refer_id")
+		_ = this.Collection().EnsureIndexKey("referName", "referId")
 		_ = this.Collection().EnsureIndexKey("size")
-		_ = this.Collection().EnsureIndexKey("file_type")
+		_ = this.Collection().EnsureIndexKey("fileType")
 		_ = this.Collection().EnsureIndexKey("status")
-		_ = this.Collection().EnsureIndexKey("deleted_at")
+		_ = this.Collection().EnsureIndexKey("deletedAt")
 		// unique mobile
 		_ = this.Collection().EnsureIndex(mgo.Index{
-				Key:    []string{"access_count", "download_times"},
+				Key:    []string{"access_count", "downloadTimes"},
 				Unique: false,
 				Sparse: true,
 		})

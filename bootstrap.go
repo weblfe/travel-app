@@ -103,6 +103,8 @@ func initRegisterEnv() {
 				return
 		}
 		_ = godotenv.Load(arr...)
+		// 重新载入env
+		reloadEnv()
 		// 加载 主配置
 		_ = beego.LoadAppConfig("ini", "conf/main.conf")
 		// 重新载入配置
@@ -116,6 +118,14 @@ func reloadConfig() {
 		beego.BConfig.ServerName = beego.AppConfig.DefaultString(SetConfGlobalScope("servername"), beego.BConfig.ServerName)
 		beego.BConfig.Listen.HTTPPort = beego.AppConfig.DefaultInt(SetConfGlobalScope("httpport"), beego.BConfig.Listen.HTTPPort)
 		beego.BConfig.Listen.HTTPSPort = beego.AppConfig.DefaultInt(SetConfGlobalScope("httpsport"), beego.BConfig.Listen.HTTPSPort)
+}
+
+// 重新载入env
+func reloadEnv()  {
+		for _, e := range os.Environ() {
+				splits := strings.Split(e, "=")
+				env.Set(splits[0], os.Getenv(splits[0]))
+		}
 }
 
 // 全局

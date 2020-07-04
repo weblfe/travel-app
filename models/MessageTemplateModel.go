@@ -18,12 +18,12 @@ type MessageTemplate struct {
 		Title      string        `json:"title" bson:"title"`                                 // 模版标题
 		Name       string        `json:"name" bson:"name"`                                   // 模版名称
 		Template   bson.M        `json:"template" bson:"template"`                           // 模版信息
-		TemplateId string        `json:"template_id,omitempty" bson:"template_id,omitempty"` // 第三方模版ID
+		TemplateId string        `json:"templateId,omitempty" bson:"templateId,omitempty"` // 第三方模版ID
 		Platform   string        `json:"platform" bson:"platform"`                           // 平台
 		Comment    string        `json:"comment,omitempty" bson:"comment,omitempty"`         // 备注
 		State      int           `json:"state" bson:"state"`                                 // 状态 0:不可用,1:可用
-		UpdatedAt  time.Time     `json:"updated_at" bson:"updated_at"`                       // 更新时间
-		CreatedAt  time.Time     `json:"created_at" bson:"created_at"`                       // 创建时间
+		UpdatedAt  time.Time     `json:"updatedAt" bson:"updatedAt"`                       // 更新时间
+		CreatedAt  time.Time     `json:"createdAt" bson:"createdAt"`                       // 创建时间
 }
 
 // 短信消息模版
@@ -115,13 +115,13 @@ func (this *MessageTemplate) Set(key string, v interface{}) *MessageTemplate {
 				this.State = v.(int)
 		case "name":
 				this.Name = v.(string)
-		case "template_id":
+		case "templateId":
 				this.TemplateId = v.(string)
 		case "platform":
 				this.Platform = v.(string)
-		case "updated_at":
+		case "updatedAt":
 				this.UpdatedAt = v.(time.Time)
-		case "created_at":
+		case "createdAt":
 				this.CreatedAt = v.(time.Time)
 		}
 		return this

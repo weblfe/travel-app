@@ -20,8 +20,8 @@ type SmsLog struct {
 		Type            string        `json:"type" bson:"type"`                           // 消息类型
 		Extras          string        `json:"extras" bson:"extras"`                       // 扩展信息
 		Error           string        `json:"error,omitempty" bson:"error,omitempty"`     // 异常
-		ExpireTimeStamp int64         `json:"expire_time_stamp" bson:"expire_time_stamp"` // 过期时间戳
-		CreatedAt       time.Time     `json:"created_at" bson:"created_at"`               // 创建时间
+		ExpireTimeStamp int64         `json:"expireTimeStamp" bson:"expireTimeStamp"` // 过期时间戳
+		CreatedAt       time.Time     `json:"createdAt" bson:"createdAt"`               // 创建时间
 }
 
 const (
@@ -41,7 +41,7 @@ func (this *SmsLogModel) CreateIndex() {
 		_ = this.Collection().EnsureIndexKey("type")
 		_ = this.Collection().EnsureIndexKey("mobile")
 		_ = this.Collection().EnsureIndexKey("provider")
-		_ = this.Collection().EnsureIndexKey("created_at")
+		_ = this.Collection().EnsureIndexKey("createdAt")
 }
 
 func (this *SmsLogModel) TableName() string {
@@ -71,9 +71,9 @@ func (this *SmsLog) Set(key string, v interface{}) *SmsLog {
 				this.Type = v.(string)
 		case "extras":
 				this.Extras = v.(string)
-		case "expire_time_stamp":
+		case "expireTimeStamp":
 				this.ExpireTimeStamp = v.(int64)
-		case "created_at":
+		case "createdAt":
 				this.CreatedAt = v.(time.Time)
 		case "id":
 				if id, ok := v.(bson.ObjectId); ok {

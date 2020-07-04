@@ -1,6 +1,6 @@
 [
   {
-    "template_id": "SMS_193835972",
+    "templateId": "SMS_193835972",
     "title": "身份验证验证码",
     "name": "identity_verify_sms_code",
     "platform": "ali_dy",
@@ -17,7 +17,7 @@
     }
   },
   {
-    "template_id": "SMS_193835971",
+    "templateId": "SMS_193835971",
     "title": "登录确认验证码",
     "name": "login_sms_code",
     "platform": "ali_dy",
@@ -34,7 +34,7 @@
     }
   },
   {
-    "template_id": "SMS_193835970",
+    "templateId": "SMS_193835970",
     "title": "登录异常验证码",
     "name": "address_change_login_sms_code",
     "platform": "ali_dy",
@@ -51,7 +51,7 @@
     }
   },
   {
-    "template_id": "SMS_193835969",
+    "templateId": "SMS_193835969",
     "title": "用户注册验证码",
     "name": "register_sms_code",
     "platform": "ali_dy",
@@ -68,7 +68,7 @@
     }
   },
   {
-    "template_id": "SMS_193835968",
+    "templateId": "SMS_193835968",
     "title": "修改密码验证码",
     "name": "reset_password_sms_code",
     "platform": "ali_dy",
@@ -85,7 +85,7 @@
     }
   },
   {
-    "template_id": "SMS_193835967",
+    "templateId": "SMS_193835967",
     "title": "信息变更验证码",
     "name": "user_info_modify_sms_code",
     "platform": "ali_dy",

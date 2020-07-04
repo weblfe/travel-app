@@ -14,23 +14,27 @@ type UserModel struct {
 
 type User struct {
 		Id                 bson.ObjectId `json:"id" bson:"_id"`
-		UserNumId          int64         `json:"user_num_id" bson:"user_num_id"`
+		UserNumId          int64         `json:"userNumId" bson:"userNumId"`
 		UserName           string        `json:"username" bson:"username"`
-		AvatarId           string        `json:"avatar_id,omitempty" bson:"avatar_id,omitempty"`
+		AvatarId           string        `json:"avatarId,omitempty" bson:"avatarId,omitempty"`
 		NickName           string        `json:"nickname,omitempty" bson:"nickname,omitempty"`
 		Password           string        `json:"password" bson:"password"`
 		Mobile             string        `json:"mobile" bson:"mobile"`
 		Email              string        `json:"email,omitempty" bson:"email,omitempty"`
-		ResetPasswordTimes int           `json:"reset_password_times" bson:"reset_password_times"`
-		RegisterWay        string        `json:"register_way" bson:"register_way"`
-		AccessTokens       []string      `json:"access_tokens" bson:"access_tokens"`
-		LastLoginAt        int64         `json:"last_login_at" bson:"last_login_at"`
-		LastLoginLocation  string        `json:"last_login_location" bson:"last_login_location"`
+		ResetPasswordTimes int           `json:"resetPasswordTimes" bson:"resetPasswordTimes"`
+		RegisterWay        string        `json:"registerWay" bson:"registerWay"`
+		AccessTokens       []string      `json:"accessTokens" bson:"accessTokens"`
+		LastLoginAt        int64         `json:"lastLoginAt" bson:"lastLoginAt"`
+		LastLoginLocation  string        `json:"lastLoginLocation" bson:"lastLoginLocation"`
 		Status             int           `json:"status" bson:"status"`
-		CreatedAt          time.Time     `json:"created_at" bson:"created_at"`
-		UpdatedAt          time.Time     `json:"updated_at" bson:"updated_at"`
-		DeletedAt          int64         `json:"deleted_at" bson:"deleted_at"`
+		CreatedAt          time.Time     `json:"createdAt" bson:"createdAt"`
+		UpdatedAt          time.Time     `json:"updatedAt" bson:"updatedAt"`
+		DeletedAt          int64         `json:"deletedAt" bson:"deletedAt"`
 }
+
+const (
+		UserTable = "users"
+)
 
 func UserModelOf() *UserModel {
 		var model = new(UserModel)
@@ -53,7 +57,7 @@ func (this *User) Load(data map[string]interface{}) *User {
 
 func (this *User) Set(key string, v interface{}) *User {
 		switch key {
-		case "user_num_id":
+		case "userNumId":
 				this.UserNumId = v.(int64)
 		case "username":
 				this.UserName = v.(string)
@@ -66,7 +70,7 @@ func (this *User) Set(key string, v interface{}) *User {
 				if pass, ok := v.(string); ok {
 						this.Password = libs.PasswordHash(pass)
 				}
-		case "register_way":
+		case "registerWay":
 				this.RegisterWay = v.(string)
 		case "nickname":
 				this.NickName = v.(string)
@@ -74,26 +78,26 @@ func (this *User) Set(key string, v interface{}) *User {
 				this.Mobile = v.(string)
 		case "email":
 				this.Email = v.(string)
-		case "reset_password_times":
+		case "resetPasswordTimes":
 				this.ResetPasswordTimes = v.(int)
 		case "status":
 				this.Status = v.(int)
-		case "access_tokens":
+		case "accessTokens":
 				if str, ok := v.(string); ok {
 						this.AccessTokens = []string{str}
 				}
 				if str, ok := v.([]string); ok {
 						this.AccessTokens = str
 				}
-		case "last_login_at":
+		case "lastLoginAt":
 				this.LastLoginAt = v.(int64)
-		case "last_login_location":
+		case "lastLoginLocation":
 				this.LastLoginLocation = v.(string)
-		case "created_at":
+		case "createdAt":
 				this.CreatedAt = v.(time.Time)
-		case "updated_at":
+		case "updatedAt":
 				this.UpdatedAt = v.(time.Time)
-		case "deleted_at":
+		case "deletedAt":
 				this.DeletedAt = v.(int64)
 		}
 		return this
@@ -127,21 +131,21 @@ func (this *User) Defaults() *User {
 
 func (this *User) M(filter ...func(m beego.M) beego.M) beego.M {
 		data := beego.M{
-				"id":                   this.Id.Hex(),
-				"avatar_id":            this.AvatarId,
-				"password":             this.Password,
-				"username":             this.UserName,
-				"nickname":             this.NickName,
-				"register_way":         this.RegisterWay,
-				"mobile":               this.Mobile,
-				"email":                this.Email,
-				"user_num_id":          this.UserNumId,
-				"reset_password_times": this.ResetPasswordTimes,
-				"created_at":           this.CreatedAt,
-				"status":               this.Status,
-				"last_login_at":        this.LastLoginAt,
-				"last_login_location":  this.LastLoginLocation,
-				"deleted_at":           this.DeletedAt,
+				"id":                 this.Id.Hex(),
+				"avatarId":           this.AvatarId,
+				"password":           this.Password,
+				"username":           this.UserName,
+				"nickname":           this.NickName,
+				"registerWay":        this.RegisterWay,
+				"mobile":             this.Mobile,
+				"email":              this.Email,
+				"userNumId":             this.UserNumId,
+				"resetPasswordTimes": this.ResetPasswordTimes,
+				"createdAt":          this.CreatedAt,
+				"status":             this.Status,
+				"lastLoginAt":        this.LastLoginAt,
+				"lastLoginLocation":  this.LastLoginLocation,
+				"deletedAt":          this.DeletedAt,
 		}
 		if len(filter) != 0 {
 				for _, fn := range filter {
@@ -172,11 +176,11 @@ func (this *UserModel) CreateIndex() {
 		})
 		_ = this.Collection().EnsureIndexKey("state")
 		_ = this.Collection().EnsureIndexKey("nickname")
-		_ = this.Collection().EnsureIndexKey("user_num_id")
-		_ = this.Collection().EnsureIndexKey("avatar_id")
-		_ = this.Collection().EnsureIndexKey("last_login_location", "last_login_at")
+		_ = this.Collection().EnsureIndexKey("userNumId")
+		_ = this.Collection().EnsureIndexKey("avatarId")
+		_ = this.Collection().EnsureIndexKey("lastLoginLocation", "lastLoginAt")
 }
 
 func (this *UserModel) TableName() string {
-		return "users"
+		return UserTable
 }

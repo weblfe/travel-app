@@ -11,13 +11,17 @@ type UserLoginLogModel struct {
 
 type UserLoginLog struct {
 		Id            bson.ObjectId `json:"id" bson:"_id"`
-		Uid           string        `json:"user_id" bson:"user_id"`
-		LoginTime     time.Time     `json:"login_time" bson:"login_time"`
+		Uid           string        `json:"userId" bson:"userId"`
+		LoginTime     time.Time     `json:"loginTime" bson:"loginTime"`
 		Device        string        `json:"device" bson:"device"`
 		Client        string        `json:"client" bson:"client"`
-		LoginLocation string        `json:"login_location" bson:"login_location"`
-		CreatedAt     time.Time     `json:"created_at" bson:"created_at"`
+		LoginLocation string        `json:"loginLocation" bson:"loginLocation"`
+		CreatedAt     time.Time     `json:"createdAt" bson:"createdAt"`
 }
+
+const (
+		UserLoginLogTable = "user_login_log"
+)
 
 func UserLoginLogModelOf() *UserLoginLogModel {
 		var model = new(UserLoginLogModel)
@@ -27,5 +31,5 @@ func UserLoginLogModelOf() *UserLoginLogModel {
 }
 
 func (this *UserLoginLogModel) TableName() string {
-		return "user_login_log"
+		return UserLoginLogTable
 }

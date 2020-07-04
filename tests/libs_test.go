@@ -1,9 +1,16 @@
 package test
 
 import (
+		"fmt"
+		"github.com/astaxie/beego"
+		"github.com/globalsign/mgo/bson"
 		. "github.com/smartystreets/goconvey/convey"
 		"github.com/weblfe/travel-app/libs"
+		"github.com/weblfe/travel-app/models"
+		"github.com/weblfe/travel-app/repositories"
+		"reflect"
 		"testing"
+		"time"
 )
 
 func TestIsEmail(t *testing.T) {
@@ -13,6 +20,77 @@ func TestIsEmail(t *testing.T) {
 						So(libs.IsEmail(it.Key), ShouldEqual, it.Value)
 				}
 		})
+}
+
+func TestIsReflect(t *testing.T) {
+		var emails []string
+		emails = append(emails, "34@qq.com", "hello@163.com")
+		getValue := reflect.ValueOf(emails)
+		getType := reflect.TypeOf(emails)
+		fmt.Println(getType.Kind() == reflect.Array, getValue.Kind() == reflect.Slice)
+		// fmt.Println(getType.Len())
+		fmt.Println(getValue.Len())
+}
+
+func TestFilter(t *testing.T) {
+		var (
+				filters []func(m beego.M) beego.M
+				mapper  = models.NewAttachment()
+		)
+		filters = append(filters, func(m beego.M) beego.M {
+				for key, v := range m {
+						obj, ok := v.(map[string]interface{})
+						if ok && len(obj) == 0 {
+								delete(m, key)
+								continue
+						}
+						getValue := reflect.ValueOf(v)
+						if getValue.Kind() == reflect.Map && getValue.Len() == 0 {
+								delete(m, key)
+								continue
+						}
+						obj, ok = v.(beego.M)
+						if ok && len(obj) == 0 {
+								delete(m, key)
+								continue
+						}
+						obj, ok = v.(bson.M)
+						if ok && len(obj) == 0 {
+								delete(m, key)
+						}
+				}
+				return m
+		})
+
+		filters = append(filters, func(m beego.M) beego.M {
+				for k, v := range m {
+						if v == "" || v == nil {
+								delete(m, k)
+								continue
+						}
+						getValue := reflect.ValueOf(v)
+						kindName := getValue.Kind()
+						if kindName == reflect.Array && getValue.Len() <= 0 {
+								delete(m, k)
+								continue
+						}
+						if getValue.IsZero() {
+								delete(m, k)
+								continue
+						}
+						if t, ok := v.(time.Time); ok {
+								if t.IsZero() {
+										delete(m, k)
+								}
+						}
+
+				}
+				return m
+		})
+
+		m:= mapper.M(repositories.FilterWrapper(filters...))
+		fmt.Printf("%v\n", mapper)
+		fmt.Printf("%v\n", m)
 }
 
 func TestIsMobile(t *testing.T) {

@@ -1,6 +1,8 @@
 package controllers
 
-import "github.com/weblfe/travel-app/repositories"
+import (
+		"github.com/weblfe/travel-app/repositories"
+)
 
 type AttachmentController struct {
 		BaseController
@@ -32,4 +34,16 @@ func (this *AttachmentController) Uploads() {
 // @router /attachment/list [get]
 func (this *AttachmentController) List() {
 		this.Send(repositories.NewAttachmentRepository(&this.BaseController.Controller).List())
+}
+
+// 下载附件
+// @router /attachments/download/:mediaId  [get]
+func (this *AttachmentController) DownloadByMediaId() {
+		repositories.NewAttachmentRepository(&this.BaseController.Controller).DownloadByMediaId()
+}
+
+// 浏览附件
+// @router /attachments/:mediaId  [get]
+func (this *AttachmentController) GetByMediaId() {
+		repositories.NewAttachmentRepository(&this.BaseController.Controller).GetByMediaId()
 }

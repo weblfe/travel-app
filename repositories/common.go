@@ -2,6 +2,7 @@ package repositories
 
 import (
 		"github.com/astaxie/beego"
+		"github.com/globalsign/mgo/bson"
 		"github.com/weblfe/travel-app/libs"
 		"github.com/weblfe/travel-app/models"
 		"reflect"
@@ -30,27 +31,18 @@ func filterUserBase(m beego.M) beego.M {
 }
 
 // 过滤空数据字段
-func filterEmpty(m beego.M, number ...bool) beego.M {
-		if len(number) == 0 {
-				number = append(number, true)
-		}
+func filterEmpty(m beego.M) beego.M {
 		for k, v := range m {
 				if v == "" || v == nil {
 						delete(m, k)
 						continue
 				}
-				if v == 0 && number[0] {
+				getValue := reflect.ValueOf(v)
+				if getValue.Kind() == reflect.Array && getValue.Len() <= 0 {
 						delete(m, k)
 						continue
 				}
-				ty := reflect.TypeOf(v)
-				if ty.Kind() == reflect.Array {
-						if ty.Len() <= 0 {
-								delete(m, k)
-						}
-						continue
-				}
-				if ty.Kind() == reflect.Slice &&	0==ty.Size() {
+				if getValue.IsZero() {
 						delete(m, k)
 						continue
 				}
@@ -64,9 +56,59 @@ func filterEmpty(m beego.M, number ...bool) beego.M {
 		return m
 }
 
+// 过滤 任意空值
+func filter(m beego.M, extras ...map[string]interface{}) beego.M {
+		if len(extras) == 0 {
+				extras = append(extras, map[string]interface{}{})
+		}
+		return filterEmptyMapper(filterEmpty(m))
+}
+
+// 过滤空mapper
+func filterEmptyMapper(m beego.M) beego.M {
+		for key, v := range m {
+				obj, ok := v.(map[string]interface{})
+				if ok && len(obj) == 0 {
+						delete(m, key)
+						continue
+				}
+				getValue := reflect.ValueOf(v)
+				if getValue.Kind() == reflect.Map && getValue.Len() == 0 {
+						delete(m, key)
+						continue
+				}
+				obj, ok = v.(beego.M)
+				if ok && len(obj) == 0 {
+						delete(m, key)
+						continue
+				}
+				obj, ok = v.(bson.M)
+				if ok && len(obj) == 0 {
+						delete(m, key)
+				}
+		}
+		return m
+}
+
+// attachment 过滤
 func filterAttachment(m beego.M) beego.M {
 		if v, ok := m["id"]; ok {
 				m["mediaId"] = v
 		}
 		return filterEmpty(m)
+}
+
+// 过滤器包装器
+func FilterWrapper(filters ...func(m beego.M) beego.M) func(m beego.M) beego.M {
+		if len(filters) <= 0 {
+				return func(m beego.M) beego.M {
+						return filter(m)
+				}
+		}
+		return func(m beego.M) beego.M {
+				for _, filter := range filters {
+						m = filter(m)
+				}
+				return m
+		}
 }
