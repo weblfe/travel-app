@@ -320,7 +320,7 @@ func (this *SmsCodeServiceAliCloudImpl) addLog(log *models.SmsLog) {
 }
 
 func (this *SmsCodeServiceAliCloudImpl) Debug() bool {
-		return beego.BConfig.RunMode == "dev" && os.Getenv("sms_debug_on") == "1"
+		return beego.BConfig.RunMode == "dev" && os.Getenv("SMS_DEBUG_ON") == "1"
 }
 
 type smsCodeMockService struct {

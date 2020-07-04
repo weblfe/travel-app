@@ -3,6 +3,7 @@ package services
 import (
 		"fmt"
 		"github.com/astaxie/beego"
+		"github.com/astaxie/beego/config/env"
 		"github.com/astaxie/beego/logs"
 		"github.com/weblfe/travel-app/libs"
 		"github.com/weblfe/travel-app/models"
@@ -58,10 +59,19 @@ func (this *AttachmentServiceImpl) Save(reader io.ReadCloser, extras ...beego.M)
 				return nil
 		}
 		model := this.save(reader, m)
-		if model == nil || !this.Create(model) {
+		if model == nil {
 				return nil
 		}
-		return model
+		if ty, ok := m["type"]; ok && ty != nil && ty != "" {
+				tyName := ty.(string)
+				if tyName != "file" && tyName != "files" {
+						model.FileType = tyName
+				}
+		}
+		if this.Create(model) {
+				return model
+		}
+		return nil
 }
 
 func (this *AttachmentServiceImpl) Create(attach *models.Attachment) bool {
@@ -86,14 +96,17 @@ func (this *AttachmentServiceImpl) delete(fs string) {
 
 // 文件仅保存一份
 func (this *AttachmentServiceImpl) onlySaveOne(attach *models.Attachment) *models.Attachment {
+		if env.Get("ATTACHMENT_ONLY_ONE_SAVE","on") == "off" {
+				return attach
+		}
 		if attach.Hash != "" {
 				oldAttach := this.GetByHash(attach.Hash)
 				if oldAttach != nil && attach.Path != "" && attach.FileName != "" {
-						fs := filepath.Join(attach.Path, attach.FileName)
 						existsFs := filepath.Join(oldAttach.Path, oldAttach.FileName)
 						if !libs.IsExits(existsFs) {
 								return attach
 						}
+						fs := filepath.Join(attach.Path, attach.FileName)
 						defer this.delete(fs)
 						attach.ExtrasInfo["originSavePath"] = attach.Path
 						attach.ExtrasInfo["originSaveFileName"] = attach.FileName
@@ -128,13 +141,12 @@ func (this *AttachmentServiceImpl) save(reader io.ReadCloser, extras beego.M) *m
 		if reader == nil {
 				return nil
 		}
-
 		if path != "" {
 				extras["path"] = path
 				_ = os.MkdirAll(path.(string), os.ModePerm)
 				res, ok := GetFileSystem().SaveByReader(reader, extras)
 				if ok && len(res) > 0 {
-						return models.NewAttachment().Load(res).Defaults()
+						return models.NewAttachment().Load(libs.MapMerge(res, extras)).Defaults()
 				}
 				return nil
 		}

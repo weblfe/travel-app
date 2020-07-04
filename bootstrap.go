@@ -70,15 +70,6 @@ func initMongodb(data map[string]string) {
 		}
 }
 
-// 初始middleware
-func initMiddleware() {
-		manger := middlewares.GetMiddlewareManger()
-		// 注册路由中间件
-		manger.Router(middlewares.AuthMiddlewareName, "/user/info", beego.BeforeRouter)
-		// 启用中间
-		manger.Boot()
-}
-
 // 数据结构注册
 func initRegisterEnv() {
 		pwd, _ := os.Getwd()
@@ -134,4 +125,17 @@ func SetConfGlobalScope(key string) string {
 				return key
 		}
 		return "default::" + key
+}
+
+// 初始middleware
+func initMiddleware() {
+		manger := middlewares.GetMiddlewareManger()
+		// 注册路由中间件
+		// 登陆中间
+		manger.Router(middlewares.AuthMiddlewareName, "/user/info", beego.BeforeRouter)
+		manger.Router(middlewares.AuthMiddlewareName, "/attachment/*", beego.BeforeRouter)
+		manger.Router(middlewares.AttachTicketMiddlewareName, "/attachments/*", beego.BeforeRouter)
+
+		// 启用中间
+		manger.Boot()
 }

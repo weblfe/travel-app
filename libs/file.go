@@ -4,13 +4,15 @@ import (
 		"fmt"
 		"math"
 		"os"
+		"path/filepath"
 		"strconv"
 		"strings"
 		"unicode"
 )
 
 func IsExits(file string) bool {
-		if _, err := os.Stat(file); err != nil {
+		_, err := os.Stat(file)
+		if  err != nil {
 				if os.IsExist(err) || os.IsNotExist(err) {
 						return false
 				}
@@ -38,6 +40,45 @@ var (
 		_fileSizeUnitMap = []string{
 				"B", "KB", "MB", "GB", "TB", "EB", "ZB", "YB",
 		}
+		_fileTypeMapper = map[string][]string{
+				"image": {
+						"png", "jpg", "jpeg", "bmp",
+						"pcx", "tif", "gif", "tga",
+						"exif", "fpx", "svg", "psd",
+						"cdr", "pcd", "dxf", "ufo",
+						"eps", "ai", "hdri", "raw",
+						"wmf", "flic", "emf", "ico",
+				},
+				"word": {
+						"doc", "docx", "xls",
+						"xlsx", "ppt", "pptx",
+						"pdf",
+				},
+				"config": {
+						"ini", "yml", "json",
+						"yaml", "conf", "toml",
+						"xml",
+				},
+				"code": {
+						"html", "xhtml", "java",
+						"c", "cpp", "js", "php",
+						"lua", "rb", "go", "py",
+						"sh", "bat", "cmd", "ps1",
+				},
+				"video": {
+						"mp4", "avi", "mov",
+						"rmvb", "rm", "flv",
+						"3gp", "mpg", "mpe",
+						"mpeg", "wmv", "asf",
+						"asx", "wvx", "mpa",
+				},
+				"audio": {
+						"mp3", "cda", "wav",
+						"wma", "rm", "mid", "ape", "flac",
+				},
+				"avatar": {"png", "jpg", "jpeg"},
+		}
+		_fileTypeIndex = []string{"image", "word", "config", "code", "video", "audio", "avatar"}
 )
 
 type FileSize int64
@@ -79,4 +120,21 @@ func FileSizeTans(size string, unit string) int64 {
 				}
 		}
 		return 0
+}
+
+// 获取文件类型
+func GetFileType(file string) string {
+		var ext = filepath.Ext(file)
+		if ext != "" && strings.Contains(ext, ".") {
+				ext = ext[1:]
+		}
+		for _, ty := range _fileTypeIndex {
+				items := _fileTypeMapper[ty]
+				for _, it := range items {
+						if strings.EqualFold(ext, it) {
+								return ty
+						}
+				}
+		}
+		return ext
 }

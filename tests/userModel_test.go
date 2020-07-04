@@ -13,7 +13,7 @@ func TestCreateUser(t *testing.T)  {
 				"nickname": "app_nickname",
 				"avatar":   bson.NewObjectId().String(),
 				"mobile":   "13112260987",
-				"password": "123456",
+				"passwordHash": "123456",
 		})
 }
 

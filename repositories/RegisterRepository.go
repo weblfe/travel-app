@@ -117,7 +117,7 @@ func (this *UserRegisterRepositoryImpl) registerAccount(account string, password
 		}
 		var (
 				user = new(models.User)
-				data = beego.M{"username": account, "password": password, "register_way": "account"}
+				data = beego.M{"username": account, "passwordHash": password, "register_way": "account"}
 		)
 		err := this.getUserService().Create(user.Load(data).Defaults())
 		if err == nil {

@@ -15,8 +15,8 @@ func isForbid(data *models.User) bool {
 
 // 获取多余字段
 func filterUser(m beego.M) beego.M {
-		delete(m, "deleted_at")
-		delete(m, "password")
+		delete(m, "deletedAt")
+		delete(m, "passwordHash")
 		if str, ok := m["mobile"]; ok && str != "" {
 				m["mobile"] = libs.MarkerMobile(str.(string))
 		}
@@ -26,7 +26,7 @@ func filterUser(m beego.M) beego.M {
 // 过滤用户基础数据
 func filterUserBase(m beego.M) beego.M {
 		m = filterUser(m)
-		delete(m, "access_tokens")
+		delete(m, "accessTokens")
 		return m
 }
 

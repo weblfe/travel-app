@@ -20,16 +20,16 @@ func TestCollection(t *testing.T) {
 		var user = models.UserModelOf()
 		id :=libs.NewId(user.GetDatabaseName(), user.TableName(), user.GetConn())
 		err := user.Collection().Insert(models.User{
-				Id:          bson.NewObjectId(),
-				UserNumId:   id.GetId(),
-				UserName:    "test"+ fmt.Sprintf("%d",id.GetId()),
-				Password:    libs.PasswordHash("12323"),
-				Mobile:      "13112260971",
-				RegisterWay: "mobile",
-				CreatedAt:   time.Now(),
-				UpdatedAt:   time.Now(),
-				DeletedAt:   0,
-				Status:      1,
+				Id:           bson.NewObjectId(),
+				UserNumId:    id.GetId(),
+				UserName:     "test"+ fmt.Sprintf("%d",id.GetId()),
+				PasswordHash: libs.PasswordHash("12323"),
+				Mobile:       "13112260971",
+				RegisterWay:  "mobile",
+				CreatedAt:    time.Now(),
+				UpdatedAt:    time.Now(),
+				DeletedAt:    0,
+				Status:       1,
 		})
 		if err == nil {
 				_ = id.Commit()
@@ -48,16 +48,16 @@ func BenchmarkGetId(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 				//	fmt.Println(i)
 				_ = user.Insert(models.User{
-						Id:          bson.NewObjectId(),
-						UserNumId:   libs.GetId(user.GetDatabaseName(), user.TableName(), user.GetConn()),
-						UserName:    "test",
-						Password:    libs.PasswordHash("12323"),
-						Mobile:      "13112260977",
-						RegisterWay: "mobile",
-						CreatedAt:   time.Now(),
-						UpdatedAt:   time.Now(),
-						DeletedAt:   0,
-						Status:      1,
+						Id:           bson.NewObjectId(),
+						UserNumId:    libs.GetId(user.GetDatabaseName(), user.TableName(), user.GetConn()),
+						UserName:     "test",
+						PasswordHash: libs.PasswordHash("12323"),
+						Mobile:       "13112260977",
+						RegisterWay:  "mobile",
+						CreatedAt:    time.Now(),
+						UpdatedAt:    time.Now(),
+						DeletedAt:    0,
+						Status:       1,
 				})
 		}
 }

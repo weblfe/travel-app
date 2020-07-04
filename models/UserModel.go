@@ -18,7 +18,7 @@ type User struct {
 		UserName           string        `json:"username" bson:"username"`
 		AvatarId           string        `json:"avatarId,omitempty" bson:"avatarId,omitempty"`
 		NickName           string        `json:"nickname,omitempty" bson:"nickname,omitempty"`
-		Password           string        `json:"password" bson:"password"`
+		PasswordHash       string        `json:"passwordHash" bson:"passwordHash"`
 		Mobile             string        `json:"mobile" bson:"mobile"`
 		Email              string        `json:"email,omitempty" bson:"email,omitempty"`
 		ResetPasswordTimes int           `json:"resetPasswordTimes" bson:"resetPasswordTimes"`
@@ -27,13 +27,24 @@ type User struct {
 		LastLoginAt        int64         `json:"lastLoginAt" bson:"lastLoginAt"`
 		LastLoginLocation  string        `json:"lastLoginLocation" bson:"lastLoginLocation"`
 		Status             int           `json:"status" bson:"status"`
+		Gender             int           `json:"gender" bson:"gender"`
 		CreatedAt          time.Time     `json:"createdAt" bson:"createdAt"`
 		UpdatedAt          time.Time     `json:"updatedAt" bson:"updatedAt"`
 		DeletedAt          int64         `json:"deletedAt" bson:"deletedAt"`
 }
 
 const (
-		UserTable = "users"
+		UserTable        = "users"
+		GenderUnknown    = 0 // 未知
+		GenderMan        = 1 // 男
+		GenderWoman      = 2 // 女
+		GenderSecrecy    = 3 // 保密
+		GenderBoth       = 4 // 中间人
+		GenderSecrecyKey = "secrecy"
+		GenderUnknownKey = "unknown"
+		GenderManKey     = "man"
+		GenderWomanKey   = "woman"
+		GenderBothKey    = "both"
 )
 
 func UserModelOf() *UserModel {
@@ -63,12 +74,12 @@ func (this *User) Set(key string, v interface{}) *User {
 				this.UserName = v.(string)
 		case "id":
 				this.Id = v.(bson.ObjectId)
-		case "password":
-				if this.Password != "" {
+		case "passwordHash":
+				if this.PasswordHash != "" {
 						return this
 				}
 				if pass, ok := v.(string); ok {
-						this.Password = libs.PasswordHash(pass)
+						this.PasswordHash = libs.PasswordHash(pass)
 				}
 		case "registerWay":
 				this.RegisterWay = v.(string)
@@ -123,8 +134,8 @@ func (this *User) Defaults() *User {
 		if this.UserName == "" && this.Email != "" {
 				this.UserName = this.Email
 		}
-		if this.Password == "" {
-				this.Password = libs.PasswordHash(beego.AppConfig.DefaultString("default_password", "123456&Hex"))
+		if this.PasswordHash == "" {
+				this.PasswordHash = libs.PasswordHash(beego.AppConfig.DefaultString("default_password", "123456&Hex"))
 		}
 		return this
 }
@@ -133,13 +144,13 @@ func (this *User) M(filter ...func(m beego.M) beego.M) beego.M {
 		data := beego.M{
 				"id":                 this.Id.Hex(),
 				"avatarId":           this.AvatarId,
-				"password":           this.Password,
+				"passwordHash":       this.PasswordHash,
 				"username":           this.UserName,
 				"nickname":           this.NickName,
 				"registerWay":        this.RegisterWay,
 				"mobile":             this.Mobile,
 				"email":              this.Email,
-				"userNumId":             this.UserNumId,
+				"userNumId":          this.UserNumId,
 				"resetPasswordTimes": this.ResetPasswordTimes,
 				"createdAt":          this.CreatedAt,
 				"status":             this.Status,
@@ -175,6 +186,7 @@ func (this *UserModel) CreateIndex() {
 				Sparse: true,
 		})
 		_ = this.Collection().EnsureIndexKey("state")
+		_ = this.Collection().EnsureIndexKey("gender")
 		_ = this.Collection().EnsureIndexKey("nickname")
 		_ = this.Collection().EnsureIndexKey("userNumId")
 		_ = this.Collection().EnsureIndexKey("avatarId")
@@ -183,4 +195,36 @@ func (this *UserModel) CreateIndex() {
 
 func (this *UserModel) TableName() string {
 		return UserTable
+}
+
+func GetGenderKey(gender int) string {
+		switch gender {
+		case GenderUnknown:
+				return GenderUnknownKey
+		case GenderMan:
+				return GenderManKey
+		case GenderWoman:
+				return GenderWomanKey
+		case GenderBoth:
+				return GenderBothKey
+		case GenderSecrecy:
+				return GenderSecrecyKey
+		}
+		return GenderUnknownKey
+}
+
+func GetGenderEnum(gender string) int {
+		switch gender {
+		case GenderUnknownKey:
+				return GenderUnknown
+		case GenderManKey:
+				return GenderMan
+		case GenderWomanKey:
+				return GenderWoman
+		case GenderBothKey:
+				return GenderBoth
+		case GenderSecrecyKey:
+				return GenderSecrecy
+		}
+		return GenderUnknown
 }

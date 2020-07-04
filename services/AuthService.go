@@ -76,7 +76,7 @@ func (this *AuthServiceImpl) LoginByUserPassword(typ string, value string, passw
 		if user.Status != 1 || user.DeletedAt != 0 {
 				return nil, "", err.Set("msg", common.UserAccountForbid).Set("code", common.AccessForbid)
 		}
-		if !libs.PasswordVerify(user.Password, password) {
+		if !libs.PasswordVerify(user.PasswordHash, password) {
 				return nil, "", err.Set("msg", common.PasswordOrAccountNotMatch).Set("code", common.VerifyNotMatch)
 		}
 		return user, this.Token(user, args...), nil

@@ -8,6 +8,7 @@ import (
 		"github.com/globalsign/mgo"
 		"github.com/globalsign/mgo/bson"
 		"github.com/weblfe/travel-app/libs"
+		"path/filepath"
 		"strings"
 		"time"
 )
@@ -18,34 +19,34 @@ type AttachmentModel struct {
 
 // 附件模型
 type Attachment struct {
-		Id            bson.ObjectId `json:"id" bson:"_id"`                                            // id media_id
-		FileName      string        `json:"filename" bson:"filename"`                                 // 文件名
-		Hash          string        `json:"hash" bson:"hash"`                                         // 文件hash值
-		Ticket        string        `json:"ticket" bson:"ticket"`                                     // 文件上传时的密钥
+		Id            bson.ObjectId `json:"id" bson:"_id"`                                          // id media_id
+		FileName      string        `json:"filename" bson:"filename"`                               // 文件名
+		Hash          string        `json:"hash" bson:"hash"`                                       // 文件hash值
+		Ticket        string        `json:"ticket" bson:"ticket"`                                   // 文件上传时的密钥
 		AppId         string        `json:"appId" bson:"appId"`                                     // 文件上传的应用
-		UserId        bson.ObjectId `json:"user_id,omitempty" bson:"user_id,omitempty"`               // 文件上传用户
+		UserId        bson.ObjectId `json:"userId,omitempty" bson:"userId,omitempty"`               // 文件上传用户
 		ExtrasInfo    bson.M        `json:"extrasInfo,omitempty" bson:"extrasInfo,omitempty"`       // 文件扩展信息
-		Tags          []string      `json:"tags,omitempty" bson:"tags,omitempty"`                     // 文件标签
-		Url           string        `json:"url" bson:"url"`                                           // 远程访问链接
-		Cdn           string        `json:"cdn,omitempty" bson:"cdn,omitempty"`                       // cdn 服务名
+		Tags          []string      `json:"tags,omitempty" bson:"tags,omitempty"`                   // 文件标签
+		Url           string        `json:"url" bson:"url"`                                         // 远程访问链接
+		Cdn           string        `json:"cdn,omitempty" bson:"cdn,omitempty"`                     // cdn 服务名
 		CdnUrl        string        `json:"cdnUrl,omitempty" bson:"cdnUrl,omitempty"`               // cdn访问链接
 		OssBucket     string        `json:"ossBucket,omitempty" bson:"ossBucket,omitempty"`         // oss bucket
-		Oss           string        `json:"oss,omitempty" bson:"oss,omitempty"`                       // oss 服务名
+		Oss           string        `json:"oss,omitempty" bson:"oss,omitempty"`                     // oss 服务名
 		AccessTimes   int64         `json:"accessTimes,omitempty" bson:"accessTimes,omitempty"`     // 被访问次数
 		DownloadTimes int64         `json:"downloadTimes,omitempty" bson:"downloadTimes,omitempty"` // 被下载次数
-		Path          string        `json:"path" bson:"path"`                                         // 系统本地存储路径
+		Path          string        `json:"path" bson:"path"`                                       // 系统本地存储路径
 		ReferName     string        `json:"referName" bson:"referName"`                             // 记录涉及的document名
 		ReferId       string        `json:"referId" bson:"referId"`                                 // 记录涉及的document的ID
-		Size          int64         `json:"size" bson:"size"`                                         // 文件大小 单位: byte
+		Size          int64         `json:"size" bson:"size"`                                       // 文件大小 单位: byte
 		SizeText      string        `json:"sizeText" bson:"sizeText"`                               // 带单的文件大小 eg: ..1G,120MB,1KB,1B,1byte
 		FileType      string        `json:"fileType" bson:"fileType"`                               // 文件类型 [doc,image,mp4,mp3,txt....]
-		Status        int           `json:"status" bson:"status"`                                     // 文件状态
-		Privately     bool          `json:"privately" bson:"privately"`                               // 文件是否私有
-		Watermark     bool          `json:"watermark" bson:"watermark"`                               // 文件是否有水印
+		Status        int           `json:"status" bson:"status"`                                   // 文件状态
+		Privately     bool          `json:"privately" bson:"privately"`                             // 文件是否私有
+		Watermark     bool          `json:"watermark" bson:"watermark"`                             // 文件是否有水印
 		UpdatedAt     time.Time     `json:"updatedAt" bson:"updatedAt"`                             // 记录更新时间
-		Duration      time.Duration `json:"duration,omitempty" bson:"duration,omitempty"`             // 音视频文件时长
-		Width         int           `json:"width,omitempty" bson:"width,omitempty"`                   // 图片文件时宽
-		Height        int           `json:"height,omitempty" bson:"height,omitempty"`                 // 图片文件时高
+		Duration      time.Duration `json:"duration,omitempty" bson:"duration,omitempty"`           // 音视频文件时长
+		Width         int           `json:"width,omitempty" bson:"width,omitempty"`                 // 图片文件时宽
+		Height        int           `json:"height,omitempty" bson:"height,omitempty"`               // 图片文件时高
 		CreatedAt     time.Time     `json:"createdAt" bson:"createdAt"`                             // 创建时间
 		DeletedAt     int64         `json:"deletedAt" bson:"deletedAt"`                             // 删除时间
 }
@@ -90,10 +91,10 @@ func (this *Attachment) set(key string, v interface{}) *Attachment {
 				fallthrough
 		case "AppId":
 				this.AppId = v.(string)
-		case "user_id":
+		case "userId":
 				fallthrough
 		case "UserId":
-				if str, ok := v.(string); ok {
+				if str, ok := v.(string); ok && str != "" {
 						this.UserId = bson.ObjectIdHex(str)
 				}
 				if id, ok := v.(bson.ObjectId); ok {
@@ -264,38 +265,44 @@ func (this *Attachment) Defaults() *Attachment {
 		if this.ExtrasInfo == nil {
 				this.ExtrasInfo = make(bson.M)
 		}
+		if this.FileType == "" && this.FileName != "" {
+				this.FileType = libs.GetFileType(this.FileName)
+		}
+		if _, ok := this.ExtrasInfo["extension"]; !ok && this.FileName != "" {
+				this.ExtrasInfo["extension"] = filepath.Ext(this.FileName)[1:]
+		}
 		return this
 }
 
 func (this *Attachment) M(filters ...func(m beego.M) beego.M) beego.M {
 		var m = beego.M{
-				"id":             this.Id.Hex(),
-				"filename":       this.FileName,
-				"hash":           this.Hash,
-				"ticket":         this.Ticket,
+				"id":            this.Id.Hex(),
+				"filename":      this.FileName,
+				"hash":          this.Hash,
+				"ticket":        this.Ticket,
 				"appId":         this.AppId,
-				"user_id":        this.UserId.Hex(),
+				"userId":        this.UserId.Hex(),
 				"extrasInfo":    this.ExtrasInfo,
-				"tags":           this.Tags,
-				"url":            this.Url,
-				"cdn":            this.Cdn,
+				"tags":          this.Tags,
+				"url":           this.Url,
+				"cdn":           this.Cdn,
 				"cdnUrl":        this.CdnUrl,
 				"ossBucket":     this.OssBucket,
-				"oss":            this.Oss,
+				"oss":           this.Oss,
 				"accessTimes":   this.AccessTimes,
 				"downloadTimes": this.DownloadTimes,
-				"path":           this.Path,
+				"path":          this.Path,
 				"referName":     this.ReferName,
 				"referId":       this.ReferId,
-				"size":           this.Size,
+				"size":          this.Size,
 				"sizeText":      this.SizeText,
 				"fileType":      this.FileType,
-				"status":         this.Status,
-				"privately":      this.Privately,
-				"watermark":      this.Watermark,
-				"duration":       this.Duration,
-				"width":          this.Width,
-				"height":         this.Height,
+				"status":        this.Status,
+				"privately":     this.Privately,
+				"watermark":     this.Watermark,
+				"duration":      this.Duration,
+				"width":         this.Width,
+				"height":        this.Height,
 				"createdAt":     this.CreatedAt,
 				"deletedAt":     this.DeletedAt,
 		}

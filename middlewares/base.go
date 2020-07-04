@@ -32,33 +32,13 @@ func (this *middlewareImpl) GetHandler() beego.FilterFunc {
 func (this *middlewareImpl) SetHandler(handlers ...func(ctx *context.Context) bool) Middleware {
 		var argc = len(handlers)
 		if this.handler == nil && argc > 0 {
-				var (
-						i       = 0
-						fn      beego.FilterFunc
-						handler = handlers[i]
-				)
-				if argc == 1 {
-						handlers = append(handlers, nil)
-				}
-				for {
-						if i == argc {
-								fn = this.Wrapper(handler, nil)
-								break
-						}
-						if i+1 == argc {
-								fn = this.Wrapper(handler, handlers[i+1])
-								break
-						}
-						if i+1 < argc {
-								handler = this.FilterWrapper(handler, handlers[i+1])
-								i++
-						}
-						i++
-						if i > argc {
-								break
+				this.handler = func(c *context.Context) {
+						for _, handler := range handlers {
+								if !handler(c) {
+										return
+								}
 						}
 				}
-				this.handler = fn
 		}
 		return this
 }

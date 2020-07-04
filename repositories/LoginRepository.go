@@ -110,7 +110,7 @@ func (this *LoginRepositoryImpl) loginByAccountPassword(account string, password
 		if isForbid(user) {
 				return common.NewErrorResp(common.NewErrors(common.PermissionCode,"账号禁用状态"))
 		}
-		if !libs.PasswordVerify(user.Password, password) {
+		if !libs.PasswordVerify(user.PasswordHash, password) {
 				return common.NewErrorResp(common.NewErrors(common.VerifyNotMatch, "密码不正确"))
 		}
 		token := this.authService.Token(user)
@@ -143,7 +143,7 @@ func (this *LoginRepositoryImpl) loginByEmail(email string, password string) com
 		if isForbid(user) {
 				return common.NewErrorResp(common.NewErrors(common.PermissionCode,"账号禁用状态"))
 		}
-		if !libs.PasswordVerify(user.Password,password) {
+		if !libs.PasswordVerify(user.PasswordHash,password) {
 				return common.NewErrorResp(common.NewErrors(common.VerifyNotMatch, "验证码不正确"))
 		}
 		token := this.authService.Token(user)

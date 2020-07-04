@@ -5,6 +5,7 @@ import (
 		"github.com/astaxie/beego"
 		"github.com/astaxie/beego/logs"
 		"github.com/weblfe/travel-app/common"
+		"github.com/weblfe/travel-app/libs"
 		"github.com/weblfe/travel-app/services"
 		"io"
 		"net/http"
@@ -52,10 +53,11 @@ func (this *AttachmentRepositoryImpl) Ticket() common.ResponseJson {
 
 func (this *AttachmentRepositoryImpl) Upload() common.ResponseJson {
 		var (
-				ctx    = this.ctx
-				typ    = ctx.GetString("type")
-				ticket = ctx.GetString("ticket")
-				uid    = ctx.Ctx.Input.Param("_userId")
+				ctx      = this.ctx
+				typ      = ctx.GetString("type")
+				ticket   = ctx.GetString("ticket")
+				uid      = ctx.Ctx.Input.Param("_userId")
+				fileType = ctx.GetString("fileType")
 		)
 		if typ == "" {
 				typ = DefaultFileKey
@@ -79,7 +81,12 @@ func (this *AttachmentRepositoryImpl) Upload() common.ResponseJson {
 				return common.NewErrorResp(common.NewErrors(common.InvalidTokenCode, "文件传输异常"))
 		}
 		// 保存
-		result := this.attachmentService.Save(m, beego.M{"userId": uid, "fileInfo": fs, "ticket": ticket, "path": this.getAttachmentPath()})
+		data := beego.M{
+				"userId": uid, "fileInfo": fs,
+				"ticket": ticket, "path": this.getAttachmentPath(),
+				"type": fileType,
+		}
+		result := this.attachmentService.Save(m, data)
 		if result == nil {
 				return common.NewErrorResp(common.NewErrors(common.InvalidTokenCode, "文件保存失败"))
 		}
@@ -89,11 +96,13 @@ func (this *AttachmentRepositoryImpl) Upload() common.ResponseJson {
 
 func (this *AttachmentRepositoryImpl) Uploads() common.ResponseJson {
 		var (
-				ctx    = this.ctx
-				typ    = ctx.GetString("type")
-				uid    = ctx.Ctx.Input.Param("_userId")
-				ticket = ctx.GetString("ticket")
+				ctx      = this.ctx
+				typ      = ctx.GetString("type")
+				ticket   = ctx.GetString("ticket")
+				uid      = ctx.Ctx.Input.Param("_userId")
+				fileType = ctx.Ctx.Input.Param("fileType")
 		)
+
 		if typ == "" {
 				typ = DefaultFilesKey
 		}
@@ -107,6 +116,20 @@ func (this *AttachmentRepositoryImpl) Uploads() common.ResponseJson {
 				results      []beego.M
 				filter       = FilterWrapper(filterAttachment, filterEmptyMapper, FieldsFilter([]string{"path", "id", "createdAt", "extrasInfo"}))
 		)
+		// 是否同一中类型
+		if fileType != "" {
+				tmp := ""
+				for _, fs := range fsArr {
+						cur := libs.GetFileType(fs.Filename)
+						if tmp != "" {
+								tmp = cur
+								continue
+						}
+						if tmp != cur {
+								fileType = ""
+						}
+				}
+		}
 		// 文件保存
 		for _, m := range fsArr {
 				fs, openErr := m.Open()
@@ -117,6 +140,9 @@ func (this *AttachmentRepositoryImpl) Uploads() common.ResponseJson {
 				data := beego.M{
 						"userId": uid, "fileInfo": m,
 						"ticket": ticket, "path": this.getAttachmentPath(),
+				}
+				if fileType != "" {
+						data["type"] = fileType
 				}
 				// 保存
 				result := this.attachmentService.Save(fs, data)
