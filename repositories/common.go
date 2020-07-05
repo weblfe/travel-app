@@ -33,9 +33,14 @@ func filterUserBase(m beego.M) beego.M {
 }
 
 // 用户头像追加
-func filterUserAvatarUrl(m beego.M) beego.M  {
-		if id,ok:=m["avatarId"];ok &&id!=nil&&id!="" {
+func filterUserAvatarUrl(m beego.M) beego.M {
+		if url, ok := m["avatarUrl"]; ok && url != nil && url != "" {
+				return m
+		}
+		if id, ok := m["avatarId"]; ok && id != nil && id != "" {
 				m["avatarUrl"] = services.AvatarServerOf().GetAvatarUrlById(id.(string))
+		} else {
+				m["avatarUrl"] = ""
 		}
 		return m
 }
