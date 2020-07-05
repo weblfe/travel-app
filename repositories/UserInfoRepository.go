@@ -65,7 +65,7 @@ func (this *UserInfoRepositoryImpl) ResetPassword() common.ResponseJson {
 		var (
 				ctx     = this.ctx.Ctx
 				request = new(ResetPassword)
-				userId  =  this.ctx.GetSession(middlewares.AuthUserId)
+				userId  = this.ctx.GetSession(middlewares.AuthUserId)
 		)
 		request.Load(ctx.Input)
 		if request.Password == "" {
@@ -208,22 +208,24 @@ func (this *UserInfoRepositoryImpl) FocusOff() common.ResponseJson {
 
 // 请求参数
 type UpdateUserRequest struct {
-		AvatarId string   `json:"avatarId,omitempty"`
-		NickName string   `json:"nickname,omitempty"`
-		Email    string   `json:"email,omitempty"`
-		Gender   int      `json:"gender,omitempty"`
-		Intro string `json:"intro,omitempty"`
-		BackgroundCoverId string `json:"backgroundCoverId,omitempty"`
-		Modifies []string `json:"modifies,omitempty"`
+		AvatarId          string   `json:"avatarId,omitempty"`
+		NickName          string   `json:"nickname,omitempty"`
+		Email             string   `json:"email,omitempty"`
+		Gender            int      `json:"gender,omitempty"`
+		Intro             string   `json:"intro,omitempty"`
+		BackgroundCoverId string   `json:"backgroundCoverId,omitempty"`
+		Modifies          []string `json:"modifies,omitempty"`
 }
 
 func (this *UpdateUserRequest) M(filters ...func(m beego.M) beego.M) beego.M {
 		var data = beego.M{
-				"avatarId": this.AvatarId,
-				"nickname": this.NickName,
-				"email":    this.Email,
-				"gender":   this.Gender,
-				"modifies": this.Modifies,
+				"avatarId":          this.AvatarId,
+				"nickname":          this.NickName,
+				"email":             this.Email,
+				"gender":            this.Gender,
+				"intro":             this.Intro,
+				"modifies":          this.Modifies,
+				"backgroundCoverId": this.BackgroundCoverId,
 		}
 		if this.Gender == 0 {
 				delete(data, "gender")
@@ -249,17 +251,17 @@ type ResetPassword struct {
 
 func (this *ResetPassword) Load(ctx *context.BeegoInput) *ResetPassword {
 		var (
-			_ = json.Unmarshal(ctx.RequestBody, this)
-			mapper =map[string]interface{}{
-					"code":&this.Code,
-					"mobile":&this.Mobile,
-					"password":&this.Password,
-					"currentPassword":&this.CurrentPassword,
-			}
+				_      = json.Unmarshal(ctx.RequestBody, this)
+				mapper = map[string]interface{}{
+						"code":            &this.Code,
+						"mobile":          &this.Mobile,
+						"password":        &this.Password,
+						"currentPassword": &this.CurrentPassword,
+				}
 		)
 		if this.Password == "" {
-				for key,addr:=range mapper{
-						_ = ctx.Bind(addr,key)
+				for key, addr := range mapper {
+						_ = ctx.Bind(addr, key)
 				}
 		}
 		return this
