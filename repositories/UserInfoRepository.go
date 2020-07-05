@@ -212,6 +212,8 @@ type UpdateUserRequest struct {
 		NickName string   `json:"nickname,omitempty"`
 		Email    string   `json:"email,omitempty"`
 		Gender   int      `json:"gender,omitempty"`
+		Intro string `json:"intro,omitempty"`
+		BackgroundCoverId string `json:"backgroundCoverId,omitempty"`
 		Modifies []string `json:"modifies,omitempty"`
 }
 
