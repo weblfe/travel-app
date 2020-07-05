@@ -7,6 +7,7 @@ import (
 		"github.com/astaxie/beego/orm"
 		"github.com/globalsign/mgo"
 		"github.com/globalsign/mgo/bson"
+		"github.com/weblfe/travel-app/common"
 		"github.com/weblfe/travel-app/libs"
 		"path/filepath"
 		"strings"
@@ -339,6 +340,9 @@ func (this *AttachmentModel) TableName() string {
 
 func (this *AttachmentModel) GetByMediaId(id string) (*Attachment, error) {
 		var att = NewAttachment()
+		if id == "" {
+				return nil,common.NewErrors("empty id")
+		}
 		err := this.GetById(id, att)
 		if err == nil {
 				return att, nil
