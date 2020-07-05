@@ -10,6 +10,7 @@ import (
 
 type AvatarService interface {
 		GetDefaultAvatar(...int) *models.Attachment
+		GetAvatarUrlById(string) string
 }
 
 type avatarServerImpl struct {
@@ -54,4 +55,17 @@ func (this *avatarServerImpl) GetDefaultAvatar(gender ...int) *models.Attachment
 				return nil
 		}
 		return m
+}
+
+func (this *avatarServerImpl) GetAvatarUrlById(id string) string {
+		var attach = AttachmentServiceOf().Get(id)
+		if attach != nil {
+				if attach.CdnUrl != "" {
+						return attach.CdnUrl
+				}
+				if attach.Url != "" {
+						return attach.Url
+				}
+		}
+		return ""
 }

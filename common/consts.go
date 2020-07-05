@@ -30,4 +30,5 @@ const (
 		RegisterFailTip           = "register failed!"
 		AppTokenCookie            = "authorization"
 		DevelopCodeError            = "developing"
+		ServiceFailedError         = "server failed!"
 )

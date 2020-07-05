@@ -44,6 +44,12 @@ func (this *UserController) GetUserInfo() {
 		this.Send(repositories.NewUserInfoRepository(&this.BaseController.Controller).GetUserInfo())
 }
 
+// 更新用户信息接口
+// @router /user/info [put]
+func (this *UserController) UpdateUserInfo() {
+		this.Send(repositories.NewUserInfoRepository(&this.BaseController.Controller).UpdateUserInfo())
+}
+
 // 重置用户密码接口
 // @router /reset/password [put]
 func (this *UserController) ResetPassword() {
@@ -68,8 +74,4 @@ func (this *UserController) FocusOff() {
 		this.Send(repositories.NewUserInfoRepository(&this.BaseController.Controller).FocusOff())
 }
 
-// 更新用户信息接口
-// @router /user/info [put]
-func (this *UserController) UpdateUserInfo() {
-		this.Send(repositories.NewUserInfoRepository(&this.BaseController.Controller).UpdateUserInfo())
-}
+

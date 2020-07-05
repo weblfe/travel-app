@@ -319,18 +319,48 @@ func (this *BaseModel) GetById(id string, result interface{}, selects ...interfa
 func (this *BaseModel) Update(query interface{}, data interface{}) error {
 		table := this.Collection()
 		defer this.destroy()
+		data = this.setUpdate(data)
 		return table.Update(query, data)
+}
+
+// 更新
+func (this *BaseModel)setUpdate(data interface{}) interface{} {
+		var newData = make(beego.M)
+		if m,ok:=data.(beego.M);ok {
+				 if _,ok:=m["$set"];ok {
+				 		return data
+				 }
+				newData["$set"] = data
+				 return newData
+		}
+		if m,ok:=data.(bson.M);ok {
+				if _,ok:=m["$set"];ok {
+						return data
+				}
+				newData["$set"] = data
+				return newData
+		}
+		if m,ok:=data.(map[string]interface{});ok {
+				if _,ok:=m["$set"];ok {
+						return data
+				}
+				newData["$set"] = data
+				return newData
+		}
+		return data
 }
 
 func (this *BaseModel) UpdateById(id string, data interface{}) error {
 		table := this.Collection()
 		defer this.destroy()
+		data = this.setUpdate(data)
 		return table.Update(bson.M{"_id": bson.ObjectIdHex(id)}, data)
 }
 
 func (this *BaseModel) Updates(query interface{}, data interface{}) (*mgo.ChangeInfo, error) {
 		table := this.Collection()
 		defer this.destroy()
+		data = this.setUpdate(data)
 		return table.UpdateAll(query, data)
 }
 

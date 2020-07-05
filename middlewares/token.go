@@ -15,10 +15,10 @@ var (
 )
 
 const (
-		AppAccessTokenHeader = "authorization"
 		AuthUser             = "user"
 		AuthUserId           = "userId"
 		TokenMiddleware      = "token"
+		AppAccessTokenHeader = "authorization"
 )
 
 func newToken() {
@@ -55,6 +55,7 @@ func (this *tokenMiddleware) filter(ctx *context.Context) {
 func (this *tokenMiddleware) clear(ctx *context.Context) {
 		_ = ctx.Input.CruSession.Delete(AuthUser)
 		_ = ctx.Input.CruSession.Delete(AuthUserId)
+		_ = ctx.Input.CruSession.Delete(AppAccessTokenHeader)
 		ctx.Input.SetParam("_userId", "")
 }
 
@@ -79,6 +80,7 @@ func (this *tokenMiddleware) initSessionByToken(token string, ctx *context.Conte
 		if err := ctx.Input.CruSession.Set(AuthUser, user.M()); err == nil {
 				uid := user.Id.Hex()
 				_ = ctx.Input.CruSession.Set(AuthUserId, uid)
+				_ = ctx.Input.CruSession.Set(AppAccessTokenHeader,token)
 				ctx.Input.SetParam("_userId", uid)
 				this.dispatch(token, user)
 				return true

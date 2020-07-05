@@ -134,6 +134,9 @@ func (this *User) Defaults() *User {
 		if this.UserName == "" && this.Email != "" {
 				this.UserName = this.Email
 		}
+		if this.NickName == "" && this.UserName != "" {
+				this.NickName = this.UserName+"_nick"
+		}
 		if this.PasswordHash == "" {
 				this.PasswordHash = libs.PasswordHash(beego.AppConfig.DefaultString("default_password", "123456&Hex"))
 		}
@@ -144,6 +147,7 @@ func (this *User) M(filter ...func(m beego.M) beego.M) beego.M {
 		data := beego.M{
 				"id":                 this.Id.Hex(),
 				"avatarId":           this.AvatarId,
+				"gender":             this.Gender,
 				"passwordHash":       this.PasswordHash,
 				"username":           this.UserName,
 				"nickname":           this.NickName,

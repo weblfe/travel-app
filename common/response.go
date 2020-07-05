@@ -409,6 +409,25 @@ func NewErrorResp(err Errors, args ...interface{}) ResponseJson {
 		return resp
 }
 
+// 构造成功响应体
+// data interface
+// msg  string
+// code int
+func NewFailedResp(code int, args ...interface{}) ResponseJson {
+		args = append(args, code)
+		if len(args) < 2 {
+				args = append(args, ServiceFailedError)
+		}
+		var res = NewResponse(args...)
+		if !res.Has("code") {
+				res.Set("code", args[0])
+		}
+		if !res.Has("msg") {
+				res.Set("msg", args[1])
+		}
+		return res
+}
+
 // 请求参数异常
 // err Errors
 // msg  string
@@ -416,8 +435,8 @@ func NewErrorResp(err Errors, args ...interface{}) ResponseJson {
 // data interface{}
 func NewInDevResp(api string, args ...interface{}) ResponseJson {
 		var resp = NewResponse(args...)
-		server:=env.Get("SERVER_DOMAIN","")
-		errMsg := server+" api: "+api
+		server := env.Get("SERVER_DOMAIN", "")
+		errMsg := server + " api: " + api
 		resp.Set("err", NewErrors(errMsg, DevelopCode))
 		if !resp.Has("code") {
 				resp.Set("code", DevelopCode)

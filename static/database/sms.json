@@ -100,5 +100,22 @@
         }
       ]
     }
+  },
+  {
+    "templateId": "SMS_195221243",
+    "title": "快捷注册登陆",
+    "name": "quick_sms_code",
+    "platform": "ali_dy",
+    "type": "sms_verify_code",
+    "template": {
+      "content": "验证码${code}，您正在快捷登录，若非本人操作，请勿泄露。(验证码6分钟内有效)",
+      "variables": [
+        {
+          "key": "${code}",
+          "value": "code",
+          "desc": "验证码"
+        }
+      ]
+    }
   }
 ]

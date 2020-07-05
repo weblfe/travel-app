@@ -40,9 +40,14 @@ func (this *ErrorImpl) init(args ...interface{}) {
 		for _, arg := range args {
 				if err, ok := arg.(Errors); ok && this.parent == nil {
 						this.parent = err
+						this.ErrCode = err.Code()
+						this.ErrMsg = err.Msg()
 				}
 				if msg, ok := arg.(string); ok && this.ErrMsg == "" {
 						this.ErrMsg = msg
+				}
+				if msg, ok := arg.(error); ok && this.ErrMsg == "" {
+						this.ErrMsg = msg.Error()
 				}
 				if code, ok := arg.(int); ok && this.ErrCode == -1 {
 						this.ErrCode = code

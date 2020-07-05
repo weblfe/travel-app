@@ -112,7 +112,7 @@ func reloadConfig() {
 }
 
 // 重新载入env
-func reloadEnv()  {
+func reloadEnv() {
 		for _, e := range os.Environ() {
 				splits := strings.Split(e, "=")
 				env.Set(splits[0], os.Getenv(splits[0]))
@@ -135,6 +135,7 @@ func initMiddleware() {
 		manger.Router(middlewares.AuthMiddlewareName, "/user/info", beego.BeforeRouter)
 		manger.Router(middlewares.AuthMiddlewareName, "/attachment/*", beego.BeforeRouter)
 		manger.Router(middlewares.AttachTicketMiddlewareName, "/attachments/*", beego.BeforeRouter)
+		manger.Router(middlewares.TokenMiddleware, "/reset/password", beego.BeforeRouter)
 
 		// 启用中间
 		manger.Boot()

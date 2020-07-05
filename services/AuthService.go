@@ -17,7 +17,8 @@ type AuthService interface {
 		LoginByUserPassword(typ string, value string, password string, args ...interface{}) (*models.User, string, common.Errors)
 		GetByAccessToken(string) (*models.User, common.Errors)
 		Keep(token string, duration ...time.Duration)
-		Token(user *models.User,args...interface{}) string
+		Token(user *models.User, args ...interface{}) string
+		ReleaseByUserId(...string) bool
 }
 
 type AuthServiceImpl struct {
@@ -209,4 +210,27 @@ func (this *AuthServiceImpl) GetCache() cache.Cache {
 		}
 		this.initStorage()
 		return this.storage
+}
+
+func (this *AuthServiceImpl) ReleaseByUserId(ids ...string) bool {
+		if len(ids) == 0 {
+				return false
+		}
+		var (
+				userService = UserServiceOf()
+				user        = userService.GetById(ids[0])
+		)
+		if user == nil {
+				return false
+		}
+		if len(user.AccessTokens) == 0 {
+				return false
+		}
+		for _, key := range user.AccessTokens {
+				_ = this.GetCache().Delete(key)
+		}
+		user.AccessTokens = user.AccessTokens[0:0]
+		data := beego.M{"accessTokens": user.AccessTokens, "modifies": []string{"accessTokens"}}
+		_ = userService.UpdateByUid(user.Id.Hex(), data)
+		return false
 }

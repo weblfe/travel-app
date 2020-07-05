@@ -5,6 +5,7 @@ import (
 		"github.com/globalsign/mgo/bson"
 		"github.com/weblfe/travel-app/libs"
 		"github.com/weblfe/travel-app/models"
+		"github.com/weblfe/travel-app/services"
 		"reflect"
 		"time"
 )
@@ -27,6 +28,15 @@ func filterUser(m beego.M) beego.M {
 func filterUserBase(m beego.M) beego.M {
 		m = filterUser(m)
 		delete(m, "accessTokens")
+		delete(m, "registerWay")
+		return filterUserAvatarUrl(m)
+}
+
+// 用户头像追加
+func filterUserAvatarUrl(m beego.M) beego.M  {
+		if id,ok:=m["avatarId"];ok &&id!=nil {
+				m["avatarUrl"] = services.AvatarServerOf().GetAvatarUrlById(id.(string))
+		}
 		return m
 }
 
@@ -38,10 +48,6 @@ func filterEmpty(m beego.M) beego.M {
 						continue
 				}
 				getValue := reflect.ValueOf(v)
-				if getValue.Kind() == reflect.Array && getValue.Len() <= 0 {
-						delete(m, k)
-						continue
-				}
 				if getValue.IsZero() {
 						delete(m, k)
 						continue

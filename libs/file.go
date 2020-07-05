@@ -10,36 +10,12 @@ import (
 		"unicode"
 )
 
-func IsExits(file string) bool {
-		_, err := os.Stat(file)
-		if  err != nil {
-				if os.IsExist(err) || os.IsNotExist(err) {
-						return false
-				}
-				if os.IsPermission(err) {
-						return false
-				}
-		}
-		return true
-}
-
-// 文件大小格式化
-func FormatFileSize(fileSize int64) string {
-		if fileSize <= 0 {
-				return "0B"
-		}
-		for i, unit := range _fileSizeUnitMap {
-				if fileSize < int64(math.Pow(1024, float64(i+1))) {
-						return fmt.Sprintf("%.2f%s", float64(fileSize)/math.Pow(1024, float64(i)), unit)
-				}
-		}
-		return "xXB"
-}
-
 var (
+		// 存储单位表
 		_fileSizeUnitMap = []string{
 				"B", "KB", "MB", "GB", "TB", "EB", "ZB", "YB",
 		}
+		// 类型表
 		_fileTypeMapper = map[string][]string{
 				"image": {
 						"png", "jpg", "jpeg", "bmp",
@@ -78,10 +54,37 @@ var (
 				},
 				"avatar": {"png", "jpg", "jpeg"},
 		}
+		// 类型索引顺序
 		_fileTypeIndex = []string{"image", "word", "config", "code", "video", "audio", "avatar"}
 )
 
 type FileSize int64
+
+func IsExits(file string) bool {
+		_, err := os.Stat(file)
+		if  err != nil {
+				if os.IsExist(err) || os.IsNotExist(err) {
+						return false
+				}
+				if os.IsPermission(err) {
+						return false
+				}
+		}
+		return true
+}
+
+// 文件大小格式化
+func FormatFileSize(fileSize int64) string {
+		if fileSize <= 0 {
+				return "0B"
+		}
+		for i, unit := range _fileSizeUnitMap {
+				if fileSize < int64(math.Pow(1024, float64(i+1))) {
+						return fmt.Sprintf("%.3f%s", float64(fileSize)/math.Pow(1024, float64(i)), unit)
+				}
+		}
+		return "xXB"
+}
 
 func (this FileSize) String() string {
 		return FormatFileSize(int64(this))
@@ -93,14 +96,14 @@ func (this FileSize) Parse(size string) int64 {
 				data = []rune(size)
 				num  = len(data)
 		)
-		if unicode.IsNumber(data[num-2]) {
-				unit = string(data[num-2:])
-		}
 		if unit == "" && unicode.IsNumber(data[num-1]) {
+				unit = string(data[num:])
+		}
+		if unicode.IsNumber(data[num-2]) {
 				unit = string(data[num-1:])
 		}
 		if unit == "" && unicode.IsNumber(data[num-3]) {
-				unit = string(data[num-3:])
+				unit = string(data[num-2:])
 		}
 		if unit == "" {
 				return 0
