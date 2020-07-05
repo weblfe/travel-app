@@ -160,6 +160,8 @@ func (this *User) M(filter ...func(m beego.M) beego.M) beego.M {
 				"registerWay":        this.RegisterWay,
 				"mobile":             this.Mobile,
 				"email":              this.Email,
+				"intro":              this.Intro,
+				"backgroundCoverId":  this.BackgroundCoverId,
 				"userNumId":          this.UserNumId,
 				"resetPasswordTimes": this.ResetPasswordTimes,
 				"createdAt":          this.CreatedAt,
