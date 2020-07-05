@@ -13,24 +13,26 @@ type UserModel struct {
 }
 
 type User struct {
-		Id                 bson.ObjectId `json:"id" bson:"_id"`
-		UserNumId          int64         `json:"userNumId" bson:"userNumId"`
-		UserName           string        `json:"username" bson:"username"`
-		AvatarId           string        `json:"avatarId,omitempty" bson:"avatarId,omitempty"`
-		NickName           string        `json:"nickname,omitempty" bson:"nickname,omitempty"`
-		PasswordHash       string        `json:"passwordHash" bson:"passwordHash"`
-		Mobile             string        `json:"mobile" bson:"mobile"`
-		Email              string        `json:"email,omitempty" bson:"email,omitempty"`
-		ResetPasswordTimes int           `json:"resetPasswordTimes" bson:"resetPasswordTimes"`
-		RegisterWay        string        `json:"registerWay" bson:"registerWay"`
-		AccessTokens       []string      `json:"accessTokens" bson:"accessTokens"`
-		LastLoginAt        int64         `json:"lastLoginAt" bson:"lastLoginAt"`
-		LastLoginLocation  string        `json:"lastLoginLocation" bson:"lastLoginLocation"`
-		Status             int           `json:"status" bson:"status"`
-		Gender             int           `json:"gender" bson:"gender"`
-		CreatedAt          time.Time     `json:"createdAt" bson:"createdAt"`
-		UpdatedAt          time.Time     `json:"updatedAt" bson:"updatedAt"`
-		DeletedAt          int64         `json:"deletedAt" bson:"deletedAt"`
+		Id                 bson.ObjectId `json:"id" bson:"_id"`                                // 唯一ID
+		UserNumId          int64         `json:"userNumId" bson:"userNumId"`                   // 用户注册序号
+		UserName           string        `json:"username" bson:"username"`                     // 用户名唯一
+		Intro              string        `json:"intro" bson:"intro"`                           // 个人简介
+		BackgroundCoverId  string        `json:"backgroundCoverId" bson:"backgroundCoverId"`   // 个人也背景
+		AvatarId           string        `json:"avatarId,omitempty" bson:"avatarId,omitempty"` // 头像ID
+		NickName           string        `json:"nickname,omitempty" bson:"nickname,omitempty"` // 昵称
+		PasswordHash       string        `json:"passwordHash" bson:"passwordHash"`             // 密码密码
+		Mobile             string        `json:"mobile" bson:"mobile"`                         // 手机号
+		Email              string        `json:"email,omitempty" bson:"email,omitempty"`       // 邮箱
+		ResetPasswordTimes int           `json:"resetPasswordTimes" bson:"resetPasswordTimes"` // 重置密码次数
+		RegisterWay        string        `json:"registerWay" bson:"registerWay"`               // 注册方式
+		AccessTokens       []string      `json:"accessTokens" bson:"accessTokens"`             // 授权临牌集合
+		LastLoginAt        int64         `json:"lastLoginAt" bson:"lastLoginAt"`               // 最近一次登陆时间
+		LastLoginLocation  string        `json:"lastLoginLocation" bson:"lastLoginLocation"`   // 最近一次登陆定位
+		Status             int           `json:"status" bson:"status"`                         // 用户状态 1:正常
+		Gender             int           `json:"gender" bson:"gender"`                         // 用户性别 0:保密 1:男 2:女 3:😯
+		CreatedAt          time.Time     `json:"createdAt" bson:"createdAt"`                   // 创建时间 注册时间
+		UpdatedAt          time.Time     `json:"updatedAt" bson:"updatedAt"`                   // 更新时间
+		DeletedAt          int64         `json:"deletedAt" bson:"deletedAt"`                   // 删除时间戳
 }
 
 const (
@@ -72,6 +74,10 @@ func (this *User) Set(key string, v interface{}) *User {
 				this.UserNumId = v.(int64)
 		case "username":
 				this.UserName = v.(string)
+		case "intro":
+				fallthrough
+		case "Intro":
+				this.Intro = v.(string)
 		case "id":
 				this.Id = v.(bson.ObjectId)
 		case "passwordHash":
@@ -135,7 +141,7 @@ func (this *User) Defaults() *User {
 				this.UserName = this.Email
 		}
 		if this.NickName == "" && this.UserName != "" {
-				this.NickName = this.UserName+"_nick"
+				this.NickName = this.UserName + "_nick"
 		}
 		if this.PasswordHash == "" {
 				this.PasswordHash = libs.PasswordHash(beego.AppConfig.DefaultString("default_password", "123456&Hex"))
@@ -168,6 +174,24 @@ func (this *User) M(filter ...func(m beego.M) beego.M) beego.M {
 				}
 		}
 		return data
+}
+
+func (this *User) Save() error {
+		var (
+				id    = this.Id.Hex()
+				tmp   = new(User)
+				model = UserModelOf()
+				err   = model.GetById(id, tmp)
+		)
+		if err != nil {
+				return model.UpdateById(id, this.M(func(m beego.M) beego.M {
+						delete(m, "id")
+						delete(m, "createdAt")
+						m["updatedAt"] = time.Now()
+						return m
+				}))
+		}
+		return model.Add(this)
 }
 
 func (this *UserModel) CreateIndex() {

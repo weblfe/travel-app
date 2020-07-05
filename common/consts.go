@@ -20,6 +20,7 @@ const (
 		InvalidParametersError    = "invalid parameters"
 		CreateFail                = "create record fail!"
 		NotFound                  = 4004
+		RecordNotFound            = 4040
 		AccessForbid              = 4003
 		InvalidTokenCode          = 4100
 		InvalidTokenError         = "invalid token"
@@ -29,6 +30,7 @@ const (
 		RegisterFail              = 1004
 		RegisterFailTip           = "register failed!"
 		AppTokenCookie            = "authorization"
-		DevelopCodeError            = "developing"
-		ServiceFailedError         = "server failed!"
+		DevelopCodeError          = "developing"
+		ServiceFailedError        = "server failed!"
+		RecordNotFoundError       = "empty"
 )

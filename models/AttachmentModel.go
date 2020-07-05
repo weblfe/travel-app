@@ -46,10 +46,29 @@ type Attachment struct {
 		Watermark     bool          `json:"watermark" bson:"watermark"`                             // 文件是否有水印
 		UpdatedAt     time.Time     `json:"updatedAt" bson:"updatedAt"`                             // 记录更新时间
 		Duration      time.Duration `json:"duration,omitempty" bson:"duration,omitempty"`           // 音视频文件时长
+		CoverId       bson.ObjectId `json:"coverId,omitempty" bson:"coverId,omitempty"`             // 音视频文件封面
 		Width         int           `json:"width,omitempty" bson:"width,omitempty"`                 // 图片文件时宽
 		Height        int           `json:"height,omitempty" bson:"height,omitempty"`               // 图片文件时高
 		CreatedAt     time.Time     `json:"createdAt" bson:"createdAt"`                             // 创建时间
 		DeletedAt     int64         `json:"deletedAt" bson:"deletedAt"`                             // 删除时间
+}
+
+// 图片
+type Image struct {
+		Url      string `json:"url" bson:"url"`
+		Size     int    `json:"size" bson:"size"`
+		SizeText string `json:"sizeText" bson:"sizeText"`
+		Width    int    `json:"width" bson:"width"`
+		Height   int    `json:"height" bson:"height"`
+}
+
+// 视频
+type Video struct {
+		Url      string        `json:"url" bson:"url"`
+		Size     int           `json:"size" bson:"size"`
+		SizeText string        `json:"sizeText" bson:"sizeText"`
+		Duration time.Duration `json:"width" bson:"width"`
+		CoverId  string        `json:"coverId" bson:"coverId"`
 }
 
 const (
@@ -100,6 +119,15 @@ func (this *Attachment) set(key string, v interface{}) *Attachment {
 				}
 				if id, ok := v.(bson.ObjectId); ok {
 						this.UserId = id
+				}
+		case "coverId":
+				fallthrough
+		case "CoverId":
+				if str, ok := v.(string); ok && str != "" {
+						this.CoverId = bson.ObjectIdHex(str)
+				}
+				if id, ok := v.(bson.ObjectId); ok {
+						this.CoverId = id
 				}
 		case "ExtrasInfo":
 				fallthrough
@@ -304,6 +332,7 @@ func (this *Attachment) M(filters ...func(m beego.M) beego.M) beego.M {
 				"duration":      this.Duration,
 				"width":         this.Width,
 				"height":        this.Height,
+				"coverId":       this.CoverId,
 				"createdAt":     this.CreatedAt,
 				"deletedAt":     this.DeletedAt,
 		}
@@ -316,6 +345,35 @@ func (this *Attachment) M(filters ...func(m beego.M) beego.M) beego.M {
 				}
 		}
 		return m
+}
+
+func (this *Attachment) GetUrl() string {
+		if this.CdnUrl != "" {
+				return this.CdnUrl
+		}
+		return this.Url
+}
+
+func (this *Attachment) Image() *Image {
+		var image = new(Image)
+		image.Height = this.Height
+		image.Width = this.Width
+		image.SizeText = this.SizeText
+		image.Size = int(this.Size)
+		image.Url = this.GetUrl()
+		return image
+}
+
+func (this *Attachment) Video() *Video {
+		var video = new(Video)
+		video.Duration = this.Duration
+		if this.CoverId != "" {
+				video.CoverId = this.CoverId.Hex()
+		}
+		video.SizeText = this.SizeText
+		video.Size = int(this.Size)
+		video.Url = this.GetUrl()
+		return video
 }
 
 func (this *AttachmentModel) CreateIndex() {
@@ -338,10 +396,38 @@ func (this *AttachmentModel) TableName() string {
 		return AttachmentTable
 }
 
+func (this *Video) M(filters ...func(m beego.M) beego.M) beego.M {
+		var data = beego.M{
+				"url":      this.Url,
+				"size":     this.Size,
+				"sizeText": this.SizeText,
+				"coverId":  this.CoverId,
+				"duration": this.Duration,
+		}
+		for _, filter := range filters {
+				data = filter(data)
+		}
+		return data
+}
+
+func (this *Image) M(filters ...func(m beego.M) beego.M) beego.M {
+		var data = beego.M{
+				"url":      this.Url,
+				"size":     this.Size,
+				"sizeText": this.SizeText,
+				"width":    this.Width,
+				"height":   this.Height,
+		}
+		for _, filter := range filters {
+				data = filter(data)
+		}
+		return data
+}
+
 func (this *AttachmentModel) GetByMediaId(id string) (*Attachment, error) {
 		var att = NewAttachment()
 		if id == "" {
-				return nil,common.NewErrors("empty id")
+				return nil, common.NewErrors("empty id")
 		}
 		err := this.GetById(id, att)
 		if err == nil {

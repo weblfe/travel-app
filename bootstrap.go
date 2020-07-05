@@ -135,7 +135,10 @@ func initMiddleware() {
 		manger.Router(middlewares.AuthMiddlewareName, "/user/info", beego.BeforeRouter)
 		manger.Router(middlewares.AuthMiddlewareName, "/attachment/*", beego.BeforeRouter)
 		manger.Router(middlewares.AttachTicketMiddlewareName, "/attachments/*", beego.BeforeRouter)
+
 		manger.Router(middlewares.TokenMiddleware, "/reset/password", beego.BeforeRouter)
+		manger.Router(middlewares.TokenMiddleware, "/posts/lists/my", beego.BeforeRouter)
+		manger.Router(middlewares.AuthMiddlewareName, "/posts/create", beego.BeforeRouter)
 
 		// 启用中间
 		manger.Boot()

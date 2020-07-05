@@ -5,6 +5,7 @@ import (
 		"github.com/astaxie/beego"
 		"github.com/astaxie/beego/config/env"
 		"github.com/astaxie/beego/logs"
+		"github.com/weblfe/travel-app/common"
 		"github.com/weblfe/travel-app/libs"
 		"github.com/weblfe/travel-app/models"
 		"io"
@@ -16,6 +17,7 @@ import (
 type AttachmentService interface {
 		Remove(query beego.M) bool
 		Get(mediaId string) *models.Attachment
+		UpdateById(string, beego.M) error
 		Save(reader io.ReadCloser, extras ...beego.M) *models.Attachment
 }
 
@@ -97,7 +99,7 @@ func (this *AttachmentServiceImpl) delete(fs string) {
 // 文件仅保存一份
 func (this *AttachmentServiceImpl) onlySaveOne(attach *models.Attachment) *models.Attachment {
 		// 开关文件保存一份 通过hash
-		if env.Get("ATTACHMENT_ONLY_ONE_SAVE","on") == "off" {
+		if env.Get("ATTACHMENT_ONLY_ONE_SAVE", "on") == "off" {
 				return attach
 		}
 		if attach.Hash != "" {
@@ -167,4 +169,11 @@ func (this *AttachmentServiceImpl) GetByHash(hash string) *models.Attachment {
 				return attach
 		}
 		return nil
+}
+
+func (this *AttachmentServiceImpl) UpdateById(id string, update beego.M) error {
+		if len(update) == 0 || id == "" {
+				return common.NewErrors(common.InvalidParametersCode, "更新参数不能为空")
+		}
+		return this.model.UpdateById(id, update)
 }
