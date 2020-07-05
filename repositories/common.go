@@ -40,7 +40,11 @@ func filterUserAvatarUrl(m beego.M) beego.M {
 		if id, ok := m["avatarId"]; ok && id != nil && id != "" {
 				m["avatarUrl"] = services.AvatarServerOf().GetAvatarUrlById(id.(string))
 		} else {
-				m["avatarUrl"] = ""
+				gender := m["gender"]
+				if gender == nil {
+						gender = 0
+				}
+				m["avatarUrl"] = services.AvatarServerOf().GetAvatarUrlDefault(gender.(int))
 		}
 		return m
 }

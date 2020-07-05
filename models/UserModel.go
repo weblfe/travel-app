@@ -41,7 +41,7 @@ const (
 		GenderSecrecy    = 3 // 保密
 		GenderBoth       = 4 // 中间人
 		GenderSecrecyKey = "secrecy"
-		GenderUnknownKey = "unknown"
+		GenderUnknownKey = "default"
 		GenderManKey     = "man"
 		GenderWomanKey   = "woman"
 		GenderBothKey    = "both"
