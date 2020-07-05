@@ -193,7 +193,7 @@ func (this *User) Save() error {
 						return m
 				}))
 		}
-		return model.Add(this)
+		return model.Add(this.Defaults())
 }
 
 func (this *UserModel) CreateIndex() {

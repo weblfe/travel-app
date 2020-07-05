@@ -324,24 +324,24 @@ func (this *BaseModel) Update(query interface{}, data interface{}) error {
 }
 
 // 更新
-func (this *BaseModel)setUpdate(data interface{}) interface{} {
+func (this *BaseModel) setUpdate(data interface{}) interface{} {
 		var newData = make(beego.M)
-		if m,ok:=data.(beego.M);ok {
-				 if _,ok:=m["$set"];ok {
-				 		return data
-				 }
-				newData["$set"] = data
-				 return newData
-		}
-		if m,ok:=data.(bson.M);ok {
-				if _,ok:=m["$set"];ok {
+		if m, ok := data.(beego.M); ok {
+				if _, ok := m["$set"]; ok {
 						return data
 				}
 				newData["$set"] = data
 				return newData
 		}
-		if m,ok:=data.(map[string]interface{});ok {
-				if _,ok:=m["$set"];ok {
+		if m, ok := data.(bson.M); ok {
+				if _, ok := m["$set"]; ok {
+						return data
+				}
+				newData["$set"] = data
+				return newData
+		}
+		if m, ok := data.(map[string]interface{}); ok {
+				if _, ok := m["$set"]; ok {
 						return data
 				}
 				newData["$set"] = data
@@ -432,6 +432,44 @@ func (this *BaseModel) Gets(query interface{}, result interface{}, selects ...in
 				return table.Find(query).Select(selects[0]).All(result)
 		}
 		return table.Find(query).All(result)
+}
+
+func (this *BaseModel) Count(query interface{}) int {
+		table := this.Collection()
+		defer this.destroy()
+		n, err := table.Find(query).Count()
+		if err == nil {
+				return n
+		}
+		return 0
+}
+
+func (this *BaseModel) Sum(query bson.M, sum string) int {
+		table := this.Collection()
+		defer this.destroy()
+		var (
+				resultPipe struct {
+						ID int `bson:"_id"`
+						C  int `bson:"c"`
+				}
+				pipe = []bson.M{
+						{
+								"$project": bson.M{
+										"c": bson.M{
+												"$sum": []interface{}{"$" + sum},
+										},
+								},
+						},
+						{
+								"$match": query,
+						},
+				}
+		)
+		err := table.Pipe(pipe).One(&resultPipe)
+		if err == nil {
+				return resultPipe.C
+		}
+		return 0
 }
 
 func (this *BaseModel) Exists(query interface{}) bool {
