@@ -148,7 +148,7 @@ func (this *UserInfoRepositoryImpl) resetPasswordByMobileSms(mobile string, code
 				return common.NewErrors("用户不存在")
 		}
 		// 校验
-		if services.SmsCodeServiceOf().Verify(mobile, code, "reset_password") {
+		if !services.SmsCodeServiceOf().Verify(mobile, code, "reset_password") {
 				return common.NewErrors("验证码不正确")
 		}
 		user.PasswordHash = ""
