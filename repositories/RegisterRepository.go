@@ -123,7 +123,11 @@ func (this *UserRegisterRepositoryImpl) registerAccount(account string, password
 				user = new(models.User)
 				data = beego.M{"username": account, "passwordHash": password, "register_way": "account"}
 		)
-		err := this.getUserService().Create(user.Load(data).Defaults())
+		user.Load(data).Defaults()
+		if this.userService.GetByUserName(user.UserName)!=nil {
+			return common.NewInvalidParametersResp(common.NewErrors(common.InvalidParametersCode, "用户账号已注册"))
+		}
+		err := this.getUserService().Create(user)
 		if err == nil {
 				return common.NewSuccessResp(beego.M{"user": user}, "注册成功")
 		}
