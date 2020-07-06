@@ -4,7 +4,8 @@ import (
 		"encoding/json"
 		"github.com/astaxie/beego"
 		"github.com/astaxie/beego/context"
-		"github.com/weblfe/travel-app/common"
+	"github.com/astaxie/beego/logs"
+	"github.com/weblfe/travel-app/common"
 		"github.com/weblfe/travel-app/models"
 		"github.com/weblfe/travel-app/services"
 		"time"
@@ -126,7 +127,8 @@ func (this *UserRegisterRepositoryImpl) registerAccount(account string, password
 		if err == nil {
 				return common.NewSuccessResp(beego.M{"user": user}, "注册成功")
 		}
-		return common.NewResponse(common.RegisterFail, common.RegisterFailTip)
+		logs.Error(err)
+		return common.NewResponse(common.RegisterFail, common.RegisterFailTip,common.NewErrors(err,common.RegisterFail))
 }
 
 // 手机号注册
