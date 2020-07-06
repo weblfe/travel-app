@@ -21,7 +21,7 @@ type User struct {
 		AvatarId           string        `json:"avatarId,omitempty" bson:"avatarId,omitempty"` // 头像ID
 		NickName           string        `json:"nickname,omitempty" bson:"nickname,omitempty"` // 昵称
 		PasswordHash       string        `json:"passwordHash" bson:"passwordHash"`             // 密码密码
-		Mobile             string        `json:"mobile" bson:"mobile"`                         // 手机号
+		Mobile             string        `json:"mobile,omitempty" bson:"mobile,omitempty"`                         // 手机号
 		Email              string        `json:"email,omitempty" bson:"email,omitempty"`       // 邮箱
 		ResetPasswordTimes int           `json:"resetPasswordTimes" bson:"resetPasswordTimes"` // 重置密码次数
 		RegisterWay        string        `json:"registerWay" bson:"registerWay"`               // 注册方式
@@ -139,6 +139,11 @@ func (this *User) Defaults() *User {
 		}
 		if this.UserName == "" && this.Email != "" {
 				this.UserName = this.Email
+		}
+		if this.Mobile == "" && this.UserName!= "" {
+			if libs.IsCnMobile(this.UserName) || libs.IsMobile(this.UserName) {
+				this.Mobile = this.UserName
+			}
 		}
 		if this.NickName == "" && this.UserName != "" {
 				this.NickName = this.UserName + "_nick"
