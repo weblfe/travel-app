@@ -145,7 +145,7 @@ func (this *UserRegisterRepositoryImpl) registerByMobile(mobile string, code str
 				data["passwordHash"] = request.Password
 				data["resetPasswordTimes"] = 1
 		}
-		if way != "" {
+		if request.Way != "" {
 				data["registerWay"] = request.Way
 		}
 		// 创建用户
