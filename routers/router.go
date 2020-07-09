@@ -26,4 +26,6 @@ func init() {
 		beego.Include(controllers.MessageControllerOf())
 		// 附件模块
 		beego.Include(controllers.AttachmentControllerOf())
+		// 点赞模块
+		beego.Include(controllers.ThumbsUpControllerOf())
 }
