@@ -61,13 +61,13 @@ func (this *UserRegisterRepositoryImpl) Register() common.ResponseJson {
 		}
 		switch request.Type {
 		case RegisterByAccount:
-				return this.registerAccount(request.Account, request.Password, ctx)
+				return this.registerAccount(request.Account, request.Password, request)
 		case RegisterByMobile:
-				return this.registerByMobile(request.Mobile, request.Code, ctx)
+				return this.registerByMobile(request.Mobile, request.Code, request)
 		case RegisterByEmail:
-				return this.registerByEmail(request.Email, request.Code, ctx)
+				return this.registerByEmail(request.Email, request.Code, request)
 		case RegisterByThird:
-				return this.registerThirdParty(ctx, request.Third)
+				return this.registerThirdParty(request, request.Third)
 		}
 		return common.NewResponse(common.RegisterFail, common.RegisterFailTip, common.NewErrors(common.RegisterFail, "未知注册方式 :"+request.Type))
 }
@@ -83,6 +83,10 @@ func (this *UserRegisterRepositoryImpl) choose(request *RegisterRequest) string 
 		if request.Account != "" && request.Password != "" {
 				return RegisterByAccount
 		}
+		if request.Mobile != "" && request.Password != "" {
+				request.Account = request.Mobile
+				return RegisterByAccount
+		}
 		if request.Third != "" {
 				return RegisterByThird
 		}
@@ -90,7 +94,7 @@ func (this *UserRegisterRepositoryImpl) choose(request *RegisterRequest) string 
 }
 
 // 用户账号+密码登录
-func (this *UserRegisterRepositoryImpl) registerAccount(account string, password string, ctx *beego.Controller) common.ResponseJson {
+func (this *UserRegisterRepositoryImpl) registerAccount(account string, password string, request *RegisterRequest) common.ResponseJson {
 		if account == "" {
 				return common.NewInvalidParametersResp(common.NewErrors(common.InvalidParametersCode, "用户账号不能为空"))
 		}
@@ -103,6 +107,9 @@ func (this *UserRegisterRepositoryImpl) registerAccount(account string, password
 		)
 		user.Load(data).Defaults()
 		user.ResetPasswordTimes++
+		if request.Mobile != "" {
+				user.Mobile = request.Mobile
+		}
 		if this.userService.GetByUserName(user.UserName) != nil || this.userService.GetByMobile(user.Mobile) != nil {
 				return common.NewInvalidParametersResp(common.NewErrors(common.InvalidParametersCode, "用户账号已注册"))
 		}
@@ -115,22 +122,18 @@ func (this *UserRegisterRepositoryImpl) registerAccount(account string, password
 }
 
 // 手机号注册
-func (this *UserRegisterRepositoryImpl) registerByEmail(email string, code string, ctx *beego.Controller) common.ResponseJson {
+func (this *UserRegisterRepositoryImpl) registerByEmail(email string, code string, request *RegisterRequest) common.ResponseJson {
 		return common.NewResponse(common.RegisterFail, common.RegisterFailTip)
 }
 
 // 手机号注册
-func (this *UserRegisterRepositoryImpl) registerByMobile(mobile string, code string, ctx *beego.Controller) common.ResponseJson {
+func (this *UserRegisterRepositoryImpl) registerByMobile(mobile string, code string, request *RegisterRequest) common.ResponseJson {
 		if !this.smsService.Verify(mobile, code, "register") {
 				return common.NewResponse(common.RegisterFail, common.RegisterFailTip, common.NewErrors(common.VerifyNotMatch, "验证码错误"))
 		}
 		var (
-				user     = models.NewUser()
-				way      string
-				password string
-				_        = ctx.Ctx.Input.Bind(&way, "_register")
-				_        = ctx.Ctx.Input.Bind(&password, "password")
-				data     = beego.M{
+				user = models.NewUser()
+				data = beego.M{
 						"mobile":      mobile,
 						"nickname":    "nick_" + mobile,
 						"registerWay": "mobile",
@@ -138,12 +141,12 @@ func (this *UserRegisterRepositoryImpl) registerByMobile(mobile string, code str
 						"created_at":  time.Now(),
 				}
 		)
-		if password != "" {
-				data["passwordHash"] = password
+		if request.Password != "" {
+				data["passwordHash"] = request.Password
 				data["resetPasswordTimes"] = 1
 		}
 		if way != "" {
-				data["registerWay"] = way
+				data["registerWay"] = request.Way
 		}
 		// 创建用户
 		user.Load(data)
@@ -157,7 +160,7 @@ func (this *UserRegisterRepositoryImpl) registerByMobile(mobile string, code str
 }
 
 // 第三方注册
-func (this *UserRegisterRepositoryImpl) registerThirdParty(ctx *beego.Controller, third string) common.ResponseJson {
+func (this *UserRegisterRepositoryImpl) registerThirdParty(request *RegisterRequest, third string) common.ResponseJson {
 		return common.NewResponse(common.RegisterFail, common.RegisterFailTip)
 }
 
@@ -208,19 +211,21 @@ type RegisterRequest struct {
 		Email    string `json:"email"`
 		Third    string `json:"third"`
 		Type     string `json:"type"`
+		Way      string `json:"_register"`
 }
 
 func (this *RegisterRequest) Load(ctx *context.BeegoInput) *RegisterRequest {
 		var (
 				_      = json.Unmarshal(ctx.RequestBody, this)
 				mapper = map[string]interface{}{
-						"mobile":   &this.Mobile,
-						"password": &this.Password,
-						"username": &this.Account,
-						"code":     &this.Code,
-						"email":    &this.Email,
-						"third":    &this.Third,
-						"type":     &this.Type,
+						"mobile":    &this.Mobile,
+						"password":  &this.Password,
+						"username":  &this.Account,
+						"code":      &this.Code,
+						"email":     &this.Email,
+						"third":     &this.Third,
+						"type":      &this.Type,
+						"_register": &this.Way,
 				}
 		)
 		for key, v := range mapper {
@@ -244,6 +249,7 @@ func (this *RegisterRequest) M(filters ...func(m beego.M) beego.M) beego.M {
 				"email":        this.Email,
 				"third":        this.Third,
 				"type":         this.Type,
+				"registerWay":  this.Way,
 		}
 		filters = append(filters, filterEmpty)
 		for _, filter := range filters {
