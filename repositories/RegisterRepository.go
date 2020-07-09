@@ -4,8 +4,8 @@ import (
 		"encoding/json"
 		"github.com/astaxie/beego"
 		"github.com/astaxie/beego/context"
-	"github.com/astaxie/beego/logs"
-	"github.com/weblfe/travel-app/common"
+		"github.com/astaxie/beego/logs"
+		"github.com/weblfe/travel-app/common"
 		"github.com/weblfe/travel-app/models"
 		"github.com/weblfe/travel-app/services"
 		"time"
@@ -49,63 +49,41 @@ func (this *UserRegisterRepositoryImpl) init() {
 // 注册逻辑
 func (this *UserRegisterRepositoryImpl) Register() common.ResponseJson {
 		var (
-				mobile   string
-				password string
-				username string
-				email    string
-				code     string
-				ctx      = this.ctx
-				typ      = ctx.GetString("type")
+				ctx     = this.ctx
+				request = new(RegisterRequest)
 		)
-		if typ == "" {
-				if typ = this.choose(ctx); typ == "" {
-						return common.NewInvalidParametersResp(common.NewErrors(common.InvalidParametersCode, "请求异常"))
-				}
+		request.Load(ctx.Ctx.Input)
+		if request.Type == "" {
+				request.Type = this.choose(request)
 		}
-		switch typ {
+		if request.Type == "" {
+				return common.NewInvalidParametersResp(common.NewErrors(common.InvalidParametersCode, "请求异常"))
+		}
+		switch request.Type {
 		case RegisterByAccount:
-				_ = ctx.Ctx.Input.Bind(&password, "password")
-				_ = ctx.Ctx.Input.Bind(&username, "username")
-				return this.registerAccount(username, password, ctx)
+				return this.registerAccount(request.Account, request.Password, ctx)
 		case RegisterByMobile:
-				_ = ctx.Ctx.Input.Bind(&mobile, "mobile")
-				_ = ctx.Ctx.Input.Bind(&code, "code")
-				return this.registerByMobile(mobile, code, ctx)
+				return this.registerByMobile(request.Mobile, request.Code, ctx)
 		case RegisterByEmail:
-				_ = ctx.Ctx.Input.Bind(&email, "email")
-				_ = ctx.Ctx.Input.Bind(&code, "code")
-				return this.registerByEmail(ctx.GetString("email"), ctx.GetString("code"), ctx)
+				return this.registerByEmail(request.Email, request.Code, ctx)
 		case RegisterByThird:
-				return this.registerThirdParty(ctx)
+				return this.registerThirdParty(ctx, request.Third)
 		}
-		return common.NewResponse(common.RegisterFail, common.RegisterFailTip, common.NewErrors(common.RegisterFail, "未知注册方式 :"+typ))
+		return common.NewResponse(common.RegisterFail, common.RegisterFailTip, common.NewErrors(common.RegisterFail, "未知注册方式 :"+request.Type))
 }
 
 // 自动选择注册方式
-func (this *UserRegisterRepositoryImpl) choose(ctx *beego.Controller) string {
-		var (
-				code     string
-				mobile   string
-				account  string
-				password string
-				email    string
-				third    = ctx.GetString(RegisterByThird)
-		)
-		_ = ctx.Ctx.Input.Bind(&code, "code")
-		_ = ctx.Ctx.Input.Bind(&mobile, "mobile")
-		_ = ctx.Ctx.Input.Bind(&account, "username")
-		_ = ctx.Ctx.Input.Bind(&password, "password")
-		_ = ctx.Ctx.Input.Bind(&email, "email")
-		if mobile != "" && code != "" {
+func (this *UserRegisterRepositoryImpl) choose(request *RegisterRequest) string {
+		if request.Mobile != "" && request.Code != "" {
 				return RegisterByMobile
 		}
-		if email != "" && code != "" {
+		if request.Email != "" && request.Code != "" {
 				return RegisterByEmail
 		}
-		if account != "" && password != "" {
+		if request.Account != "" && request.Password != "" {
 				return RegisterByAccount
 		}
-		if third != "" {
+		if request.Third != "" {
 				return RegisterByThird
 		}
 		return ""
@@ -124,15 +102,16 @@ func (this *UserRegisterRepositoryImpl) registerAccount(account string, password
 				data = beego.M{"username": account, "passwordHash": password, "register_way": "account"}
 		)
 		user.Load(data).Defaults()
-		if this.userService.GetByUserName(user.UserName)!=nil ||  this.userService.GetByMobile(user.Mobile)!=nil {
-			return common.NewInvalidParametersResp(common.NewErrors(common.InvalidParametersCode, "用户账号已注册"))
+		user.ResetPasswordTimes++
+		if this.userService.GetByUserName(user.UserName) != nil || this.userService.GetByMobile(user.Mobile) != nil {
+				return common.NewInvalidParametersResp(common.NewErrors(common.InvalidParametersCode, "用户账号已注册"))
 		}
 		err := this.getUserService().Create(user)
 		if err == nil {
 				return common.NewSuccessResp(beego.M{"user": user}, "注册成功")
 		}
 		logs.Error(err)
-		return common.NewResponse(common.RegisterFail, common.RegisterFailTip,common.NewErrors(err,common.RegisterFail))
+		return common.NewResponse(common.RegisterFail, common.RegisterFailTip, common.NewErrors(err, common.RegisterFail))
 }
 
 // 手机号注册
@@ -178,7 +157,7 @@ func (this *UserRegisterRepositoryImpl) registerByMobile(mobile string, code str
 }
 
 // 第三方注册
-func (this *UserRegisterRepositoryImpl) registerThirdParty(ctx *beego.Controller) common.ResponseJson {
+func (this *UserRegisterRepositoryImpl) registerThirdParty(ctx *beego.Controller, third string) common.ResponseJson {
 		return common.NewResponse(common.RegisterFail, common.RegisterFailTip)
 }
 
@@ -220,6 +199,59 @@ func (this *UserRegisterRepositoryImpl) RegisterByQuick() (*models.User, error) 
 		return nil, err
 }
 
+// 注册参数
+type RegisterRequest struct {
+		Code     string `json:"code"`
+		Mobile   string `json:"mobile"`
+		Account  string `json:"username"`
+		Password string `json:"password"`
+		Email    string `json:"email"`
+		Third    string `json:"third"`
+		Type     string `json:"type"`
+}
+
+func (this *RegisterRequest) Load(ctx *context.BeegoInput) *RegisterRequest {
+		var (
+				_      = json.Unmarshal(ctx.RequestBody, this)
+				mapper = map[string]interface{}{
+						"mobile":   &this.Mobile,
+						"password": &this.Password,
+						"username": &this.Account,
+						"code":     &this.Code,
+						"email":    &this.Email,
+						"third":    &this.Third,
+						"type":     &this.Type,
+				}
+		)
+		for key, v := range mapper {
+				if str, ok := v.(*string); ok {
+						if *str != "" {
+								continue
+						}
+				}
+				_ = ctx.Bind(v, key)
+		}
+
+		return this
+}
+
+func (this *RegisterRequest) M(filters ...func(m beego.M) beego.M) beego.M {
+		var data = beego.M{
+				"mobile":       this.Mobile,
+				"passwordHash": this.Password,
+				"username":     this.Account,
+				"code":         this.Code,
+				"email":        this.Email,
+				"third":        this.Third,
+				"type":         this.Type,
+		}
+		filters = append(filters, filterEmpty)
+		for _, filter := range filters {
+				data = filter(data)
+		}
+		return data
+}
+
 // 快捷注册
 type QuickRegister struct {
 		Mobile      string `json:"mobile"`
@@ -232,23 +264,23 @@ type QuickRegister struct {
 		AvatarId    string `json:"avatarId"`
 }
 
-func (this *QuickRegister)Load(ctx *context.BeegoInput) *QuickRegister  {
+func (this *QuickRegister) Load(ctx *context.BeegoInput) *QuickRegister {
 		var (
-			_       = json.Unmarshal(ctx.RequestBody, this)
-			mapper  = map[string]interface{}{
-					"mobile":&this.Mobile,
-					"password":&this.Password,
-					"_register":&this.RegisterWay,
-					"gender":&this.Gender,
-					"username":&this.UserName,
-					"nickname":&this.NickName,
-					"email":&this.Email,
-					"avatarId":&this.AvatarId,
-			}
+				_      = json.Unmarshal(ctx.RequestBody, this)
+				mapper = map[string]interface{}{
+						"mobile":    &this.Mobile,
+						"password":  &this.Password,
+						"_register": &this.RegisterWay,
+						"gender":    &this.Gender,
+						"username":  &this.UserName,
+						"nickname":  &this.NickName,
+						"email":     &this.Email,
+						"avatarId":  &this.AvatarId,
+				}
 		)
-		if this.Mobile == ""  {
-				for key,v:=range mapper {
-						_ = ctx.Bind(v,key)
+		if this.Mobile == "" {
+				for key, v := range mapper {
+						_ = ctx.Bind(v, key)
 				}
 		}
 		return this

@@ -73,6 +73,7 @@ func (this *MobileRequest) Load(ctx *context.BeegoInput) *MobileRequest {
 func (this *MobileRequest) M(filters ...func(m beego.M) beego.M) beego.M {
 		var data = beego.M{
 				"mobile": this.Mobile,
+				"type" : this.Type,
 		}
 		for _, filter := range filters {
 				data = filter(data)
