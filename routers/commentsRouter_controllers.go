@@ -232,6 +232,33 @@ func init() {
             Filters: nil,
             Params: nil})
 
+    beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:ThumbsUpController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:ThumbsUpController"],
+        beego.ControllerComments{
+            Method: "Get",
+            Router: `/thumbs/count`,
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:ThumbsUpController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:ThumbsUpController"],
+        beego.ControllerComments{
+            Method: "Delete",
+            Router: `/thumbs/down`,
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:ThumbsUpController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:ThumbsUpController"],
+        beego.ControllerComments{
+            Method: "Post",
+            Router: `/thumbs/up`,
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
     beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:UserController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:UserController"],
         beego.ControllerComments{
             Method: "FocusOff",

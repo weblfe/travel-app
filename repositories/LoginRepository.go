@@ -1,12 +1,13 @@
 package repositories
 
 import (
-		"encoding/json"
 		"github.com/astaxie/beego"
-		"github.com/astaxie/beego/context"
 		"github.com/weblfe/travel-app/common"
 		"github.com/weblfe/travel-app/libs"
+		"github.com/weblfe/travel-app/models"
 		"github.com/weblfe/travel-app/services"
+		"github.com/weblfe/travel-app/transforms"
+		"github.com/weblfe/travel-app/transports"
 )
 
 type LoginRepository interface {
@@ -14,13 +15,13 @@ type LoginRepository interface {
 }
 
 type LoginRepositoryImpl struct {
-		ctx         *beego.Controller
 		userService services.UserService
 		smsService  services.SmsCodeService
 		authService services.AuthService
+		ctx         common.BaseRequestContext
 }
 
-func NewLoginRepository(ctx *beego.Controller) LoginRepository {
+func NewLoginRepository(ctx common.BaseRequestContext) LoginRepository {
 		var repository = new(LoginRepositoryImpl)
 		repository.ctx = ctx
 		repository.init()
@@ -36,8 +37,8 @@ func (this *LoginRepositoryImpl) init() {
 func (this *LoginRepositoryImpl) Login() common.ResponseJson {
 		var (
 				typ     string
-				request = new(Login)
-				input   = this.ctx.Ctx.Input
+				request = new(transports.Login)
+				input   = this.ctx.GetInput()
 		)
 		request.Load(input)
 		typ = this.choose(request.Mobile, request.Code, request.Username, request.Password, request.Email)
@@ -106,14 +107,14 @@ func (this *LoginRepositoryImpl) loginByMobile(mobile string, code string) commo
 						return common.NewErrorResp(err.(common.Errors), "快捷登陆失败")
 				}
 		}
-		if isForbid(user) {
+		if models.IsForbid(user) {
 				return common.NewErrorResp(common.NewErrors(common.PermissionCode, "账号禁用状态"))
 		}
 		token := this.authService.Token(user)
 		if token == "" {
 				return common.NewErrorResp(common.NewErrors(common.ServiceFailed, "登陆服务异常"))
 		}
-		data := user.M(filterUser)
+		data := user.M(transforms.FilterUser)
 		delete(data, "access_tokens")
 		return common.NewSuccessResp(beego.M{"user": data, "token": token}, "登陆成功")
 }
@@ -123,14 +124,14 @@ func (this *LoginRepositoryImpl) loginByAccountPassword(account string, password
 		if user == nil {
 				return common.NewErrorResp(common.NewErrors(1021, "用户不存在"))
 		}
-		if isForbid(user) {
+		if models.IsForbid(user) {
 				return common.NewErrorResp(common.NewErrors(common.PermissionCode, "账号禁用状态"))
 		}
 		if !libs.PasswordVerify(user.PasswordHash, password) {
 				return common.NewErrorResp(common.NewErrors(common.VerifyNotMatch, "密码不正确"))
 		}
 		token := this.authService.Token(user)
-		data := user.M(filterUserBase)
+		data := user.M(transforms.FilterUserBase)
 		return common.NewSuccessResp(beego.M{"user": data, "token": token}, "登陆成功")
 }
 
@@ -139,14 +140,14 @@ func (this *LoginRepositoryImpl) loginByMobilePassword(mobile string, password s
 		if user == nil {
 				return common.NewErrorResp(common.NewErrors(1021, "用户不存在"))
 		}
-		if isForbid(user) {
+		if models.IsForbid(user) {
 				return common.NewErrorResp(common.NewErrors(common.PermissionCode, "账号禁用状态"))
 		}
 		if !libs.PasswordVerify(user.PasswordHash, password) {
 				return common.NewErrorResp(common.NewErrors(common.VerifyNotMatch, "密码不正确"))
 		}
 		token := this.authService.Token(user)
-		data := user.M(filterUserBase)
+		data := user.M(transforms.FilterUserBase)
 		return common.NewSuccessResp(beego.M{"user": data, "token": token}, "登陆成功")
 }
 
@@ -155,7 +156,7 @@ func (this *LoginRepositoryImpl) loginByEmailCode(email string, code string) com
 		if user == nil {
 				return common.NewErrorResp(common.NewErrors(1021, "用户不存在"))
 		}
-		if isForbid(user) {
+		if models.IsForbid(user) {
 				return common.NewErrorResp(common.NewErrors(common.PermissionCode, "账号禁用状态"))
 		}
 		// @todo 邮件验证码
@@ -163,7 +164,7 @@ func (this *LoginRepositoryImpl) loginByEmailCode(email string, code string) com
 				return common.NewErrorResp(common.NewErrors(common.VerifyNotMatch, "验证码不正确"))
 		}
 		token := this.authService.Token(user)
-		data := user.M(filterUserBase)
+		data := user.M(transforms.FilterUserBase)
 		return common.NewSuccessResp(beego.M{"user": data, "token": token}, "登陆成功")
 }
 
@@ -172,58 +173,13 @@ func (this *LoginRepositoryImpl) loginByEmail(email string, password string) com
 		if user == nil {
 				return common.NewErrorResp(common.NewErrors(1021, "用户不存在"))
 		}
-		if isForbid(user) {
+		if models.IsForbid(user) {
 				return common.NewErrorResp(common.NewErrors(common.PermissionCode, "账号禁用状态"))
 		}
 		if !libs.PasswordVerify(user.PasswordHash, password) {
 				return common.NewErrorResp(common.NewErrors(common.VerifyNotMatch, "验证码不正确"))
 		}
 		token := this.authService.Token(user)
-		data := user.M(filterUserBase)
+		data := user.M(transforms.FilterUserBase)
 		return common.NewSuccessResp(beego.M{"user": data, "token": token}, "登陆成功")
-}
-
-// 登陆参数
-type Login struct {
-		Mobile   string `json:"mobile"`
-		Code     string `json:"code"`
-		Username string `json:"username"`
-		Password string `json:"password"`
-		Email    string `json:"email"`
-}
-
-func (this *Login) Load(ctx *context.BeegoInput) *Login {
-		var (
-				_      = json.Unmarshal(ctx.RequestBody, this)
-				mapper = map[string]interface{}{
-						"mobile":   &this.Mobile,
-						"code":     &this.Code,
-						"username": &this.Username,
-						"email":    &this.Email,
-						"password": &this.Password,
-				}
-		)
-		if this.Email == "" && this.Username == "" && this.Mobile == "" {
-				for key, addr := range mapper {
-						_ = ctx.Bind(addr, key)
-				}
-		}
-		return this
-}
-
-func (this *Login) M(filters ...func(m beego.M) beego.M) beego.M {
-		var (
-				data = beego.M{
-						"mobile":   this.Mobile,
-						"code":     this.Code,
-						"username": this.Username,
-						"password": this.Password,
-						"email":    this.Email,
-				}
-		)
-		filters = append(filters, filterEmpty)
-		for _, filter := range filters {
-				data = filter(data)
-		}
-		return data
 }

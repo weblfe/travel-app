@@ -13,7 +13,7 @@ func CaptchaControllerOf() *CaptchaController  {
 
 // @router /captcha/mobile [post]
 func (this *CaptchaController)SendMobileCaptcha()  {
-   this.Send(repositories.NewCaptchaRepository(&this.BaseController.Controller).SendMobileCaptcha())
+   this.Send(repositories.NewCaptchaRepository(this).SendMobileCaptcha())
 }
 
 // @router /captcha/email [post]

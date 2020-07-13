@@ -263,3 +263,7 @@ func GetGenderEnum(gender string) int {
 		}
 		return GenderUnknown
 }
+
+func IsForbid(data *User) bool {
+		return data.DeletedAt != 0 || data.Status != 1
+}

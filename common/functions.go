@@ -32,3 +32,4 @@ func StoragePath() string {
 func Echo(v interface{}) {
 		fmt.Printf("%v\n", v)
 }
+

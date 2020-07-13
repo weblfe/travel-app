@@ -1,39 +1,33 @@
-package repositories
+package transforms
 
 import (
 		"github.com/astaxie/beego"
 		"github.com/globalsign/mgo/bson"
-		"github.com/weblfe/travel-app/libs"
-		"github.com/weblfe/travel-app/models"
 		"github.com/weblfe/travel-app/services"
 		"reflect"
 		"time"
 )
 
-func isForbid(data *models.User) bool {
-		return data.DeletedAt != 0 || data.Status != 1
-}
-
 // 获取多余字段
-func filterUser(m beego.M) beego.M {
+func FilterUser(m beego.M) beego.M {
 		delete(m, "deletedAt")
 		delete(m, "passwordHash")
 		if str, ok := m["mobile"]; ok && str != "" {
-				m["mobile"] = libs.MarkerMobile(str.(string))
+				m["mobile"] = MarkerMobileTrans(str.(string))
 		}
 		return m
 }
 
 // 过滤用户基础数据
-func filterUserBase(m beego.M) beego.M {
-		m = filterUser(m)
+func FilterUserBase(m beego.M) beego.M {
+		m = FilterUser(m)
 		delete(m, "accessTokens")
 		delete(m, "registerWay")
-		return filterUserAvatarUrl(m)
+		return FilterUserAvatarUrl(m)
 }
 
 // 用户头像追加
-func filterUserAvatarUrl(m beego.M) beego.M {
+func FilterUserAvatarUrl(m beego.M) beego.M {
 		if url, ok := m["avatarUrl"]; ok && url != nil && url != "" {
 				return m
 		}
@@ -50,7 +44,7 @@ func filterUserAvatarUrl(m beego.M) beego.M {
 }
 
 // 过滤空数据字段
-func filterEmpty(m beego.M) beego.M {
+func FilterEmpty(m beego.M) beego.M {
 		for k, v := range m {
 				if v == "" || v == nil {
 						delete(m, k)
@@ -72,15 +66,15 @@ func filterEmpty(m beego.M) beego.M {
 }
 
 // 过滤 任意空值
-func filter(m beego.M, extras ...map[string]interface{}) beego.M {
+func Filter(m beego.M, extras ...map[string]interface{}) beego.M {
 		if len(extras) == 0 {
 				extras = append(extras, map[string]interface{}{})
 		}
-		return filterEmptyMapper(filterEmpty(m))
+		return FilterEmptyMapper(FilterEmpty(m))
 }
 
 // 过滤空mapper
-func filterEmptyMapper(m beego.M) beego.M {
+func FilterEmptyMapper(m beego.M) beego.M {
 		for key, v := range m {
 				obj, ok := v.(map[string]interface{})
 				if ok && len(obj) == 0 {
@@ -106,18 +100,18 @@ func filterEmptyMapper(m beego.M) beego.M {
 }
 
 // attachment 过滤
-func filterAttachment(m beego.M) beego.M {
+func FilterAttachment(m beego.M) beego.M {
 		if v, ok := m["id"]; ok {
 				m["mediaId"] = v
 		}
-		return filterEmpty(m)
+		return FilterEmpty(m)
 }
 
 // 过滤器包装器
 func FilterWrapper(filters ...func(m beego.M) beego.M) func(m beego.M) beego.M {
 		if len(filters) <= 0 {
 				return func(m beego.M) beego.M {
-						return filter(m)
+						return Filter(m)
 				}
 		}
 		return func(m beego.M) beego.M {
@@ -149,4 +143,44 @@ func FieldsFilter(fields []string, exclude ...bool) func(m beego.M) beego.M {
 				}
 				return m
 		}
+}
+
+// 时间转时间戳
+func FilterTimeToInt64(m beego.M, keys ...string) beego.M {
+		if len(keys) == 0 {
+				keys = append(keys, "createdAt", "updatedAt", "deletedAt")
+		}
+		for _, key := range keys {
+				v, ok := m[key]
+				if !ok {
+						continue
+				}
+				switch v.(type) {
+				case time.Time:
+						t := v.(time.Time)
+						if t.IsZero() {
+								m[key] = 0
+								break
+						}
+						m[key] = t.Unix()
+				case *time.Time:
+						t := v.(time.Time)
+						if t.IsZero() {
+								m[key] = 0
+								break
+						}
+						m[key] = t.Unix()
+				case int64:
+						break
+				case string:
+						if v == "" {
+								break
+						}
+						t, err := time.Parse(time.RFC3339, v.(string))
+						if err == nil {
+								m[key] = t.Unix()
+						}
+				}
+		}
+		return m
 }

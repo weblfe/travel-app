@@ -13,15 +13,15 @@ func ThumbsUpControllerOf() *ThumbsUpController {
 
 // @router /thumbs/up
 func (this *ThumbsUpController) Post() {
-		this.Send(repositories.NewThumbsUpRepository(&this.BaseController.Controller).Up())
+		this.Send(repositories.NewThumbsUpRepository(this).Up())
 }
 
 // @router /thumbs/down
 func (this *ThumbsUpController) Delete() {
-		this.Send(repositories.NewThumbsUpRepository(&this.BaseController.Controller).Down())
+		this.Send(repositories.NewThumbsUpRepository(this).Down())
 }
 
 // @router /thumbs/count
 func (this *ThumbsUpController) Get() {
-		this.Send(repositories.NewThumbsUpRepository(&this.BaseController.Controller).Count())
+		this.Send(repositories.NewThumbsUpRepository(this).Count())
 }

@@ -1,13 +1,14 @@
 package repositories
 
 import (
-		"encoding/json"
 		"github.com/astaxie/beego"
-		"github.com/astaxie/beego/context"
 		"github.com/weblfe/travel-app/common"
 		"github.com/weblfe/travel-app/libs"
 		"github.com/weblfe/travel-app/middlewares"
+		"github.com/weblfe/travel-app/models"
 		"github.com/weblfe/travel-app/services"
+		"github.com/weblfe/travel-app/transforms"
+		"github.com/weblfe/travel-app/transports"
 		"regexp"
 		"time"
 )
@@ -22,11 +23,11 @@ type UserInfoRepository interface {
 }
 
 type UserInfoRepositoryImpl struct {
-		ctx         *beego.Controller
+		ctx         common.BaseRequestContext
 		userService services.UserService
 }
 
-func NewUserInfoRepository(ctx *beego.Controller) UserInfoRepository {
+func NewUserInfoRepository(ctx common.BaseRequestContext) UserInfoRepository {
 		var repository = new(UserInfoRepositoryImpl)
 		repository.ctx = ctx
 		repository.init()
@@ -45,7 +46,7 @@ func (this *UserInfoRepositoryImpl) FocusOn() common.ResponseJson {
 func (this *UserInfoRepositoryImpl) GetUserInfo() common.ResponseJson {
 		var (
 				id string
-				v  = this.ctx.GetSession(middlewares.AuthUserId)
+				v  = this.ctx.Session(middlewares.AuthUserId)
 		)
 		if v != nil {
 				id = v.(string)
@@ -54,18 +55,18 @@ func (this *UserInfoRepositoryImpl) GetUserInfo() common.ResponseJson {
 				return common.NewUnLoginResp(common.NewErrors(common.UnLoginCode, "请先登陆"))
 		}
 		user := this.userService.GetById(id)
-		if user == nil || isForbid(user) {
+		if user == nil || models.IsForbid(user) {
 				return common.NewErrorResp(common.NewErrors(common.PermissionCode, "账号禁用状态"))
 		}
-		data := user.M(filterUserBase)
+		data := user.M(transforms.FilterUserBase)
 		return common.NewSuccessResp(beego.M{"user": data}, "获取成功")
 }
 
 func (this *UserInfoRepositoryImpl) ResetPassword() common.ResponseJson {
 		var (
-				ctx     = this.ctx.Ctx
-				request = new(ResetPassword)
-				userId  = this.ctx.GetSession(middlewares.AuthUserId)
+				ctx     = this.ctx.GetParent().Ctx
+				request = new(transports.ResetPassword)
+				userId  = this.ctx.GetParent().GetSession(middlewares.AuthUserId)
 		)
 		request.Load(ctx.Input)
 		if request.Password == "" {
@@ -173,22 +174,25 @@ func (this *UserInfoRepositoryImpl) resetPasswordByMobileSms(mobile string, code
 }
 
 func (this *UserInfoRepositoryImpl) GetUserFriends() common.ResponseJson {
-		return common.NewInDevResp(this.ctx.Ctx.Request.URL.String())
+		return common.NewInDevResp(this.ctx.GetActionId())
 }
 
 func (this *UserInfoRepositoryImpl) UpdateUserInfo() common.ResponseJson {
 		var (
-				request       = this.ctx
 				updateInfo    beego.M
-				updateRequest = new(UpdateUserRequest)
+				request       = this.ctx.GetParent()
+				updateRequest = new(transports.UpdateUserRequest)
 				userId        = request.GetSession(middlewares.AuthUserId)
-				err           = json.Unmarshal(request.Ctx.Input.RequestBody, updateRequest)
+				err           = updateRequest.Load(request.Ctx.Input.RequestBody)
 		)
 		if userId == nil || userId == "" {
 				return common.NewUnLoginResp("登陆失效,请重新登陆！")
 		}
 		if err != nil {
 				return common.NewErrorResp(common.NewErrors(err.Error(), common.ServiceFailed), "参数解析异常！")
+		}
+		if updateRequest.Empty() {
+				return common.NewErrorResp(common.NewErrors(common.InvalidParametersError, common.InvalidParametersCode), "缺失请求参数")
 		}
 		updateInfo = updateRequest.M()
 		if len(updateInfo) == 0 {
@@ -203,81 +207,5 @@ func (this *UserInfoRepositoryImpl) UpdateUserInfo() common.ResponseJson {
 }
 
 func (this *UserInfoRepositoryImpl) FocusOff() common.ResponseJson {
-		return common.NewInDevResp(this.ctx.Ctx.Request.URL.String())
-}
-
-// 请求参数
-type UpdateUserRequest struct {
-		AvatarId          string   `json:"avatarId,omitempty"`
-		NickName          string   `json:"nickname,omitempty"`
-		Email             string   `json:"email,omitempty"`
-		Gender            int      `json:"gender,omitempty"`
-		Intro             string   `json:"intro,omitempty"`
-		BackgroundCoverId string   `json:"backgroundCoverId,omitempty"`
-		Modifies          []string `json:"modifies,omitempty"`
-}
-
-func (this *UpdateUserRequest) M(filters ...func(m beego.M) beego.M) beego.M {
-		var data = beego.M{
-				"avatarId":          this.AvatarId,
-				"nickname":          this.NickName,
-				"email":             this.Email,
-				"gender":            this.Gender,
-				"intro":             this.Intro,
-				"modifies":          this.Modifies,
-				"backgroundCoverId": this.BackgroundCoverId,
-		}
-		if this.Gender == 0 {
-				delete(data, "gender")
-		}
-		if len(this.Modifies) == 0 {
-				delete(data, "modifies")
-		}
-		filters = append(filters, filterEmpty)
-		for _, filter := range filters {
-				data = filter(data)
-		}
-		return data
-}
-
-// 重置密码请求体
-type ResetPassword struct {
-		Password        string `json:"password"`                  // 新密码
-		CurrentPassword string `json:"currentPassword,omitempty"` // 当前登陆使用的密码
-		UserId          string `json:"userId,omitempty"`          // 当前用户ID
-		Code            string `json:"code,omitempty"`            // 手机重置密码使用的验证码
-		Mobile          string `json:"mobile,omitempty"`          // 手机号
-}
-
-func (this *ResetPassword) Load(ctx *context.BeegoInput) *ResetPassword {
-		var (
-				_      = json.Unmarshal(ctx.RequestBody, this)
-				mapper = map[string]interface{}{
-						"code":            &this.Code,
-						"mobile":          &this.Mobile,
-						"password":        &this.Password,
-						"currentPassword": &this.CurrentPassword,
-				}
-		)
-		if this.Password == "" {
-				for key, addr := range mapper {
-						_ = ctx.Bind(addr, key)
-				}
-		}
-		return this
-}
-
-func (this *ResetPassword) M(filters ...func(m beego.M) beego.M) beego.M {
-		var data = beego.M{
-				"userId":          this.UserId,
-				"password":        this.Password,
-				"currentPassword": this.CurrentPassword,
-				"code":            this.Code,
-				"mobile":          this.Mobile,
-		}
-		filters = append(filters, filterEmpty)
-		for _, filter := range filters {
-				data = filter(data)
-		}
-		return data
+		return common.NewInDevResp(this.ctx.GetActionId())
 }

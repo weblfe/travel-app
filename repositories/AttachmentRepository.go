@@ -7,6 +7,7 @@ import (
 		"github.com/weblfe/travel-app/common"
 		"github.com/weblfe/travel-app/libs"
 		"github.com/weblfe/travel-app/services"
+		"github.com/weblfe/travel-app/transforms"
 		"io"
 		"net/http"
 		"path/filepath"
@@ -23,7 +24,7 @@ type AttachmentRepository interface {
 }
 
 type AttachmentRepositoryImpl struct {
-		ctx               *beego.Controller
+		ctx              common.BaseRequestContext
 		attachmentService services.AttachmentService
 }
 
@@ -32,7 +33,7 @@ const (
 		DefaultFilesKey = "files"
 )
 
-func NewAttachmentRepository(ctx *beego.Controller) AttachmentRepository {
+func NewAttachmentRepository(ctx common.BaseRequestContext) AttachmentRepository {
 		var repository = new(AttachmentRepositoryImpl)
 		repository.ctx = ctx
 		repository.init()
@@ -44,16 +45,16 @@ func (this *AttachmentRepositoryImpl) init() {
 }
 
 func (this *AttachmentRepositoryImpl) List() common.ResponseJson {
-		return common.NewInDevResp(this.ctx.Ctx.Request.URL.String())
+		return common.NewInDevResp(this.ctx.GetActionId())
 }
 
 func (this *AttachmentRepositoryImpl) Ticket() common.ResponseJson {
-		return common.NewInDevResp(this.ctx.Ctx.Request.URL.String())
+		return common.NewInDevResp(this.ctx.GetActionId())
 }
 
 func (this *AttachmentRepositoryImpl) Upload() common.ResponseJson {
 		var (
-				ctx      = this.ctx
+				ctx      = this.ctx.GetParent()
 				typ      = ctx.GetString("type")
 				ticket   = ctx.GetString("ticket")
 				uid      = ctx.Ctx.Input.Param("_userId")
@@ -90,13 +91,13 @@ func (this *AttachmentRepositoryImpl) Upload() common.ResponseJson {
 		if result == nil {
 				return common.NewErrorResp(common.NewErrors(common.InvalidTokenCode, "文件保存失败"))
 		}
-		filter := FilterWrapper(filterAttachment, filterEmptyMapper, FieldsFilter([]string{"path", "id", "createdAt", "extrasInfo"}))
+		filter := transforms.FilterWrapper(transforms.FilterAttachment, transforms.FilterEmptyMapper, transforms.FieldsFilter([]string{"path", "id", "createdAt", "extrasInfo"}))
 		return common.NewSuccessResp(result.M(filter), "上传成功")
 }
 
 func (this *AttachmentRepositoryImpl) Uploads() common.ResponseJson {
 		var (
-				ctx      = this.ctx
+				ctx      = this.ctx.GetParent()
 				typ      = ctx.GetString("type")
 				ticket   = ctx.GetString("ticket")
 				uid      = ctx.Ctx.Input.Param("_userId")
@@ -114,7 +115,7 @@ func (this *AttachmentRepositoryImpl) Uploads() common.ResponseJson {
 				failCount    int
 				successCount int
 				results      []beego.M
-				filter       = FilterWrapper(filterAttachment, filterEmptyMapper, FieldsFilter([]string{"path", "id", "createdAt", "extrasInfo"}))
+				filter       = transforms.FilterWrapper(transforms.FilterAttachment, transforms.FilterEmptyMapper, transforms.FieldsFilter([]string{"path", "id", "createdAt", "extrasInfo"}))
 		)
 		// 是否同一中类型
 		if fileType != "" {
@@ -168,46 +169,48 @@ func (this *AttachmentRepositoryImpl) Uploads() common.ResponseJson {
 // 下载文件
 func (this *AttachmentRepositoryImpl) DownloadByMediaId(mediaIds ...string) {
 		var (
-				id   = this.ctx.GetString(":mediaId")
+				ctx = this.ctx.GetParent()
+				id   =ctx.GetString(":mediaId")
 				info = this.attachmentService.Get(id)
 		)
 		if id == "" && len(mediaIds) > 0 {
 				id = mediaIds[0]
 		}
 		if info == nil || id == "" {
-				this.ctx.Ctx.Output.Status = 404
-				this.ctx.Ctx.WriteString("media file not found!")
+				ctx.Ctx.Output.Status = 404
+				ctx.Ctx.WriteString("media file not found!")
 				return
 		}
 		if info.Path == "" {
-				this.ctx.Ctx.Output.Status = 404
-				this.ctx.Ctx.WriteString("media file not found!")
+				ctx.Ctx.Output.Status = 404
+				ctx.Ctx.WriteString("media file not found!")
 				return
 		}
-		this.ctx.Ctx.Output.Download(filepath.Join(info.Path, info.FileName), id+"."+filepath.Ext(info.FileName))
+		ctx.Ctx.Output.Download(filepath.Join(info.Path, info.FileName), id+"."+filepath.Ext(info.FileName))
 		return
 }
 
 // 文件服务
 func (this *AttachmentRepositoryImpl) GetByMediaId(mediaIds ...string) {
 		var (
-				id   = this.ctx.GetString(":mediaId")
+				ctx = this.ctx.GetParent()
+				id   = ctx.GetString(":mediaId")
 				info = this.attachmentService.Get(id)
 		)
 		if id == "" && len(mediaIds) > 0 {
 				id = mediaIds[0]
 		}
 		if info == nil || id == "" {
-				this.ctx.Ctx.Output.Status = 404
-				this.ctx.Ctx.WriteString("media file not found!")
+				ctx.Ctx.Output.Status = 404
+				ctx.Ctx.WriteString("media file not found!")
 				return
 		}
 		if info.Path == "" {
-				this.ctx.Ctx.Output.Status = 404
-				this.ctx.Ctx.WriteString("media file not found!")
+				ctx.Ctx.Output.Status = 404
+				ctx.Ctx.WriteString("media file not found!")
 				return
 		}
-		http.ServeFile(this.ctx.Ctx.ResponseWriter, this.ctx.Ctx.Request, filepath.Join(info.Path, info.FileName))
+		http.ServeFile(ctx.Ctx.ResponseWriter, ctx.Ctx.Request, filepath.Join(info.Path, info.FileName))
 		return
 }
 

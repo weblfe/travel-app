@@ -1,7 +1,6 @@
 package repositories
 
 import (
-		"github.com/astaxie/beego"
 		"github.com/weblfe/travel-app/common"
 		"github.com/weblfe/travel-app/services"
 )
@@ -14,10 +13,10 @@ type ThumbsUpRepository interface {
 
 type thumbsUpRepositoryImpl struct {
 		service services.ThumbsUpService
-		ctx     *beego.Controller
+		ctx     common.BaseRequestContext
 }
 
-func NewThumbsUpRepository(ctx *beego.Controller) ThumbsUpRepository {
+func NewThumbsUpRepository(ctx common.BaseRequestContext) ThumbsUpRepository {
 		var repository = new(thumbsUpRepositoryImpl)
 		repository.init()
 		repository.ctx = ctx
@@ -29,22 +28,14 @@ func (this *thumbsUpRepositoryImpl) init() {
 }
 
 func (this *thumbsUpRepositoryImpl) Up() common.ResponseJson {
-		var (
-				ctx = this.ctx.Ctx
-		)
-		return common.NewInDevResp(ctx.Request.RequestURI)
+
+		return common.NewInDevResp(this.ctx.GetActionId())
 }
 
 func (this *thumbsUpRepositoryImpl) Down() common.ResponseJson {
-		var (
-				ctx = this.ctx.Ctx
-		)
-		return common.NewInDevResp(ctx.Request.RequestURI)
+		return common.NewInDevResp(this.ctx.GetActionId())
 }
 
 func (this *thumbsUpRepositoryImpl) Count() common.ResponseJson {
-		var (
-				ctx = this.ctx.Ctx
-		)
-		return common.NewInDevResp(ctx.Request.RequestURI)
+		return common.NewInDevResp(this.ctx.GetActionId())
 }
