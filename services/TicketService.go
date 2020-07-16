@@ -12,7 +12,7 @@ type TicketService interface {
 	Remove(string)bool
 	Expired(string) bool
 	GetStorageProvider() cache.Cache
-	CreateTicket(expire int64, extras ...map[string]interface{}) string
+	CreateTicket(expire time.Duration, extras ...map[string]interface{}) string
 	GetTicketInfo(string) (map[string]interface{}, error)
 }
 
@@ -48,17 +48,17 @@ func (this *ticketServiceImpl) ticket() string {
 	return libs.Md5(time.Now().String())
 }
 
-func (this *ticketServiceImpl) CreateTicket(expire int64, extras ...map[string]interface{}) string {
+func (this *ticketServiceImpl) CreateTicket(expire time.Duration, extras ...map[string]interface{}) string {
 	if len(extras) == 0 {
 		extras = append(extras, map[string]interface{}{})
 	}
-	extras[0]["expired"] = time.Now().Add(time.Duration(expire)).Unix()
+	extras[0]["expired"] = time.Now().Add(expire).Unix()
 	var (
 		err     error
 		ticket  = this.ticket()
 		data, _ = json.Marshal(extras[0])
 	)
-	err = this.storage.Put(ticket, string(data), time.Duration(expire))
+	err = this.storage.Put(ticket, string(data), expire)
 	if err == nil {
 		return ticket
 	}
