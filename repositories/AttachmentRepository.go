@@ -24,8 +24,9 @@ type AttachmentRepository interface {
 }
 
 type AttachmentRepositoryImpl struct {
-		ctx              common.BaseRequestContext
+		ctx               common.BaseRequestContext
 		attachmentService services.AttachmentService
+		urlTicketService  services.UrlTicketService
 }
 
 const (
@@ -169,8 +170,8 @@ func (this *AttachmentRepositoryImpl) Uploads() common.ResponseJson {
 // 下载文件
 func (this *AttachmentRepositoryImpl) DownloadByMediaId(mediaIds ...string) {
 		var (
-				ctx = this.ctx.GetParent()
-				id   =ctx.GetString(":mediaId")
+				ctx  = this.ctx.GetParent()
+				id   = ctx.GetString(":mediaId")
 				info = this.attachmentService.Get(id)
 		)
 		if id == "" && len(mediaIds) > 0 {
@@ -193,7 +194,7 @@ func (this *AttachmentRepositoryImpl) DownloadByMediaId(mediaIds ...string) {
 // 文件服务
 func (this *AttachmentRepositoryImpl) GetByMediaId(mediaIds ...string) {
 		var (
-				ctx = this.ctx.GetParent()
+				ctx  = this.ctx.GetParent()
 				id   = ctx.GetString(":mediaId")
 				info = this.attachmentService.Get(id)
 		)
