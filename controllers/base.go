@@ -95,9 +95,9 @@ func (this *BaseController) JsonDecode(v interface{}) error {
 
 func (this *BaseController) Session(key string, v ...interface{}) interface{} {
 		if len(v) == 0 {
-				return this.CruSession.Get(key)
+				return this.Ctx.Input.CruSession.Get(key)
 		}
-		return this.CruSession.Set(key, v)
+		return this.Ctx.Input.CruSession.Set(key, v)
 }
 
 func (this *BaseController) Method() string {

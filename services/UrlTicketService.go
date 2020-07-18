@@ -66,11 +66,16 @@ func (this *urlTicketServiceImpl)IncrKey(key string) string  {
 
 // 获取url hash 值
 func (this *urlTicketServiceImpl) getUrlHash(ticket string) string {
-		var url = this.GetUrl(ticket)
-		if url == "" {
+		var data = this.GetTicketInfoToSimple(ticket)
+		if data == nil {
 				return ""
 		}
-		return libs.Md5(url)
+		// 使用 mediaId 作为唯一访问统计 incr
+		if data.MediaId != "" {
+				return data.MediaId
+		}
+		// 未记录的资源使用 url hash
+		return libs.Md5(data.Url)
 }
 
 // 获取访问url
