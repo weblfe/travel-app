@@ -16,6 +16,10 @@ type UrlTicketService interface {
 		GetTicketInfoToSimple(ticket string) *SimpleUrlAttach
 }
 
+const (
+		_IncrPrefix = "incr_"
+)
+
 type urlTicketServiceImpl struct {
 		ticketServiceImpl
 		attachmentService AttachmentService
@@ -46,10 +50,18 @@ func (this *urlTicketServiceImpl) Incr(ticket string) int {
 		if key == "" {
 				return 0
 		}
-		if err := this.GetStorageProvider().Incr(key); err == nil {
+		if err := this.GetStorageProvider().Incr(this.IncrKey(key)); err == nil {
 				return 1
 		}
 		return 0
+}
+
+// 统计访问次数key
+func (this *urlTicketServiceImpl)IncrKey(key string) string  {
+		if strings.Contains(key,_IncrPrefix) {
+				return key
+		}
+		return _IncrPrefix + key
 }
 
 // 获取url hash 值
@@ -77,6 +89,15 @@ func (this *urlTicketServiceImpl) GetAccessMediaId(ticket string) string {
 				go this.Incr(ticket)
 		}
 		return url
+}
+
+// 是否过期
+func (this *urlTicketServiceImpl) Expired(s string) bool {
+		if !this.ticketServiceImpl.Expired(s) {
+				return false
+		}
+		this.Incr(s)
+		return true
 }
 
 // 获取media
