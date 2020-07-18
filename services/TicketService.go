@@ -74,7 +74,7 @@ func (this *ticketServiceImpl) GetTicketInfo(s string) (map[string]interface{}, 
 	 if v == nil || v == "" {
 	 	return nil,fmt.Errorf("not found")
 	 }
-	 err=json.Unmarshal([]byte(v.(string)),&data)
+	 err=json.Unmarshal(v.([]byte),&data)
 	 if err !=nil {
 	 	return nil, err
 	 }

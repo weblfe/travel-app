@@ -49,15 +49,15 @@ func (this *AttachmentServiceImpl) Remove(query beego.M) bool {
 }
 
 func (this *AttachmentServiceImpl) Get(mediaId string) *models.Attachment {
-		var model, err = this.model.GetByMediaId(mediaId)
-		if err == nil {
-				return model
-		}
 		var attach = UrlTicketServiceOf().GetTicketInfoToSimple(mediaId)
 		if attach == nil {
+				var model, err = this.model.GetByMediaId(mediaId)
+				if err == nil {
+						return model
+				}
 				return nil
 		}
-		if model, err = this.model.GetByMediaId(attach.MediaId); model != nil && err == nil {
+		if model, err := this.model.GetByMediaId(attach.MediaId); model != nil && err == nil {
 				return model
 		}
 		return nil

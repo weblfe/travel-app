@@ -5,6 +5,8 @@ import (
 		"github.com/astaxie/beego/context"
 		"github.com/astaxie/beego/logs"
 		"github.com/weblfe/travel-app/common"
+		"github.com/weblfe/travel-app/services"
+		"strings"
 )
 
 type AttachTicketMiddleware struct {
@@ -51,6 +53,13 @@ func (this *AttachTicketMiddleware) verify(ctx *context.Context) bool {
 		// @todo 验证令牌
 		if ticket != "" {
 				ctx.Input.SetParam(TicketOk, "1")
+				return true
+		}
+		var arr = strings.SplitN(ctx.Request.URL.Path,"/",-1)
+		if len(arr) >0 {
+				if services.UrlTicketServiceOf().Expired(arr[len(arr)-1]) {
+						ctx.Input.SetParam(TicketOk, "1")
+				}
 		}
 		return true
 }
