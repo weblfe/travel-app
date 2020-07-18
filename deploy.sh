@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-dirNow=$(cd $(dirname "$0");pwd )
+dirNow=$(dirname $(readlink -f "$0"))
 
 function stop() {
     # shellcheck disable=SC2009
@@ -12,7 +12,7 @@ function update() {
 }
 
 function start() {
-  nohup ./travel-app >app.log 2>&1 &
+  nohup "${dirNow}/travel-app" >app.log 2>&1 &
 }
 
 function main() {
