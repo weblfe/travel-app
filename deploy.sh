@@ -8,7 +8,7 @@ function stop() {
 }
 
 function update() {
-    git pull && go built
+    git pull && go build
 }
 
 function start() {
