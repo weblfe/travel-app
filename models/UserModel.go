@@ -15,6 +15,7 @@ type UserModel struct {
 type User struct {
 		Id                 bson.ObjectId `json:"id" bson:"_id"`                                // 唯一ID
 		UserNumId          int64         `json:"userNumId" bson:"userNumId"`                   // 用户注册序号
+		Role               int           `json:"role" bson:"role"`                             // 用户类型
 		UserName           string        `json:"username" bson:"username"`                     // 用户名唯一
 		Intro              string        `json:"intro" bson:"intro"`                           // 个人简介
 		BackgroundCoverId  string        `json:"backgroundCoverId" bson:"backgroundCoverId"`   // 个人也背景
@@ -124,6 +125,8 @@ func (this *User) Set(key string, v interface{}) *User {
 				}
 		case "lastLoginAt":
 				this.LastLoginAt = v.(int64)
+		case "role":
+				this.Role = v.(int)
 		case "lastLoginLocation":
 				this.LastLoginLocation = v.(string)
 		case "createdAt":
@@ -187,6 +190,7 @@ func (this *User) M(filter ...func(m beego.M) beego.M) beego.M {
 				"id":                 this.Id.Hex(),
 				"avatarId":           this.AvatarId,
 				"gender":             this.Gender,
+				"role":               this.Role,
 				"genderDesc":         GenderText(this.Gender),
 				"passwordHash":       this.PasswordHash,
 				"username":           this.UserName,
