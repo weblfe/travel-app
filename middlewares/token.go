@@ -2,7 +2,6 @@ package middlewares
 
 import (
 		"github.com/astaxie/beego/context"
-		"github.com/weblfe/travel-app/models"
 		"github.com/weblfe/travel-app/services"
 )
 
@@ -82,13 +81,8 @@ func (this *tokenMiddleware) initSessionByToken(token string, ctx *context.Conte
 				_ = ctx.Input.CruSession.Set(AuthUserId, uid)
 				_ = ctx.Input.CruSession.Set(AppAccessTokenHeader,token)
 				ctx.Input.SetParam("_userId", uid)
-				this.dispatch(token, user)
 				return true
 		}
 		return false
 }
 
-// 记录当前登录用户
-func (this *tokenMiddleware) dispatch(token string, user *models.User) {
-		// @todo
-}

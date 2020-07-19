@@ -57,7 +57,7 @@ func (this *MessageLog) Load(data map[string]interface{}) *MessageLog {
 
 func (this *MessageLog) Defaults() *MessageLog {
 		if this.CreatedAt.IsZero() {
-				this.CreatedAt = time.Now()
+				this.CreatedAt = time.Now().Local()
 		}
 		if this.State == 0 {
 				this.State = -1

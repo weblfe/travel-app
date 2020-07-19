@@ -16,7 +16,7 @@ type TransportBootstrap interface {
 		Boot()
 }
 
-type TransportImpl struct {
+type transportImpl struct {
 		_cache   *beego.M
 		_init    []func()
 		_called  map[string]int
@@ -29,7 +29,7 @@ const (
 )
 
 // 初始化
-func (this *TransportImpl) Init() TransportInterface {
+func (this *transportImpl) Init() TransportInterface {
 		if this.Times("Init") > 0 {
 				return this
 		}
@@ -56,12 +56,12 @@ func (this *TransportImpl) Init() TransportInterface {
 }
 
 // 获取引导器
-func (this *TransportImpl) getBootstrap() TransportBootstrap {
+func (this *transportImpl) getBootstrap() TransportBootstrap {
 		return this
 }
 
 // 相关函数执行次数
-func (this *TransportImpl) Times(name string) int {
+func (this *transportImpl) Times(name string) int {
 		if this._called == nil {
 				return 0
 		}
@@ -69,7 +69,7 @@ func (this *TransportImpl) Times(name string) int {
 }
 
 // 增加
-func (this *TransportImpl) IncrTimes(name string) TransportInterface {
+func (this *transportImpl) IncrTimes(name string) TransportInterface {
 		if this._called == nil {
 				this._called = make(map[string]int)
 		}
@@ -78,7 +78,7 @@ func (this *TransportImpl) IncrTimes(name string) TransportInterface {
 }
 
 // 引导加载
-func (this *TransportImpl) Boot() {
+func (this *transportImpl) Boot() {
 		if this.Times("Boot") > 0 {
 				return
 		}
@@ -92,7 +92,7 @@ func (this *TransportImpl) Boot() {
 }
 
 // 数据是否为空
-func (this *TransportImpl) Empty() bool {
+func (this *transportImpl) Empty() bool {
 		var fn = this.GetHandler("empty")
 		if fn == nil {
 				if len(*this._cache) == 0 {
@@ -108,13 +108,13 @@ func (this *TransportImpl) Empty() bool {
 }
 
 // 添加初始相关函数
-func (this *TransportImpl) AppendInit(handler func()) TransportInterface {
+func (this *transportImpl) AppendInit(handler func()) TransportInterface {
 		this._init = append(this._init, handler)
 		return this
 }
 
 //  注册的相关函数
-func (this *TransportImpl) Register(fnName string, v interface{}) TransportInterface {
+func (this *transportImpl) Register(fnName string, v interface{}) TransportInterface {
 		if reflect.TypeOf(v).Kind() != reflect.Func {
 				return this
 		}
@@ -129,12 +129,12 @@ func (this *TransportImpl) Register(fnName string, v interface{}) TransportInter
 }
 
 // 获取注册的相关函数
-func (this *TransportImpl) GetHandler(key string) interface{} {
+func (this *transportImpl) GetHandler(key string) interface{} {
 		return this._funcMap[key]
 }
 
 // 过滤输出
-func (this *TransportImpl) M(filters ...func(m beego.M) beego.M) beego.M {
+func (this *transportImpl) M(filters ...func(m beego.M) beego.M) beego.M {
 		var data = this.GetPayLoad()
 		if len(data) == 0 {
 				data = this.InitPayload().GetPayLoad()
@@ -155,13 +155,13 @@ func (this *TransportImpl) M(filters ...func(m beego.M) beego.M) beego.M {
 }
 
 // 设置解析结果数据
-func (this *TransportImpl) SetPayLoad(m beego.M) TransportInterface {
+func (this *transportImpl) SetPayLoad(m beego.M) TransportInterface {
 		this._cache = &m
 		return this
 }
 
 // 初始化数据解析
-func (this *TransportImpl) InitPayload() *TransportImpl {
+func (this *transportImpl) InitPayload() *transportImpl {
 		var (
 				n = this._called["getPayload"]
 				v = this.GetHandler("getPayload")
@@ -180,18 +180,18 @@ func (this *TransportImpl) InitPayload() *TransportImpl {
 }
 
 // 获取最原始解析处理的数据
-func (this *TransportImpl) GetPayLoad() beego.M {
+func (this *transportImpl) GetPayLoad() beego.M {
 		return *this._cache
 }
 
 // 添加过滤器｜格式器
-func (this *TransportImpl) AddFilter(filters ...func(m beego.M) beego.M) TransportInterface {
+func (this *transportImpl) AddFilter(filters ...func(m beego.M) beego.M) TransportInterface {
 		this._filters = append(this._filters, filters...)
 		return this
 }
 
 // 销毁
-func (this *TransportImpl) Destroy() {
+func (this *transportImpl) Destroy() {
 		this._cache = nil
 		this._init = nil
 		this._funcMap = nil
@@ -200,7 +200,7 @@ func (this *TransportImpl) Destroy() {
 }
 
 // 打印
-func (this *TransportImpl) Dump() {
+func (this *transportImpl) Dump() {
 		if this.Empty() {
 				fmt.Println("{}")
 				return
@@ -209,7 +209,7 @@ func (this *TransportImpl) Dump() {
 }
 
 // 自定义打印
-func (this *TransportImpl) Print() {
+func (this *transportImpl) Print() {
 		if this.Empty() {
 				fmt.Println("{}")
 				return

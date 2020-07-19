@@ -85,7 +85,7 @@ func (this *SmsLog) Set(key string, v interface{}) *SmsLog {
 
 func (this *SmsLog) Defaults() *SmsLog {
 		if this.CreatedAt.IsZero() {
-				this.CreatedAt = time.Now()
+				this.CreatedAt = time.Now().Local()
 		}
 		if this.Provider == "" {
 				this.Provider = DefaultProviderName

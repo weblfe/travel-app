@@ -131,7 +131,7 @@ func (this *LoginRepositoryImpl) loginByAccountPassword(account string, password
 				return common.NewErrorResp(common.NewErrors(common.VerifyNotMatch, "密码不正确"))
 		}
 		token := this.authService.Token(user)
-		data := user.M(transforms.FilterUserBase)
+		data := user.M(getBaseUserInfoTransform())
 		return common.NewSuccessResp(beego.M{"user": data, "token": token}, "登陆成功")
 }
 
@@ -147,7 +147,7 @@ func (this *LoginRepositoryImpl) loginByMobilePassword(mobile string, password s
 				return common.NewErrorResp(common.NewErrors(common.VerifyNotMatch, "密码不正确"))
 		}
 		token := this.authService.Token(user)
-		data := user.M(transforms.FilterUserBase)
+		data := user.M(getBaseUserInfoTransform())
 		return common.NewSuccessResp(beego.M{"user": data, "token": token}, "登陆成功")
 }
 
@@ -164,7 +164,7 @@ func (this *LoginRepositoryImpl) loginByEmailCode(email string, code string) com
 				return common.NewErrorResp(common.NewErrors(common.VerifyNotMatch, "验证码不正确"))
 		}
 		token := this.authService.Token(user)
-		data := user.M(transforms.FilterUserBase)
+		data := user.M(getBaseUserInfoTransform())
 		return common.NewSuccessResp(beego.M{"user": data, "token": token}, "登陆成功")
 }
 
@@ -180,6 +180,6 @@ func (this *LoginRepositoryImpl) loginByEmail(email string, password string) com
 				return common.NewErrorResp(common.NewErrors(common.VerifyNotMatch, "验证码不正确"))
 		}
 		token := this.authService.Token(user)
-		data := user.M(transforms.FilterUserBase)
+		data := user.M(getBaseUserInfoTransform())
 		return common.NewSuccessResp(beego.M{"user": data, "token": token}, "登陆成功")
 }

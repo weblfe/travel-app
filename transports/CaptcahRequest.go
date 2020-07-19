@@ -10,7 +10,7 @@ import (
 type MobileRequest struct {
 		Mobile string `json:"mobile"`
 		Type   string `json:"type"`
-		TransportImpl
+		transportImpl
 }
 
 
@@ -37,7 +37,7 @@ func (this *MobileRequest) getPayLoad() error {
 
 func (this *MobileRequest)Init() TransportInterface {
 		this.Boot()
-		this.TransportImpl.Init()
+		this.transportImpl.Init()
 		return this
 }
 

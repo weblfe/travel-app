@@ -65,10 +65,10 @@ func (this *ThumbsUp) Defaults() *ThumbsUp {
 				this.Id = bson.NewObjectId()
 		}
 		if this.CreatedAt.IsZero() {
-				this.CreatedAt = time.Now()
+				this.CreatedAt = time.Now().Local()
 		}
 		if this.UpdatedAt.IsZero() {
-				this.UpdatedAt = time.Now()
+				this.UpdatedAt = time.Now().Local()
 		}
 		if this.Count == 0 {
 				this.Count = 1
@@ -104,7 +104,7 @@ func (this *ThumbsUp) Save() error {
 				return model.UpdateById(id, this.M(func(m beego.M) beego.M {
 						delete(m, "id")
 						delete(m, "createdAt")
-						m["updatedAt"] = time.Now()
+						m["updatedAt"] = time.Now().Local()
 						return m
 				}))
 		}

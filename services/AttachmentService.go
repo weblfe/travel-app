@@ -19,6 +19,7 @@ type AttachmentService interface {
 		Get(mediaId string) *models.Attachment
 		UpdateById(string, beego.M) error
 		GetUrl(string) string
+		GetAccessUrl(string) string
 		Save(reader io.ReadCloser, extras ...beego.M) *models.Attachment
 }
 
@@ -195,4 +196,12 @@ func (this *AttachmentServiceImpl) GetUrl(mediaId string) string {
 				return data.CdnUrl
 		}
 		return data.Url
+}
+
+func (this *AttachmentServiceImpl) GetAccessUrl(mediaId string) string {
+		var data = this.Get(mediaId)
+		if data == nil {
+				return ""
+		}
+		return UrlTicketServiceOf().GetTicketUrlByAttach(data)
 }

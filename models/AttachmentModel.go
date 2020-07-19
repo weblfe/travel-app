@@ -269,7 +269,7 @@ func (this *Attachment) set(key string, v interface{}) *Attachment {
 
 func (this *Attachment) Defaults() *Attachment {
 		if this.CreatedAt.IsZero() {
-				this.CreatedAt = time.Now()
+				this.CreatedAt = time.Now().Local()
 		}
 		if this.Id == "" {
 				this.Id = bson.NewObjectId()

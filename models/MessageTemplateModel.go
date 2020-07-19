@@ -129,10 +129,10 @@ func (this *MessageTemplate) Set(key string, v interface{}) *MessageTemplate {
 
 func (this *MessageTemplate) Defaults() *MessageTemplate {
 		if this.CreatedAt.IsZero() {
-				this.CreatedAt = time.Now()
+				this.CreatedAt = time.Now().Local()
 		}
 		if this.UpdatedAt.IsZero() {
-				this.UpdatedAt = time.Now()
+				this.UpdatedAt = time.Now().Local()
 		}
 		if this.State == 0 {
 				this.State = 1

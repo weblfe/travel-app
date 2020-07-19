@@ -21,7 +21,7 @@ type User struct {
 		AvatarId           string        `json:"avatarId,omitempty" bson:"avatarId,omitempty"` // 头像ID
 		NickName           string        `json:"nickname,omitempty" bson:"nickname,omitempty"` // 昵称
 		PasswordHash       string        `json:"passwordHash" bson:"passwordHash"`             // 密码密码
-		Mobile             string        `json:"mobile,omitempty" bson:"mobile,omitempty"`                         // 手机号
+		Mobile             string        `json:"mobile,omitempty" bson:"mobile,omitempty"`     // 手机号
 		Email              string        `json:"email,omitempty" bson:"email,omitempty"`       // 邮箱
 		ResetPasswordTimes int           `json:"resetPasswordTimes" bson:"resetPasswordTimes"` // 重置密码次数
 		RegisterWay        string        `json:"registerWay" bson:"registerWay"`               // 注册方式
@@ -30,6 +30,8 @@ type User struct {
 		LastLoginLocation  string        `json:"lastLoginLocation" bson:"lastLoginLocation"`   // 最近一次登陆定位
 		Status             int           `json:"status" bson:"status"`                         // 用户状态 1:正常
 		Gender             int           `json:"gender" bson:"gender"`                         // 用户性别 0:保密 1:男 2:女 3:😯
+		Birthday           int64         `json:"birthday,omitempty" bson:"birthday,omitempty"` // 用户生日
+		Address            string        `json:"address" bson:"address"`                       // 用户地址
 		CreatedAt          time.Time     `json:"createdAt" bson:"createdAt"`                   // 创建时间 注册时间
 		UpdatedAt          time.Time     `json:"updatedAt" bson:"updatedAt"`                   // 更新时间
 		DeletedAt          int64         `json:"deletedAt" bson:"deletedAt"`                   // 删除时间戳
@@ -49,6 +51,16 @@ const (
 		GenderBothKey    = "both"
 )
 
+var (
+		genderMapper = map[int]string{
+				GenderUnknown: "未知",
+				GenderMan:     "男",
+				GenderWoman:   "女",
+				GenderSecrecy: "保密",
+				GenderBoth:    "中间人",
+		}
+)
+
 func UserModelOf() *UserModel {
 		var model = new(UserModel)
 		model._Self = model
@@ -59,6 +71,10 @@ func UserModelOf() *UserModel {
 func NewUser() *User {
 		var user = new(User)
 		return user
+}
+
+func GenderText(gender int) string {
+		return genderMapper[gender]
 }
 
 func (this *User) Load(data map[string]interface{}) *User {
@@ -129,7 +145,7 @@ func (this *User) Defaults() *User {
 				this.UserNumId = libs.GetId(user.GetDatabaseName(), user.TableName(), user.GetConn())
 		}
 		if this.CreatedAt.IsZero() {
-				this.CreatedAt = time.Now()
+				this.CreatedAt = time.Now().Local()
 		}
 		if this.Status == 0 {
 				this.Status = 1
@@ -140,10 +156,10 @@ func (this *User) Defaults() *User {
 		if this.UserName == "" && this.Email != "" {
 				this.UserName = this.Email
 		}
-		if this.Mobile == "" && this.UserName!= "" {
-			if libs.IsCnMobile(this.UserName) || libs.IsMobile(this.UserName) {
-				this.Mobile = this.UserName
-			}
+		if this.Mobile == "" && this.UserName != "" {
+				if libs.IsCnMobile(this.UserName) || libs.IsMobile(this.UserName) {
+						this.Mobile = this.UserName
+				}
 		}
 		if this.NickName == "" && this.UserName != "" {
 				this.NickName = this.UserName + "_nick"
@@ -154,11 +170,24 @@ func (this *User) Defaults() *User {
 		return this
 }
 
+func (this *User) GetAddress(typ ...int) string {
+		var addr = NewUserAddress()
+		if this.Address != "" {
+				return this.Address
+		}
+		if len(typ) == 0 {
+				typ = append(typ, AddressTypeRegister)
+		}
+		_ = UserAddressModelOf().FindOne(bson.M{"userId": this.Id.Hex(), "type": typ[0]}, addr)
+		return addr.String()
+}
+
 func (this *User) M(filter ...func(m beego.M) beego.M) beego.M {
 		data := beego.M{
 				"id":                 this.Id.Hex(),
 				"avatarId":           this.AvatarId,
 				"gender":             this.Gender,
+				"genderDesc":         GenderText(this.Gender),
 				"passwordHash":       this.PasswordHash,
 				"username":           this.UserName,
 				"nickname":           this.NickName,
@@ -169,9 +198,11 @@ func (this *User) M(filter ...func(m beego.M) beego.M) beego.M {
 				"backgroundCoverId":  this.BackgroundCoverId,
 				"userNumId":          this.UserNumId,
 				"resetPasswordTimes": this.ResetPasswordTimes,
-				"createdAt":          this.CreatedAt,
 				"status":             this.Status,
 				"lastLoginAt":        this.LastLoginAt,
+				"birthday":           this.Birthday,
+				"createdAt":          this.CreatedAt.Unix(),
+				"address":            this.GetAddress(),
 				"lastLoginLocation":  this.LastLoginLocation,
 				"deletedAt":          this.DeletedAt,
 		}
@@ -194,7 +225,7 @@ func (this *User) Save() error {
 				return model.UpdateById(id, this.M(func(m beego.M) beego.M {
 						delete(m, "id")
 						delete(m, "createdAt")
-						m["updatedAt"] = time.Now()
+						m["updatedAt"] = time.Now().Local()
 						return m
 				}))
 		}
@@ -222,6 +253,7 @@ func (this *UserModel) CreateIndex() {
 		})
 		_ = this.Collection().EnsureIndexKey("state")
 		_ = this.Collection().EnsureIndexKey("gender")
+		_ = this.Collection().EnsureIndexKey("address")
 		_ = this.Collection().EnsureIndexKey("nickname")
 		_ = this.Collection().EnsureIndexKey("userNumId")
 		_ = this.Collection().EnsureIndexKey("avatarId")

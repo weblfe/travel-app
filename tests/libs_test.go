@@ -7,7 +7,7 @@ import (
 		. "github.com/smartystreets/goconvey/convey"
 		"github.com/weblfe/travel-app/libs"
 		"github.com/weblfe/travel-app/models"
-		"github.com/weblfe/travel-app/repositories"
+		"github.com/weblfe/travel-app/transforms"
 		"reflect"
 		"testing"
 		"time"
@@ -88,7 +88,7 @@ func TestFilter(t *testing.T) {
 				return m
 		})
 
-		m:= mapper.M(repositories.FilterWrapper(filters...))
+		m:= mapper.M(transforms.FilterWrapper(filters...))
 		fmt.Printf("%v\n", mapper)
 		fmt.Printf("%v\n", m)
 }

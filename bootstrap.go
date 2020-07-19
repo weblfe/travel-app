@@ -1,6 +1,7 @@
 package main
 
 import (
+		"encoding/gob"
 		"github.com/astaxie/beego"
 		"github.com/astaxie/beego/config/env"
 		_ "github.com/astaxie/beego/session/redis"
@@ -23,6 +24,8 @@ func init() {
 func bootstrap() {
 		// 环境注册
 		initRegisterEnv()
+		// 注册结构体
+		registerGob()
 		// swagger
 		initSwagger()
 		// session
@@ -31,6 +34,7 @@ func bootstrap() {
 		initDatabase()
 		// middleware
 		initMiddleware()
+
 }
 
 // 配置 session
@@ -142,4 +146,10 @@ func initMiddleware() {
 
 		// 启用中间
 		manger.Boot()
+}
+
+func registerGob()  {
+		gob.Register(beego.M{})
+		gob.Register(models.User{})
+		gob.Register(models.Address{})
 }

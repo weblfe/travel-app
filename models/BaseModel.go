@@ -5,6 +5,7 @@ import (
 		"github.com/astaxie/beego/logs"
 		"github.com/globalsign/mgo"
 		"github.com/globalsign/mgo/bson"
+		"reflect"
 		"sync"
 		"time"
 )
@@ -67,6 +68,7 @@ func newBaseModel() *BaseModel {
 		return base
 }
 
+// 获取相关配置
 func GetModelProfiles() *map[string]interface{} {
 		if _baseProfiles == nil {
 				initLock.Do(func() {
@@ -279,12 +281,18 @@ func (this *BaseModel) destroy() {
 func (this *BaseModel) Add(docs interface{}) error {
 		table := this.Collection()
 		defer this.destroy()
+		if m, ok := docs.(MapperAble); ok {
+				return table.Insert(m.M())
+		}
 		return table.Insert(docs)
 }
 
 func (this *BaseModel) Insert(docs interface{}) error {
 		table := this.Collection()
 		defer this.destroy()
+		if m, ok := docs.(MapperAble); ok {
+				return table.Insert(m.M())
+		}
 		return table.Insert(docs)
 }
 
@@ -294,6 +302,11 @@ func (this *BaseModel) Inserts(docs []interface{}) error {
 		}
 		table := this.Collection()
 		defer this.destroy()
+		for i, it := range docs {
+				if m, ok := it.(MapperAble); ok {
+						docs[i] = m.M()
+				}
+		}
 		return table.Insert(docs...)
 }
 
@@ -313,6 +326,19 @@ func (this *BaseModel) GetById(id string, result interface{}, selects ...interfa
 		}
 		return table.Find(beego.M{
 				"_id": bson.ObjectIdHex(id),
+		}).One(result)
+}
+
+func (this *BaseModel) GetByObjectId(id bson.ObjectId, result interface{}, selects ...interface{}) error {
+		table := this.Collection()
+		defer this.destroy()
+		if len(selects) > 0 {
+				return table.Find(beego.M{
+						"_id": id,
+				}).Select(selects[0]).One(result)
+		}
+		return table.Find(beego.M{
+				"_id": id,
 		}).One(result)
 }
 
@@ -346,6 +372,14 @@ func (this *BaseModel) setUpdate(data interface{}) interface{} {
 				}
 				newData["$set"] = data
 				return newData
+		}
+		if m, ok := data.(MapperAble); ok {
+				newData["$set"] = m.M()
+				return newData
+		}
+		var t = reflect.TypeOf(data)
+		if t.Kind() == reflect.Struct || t.Elem().Kind() == reflect.Struct {
+				newData["$set"] = data
 		}
 		return data
 }
@@ -483,4 +517,31 @@ func (this *BaseModel) Exists(query interface{}) bool {
 				return len(tmp) > 0
 		}
 		return false
+}
+
+// 记录不存在异常
+func (this *BaseModel) IsNotFound(err error) bool {
+		return IsNotFound(err)
+}
+
+// 游标异常
+func (this *BaseModel) IsErrCursor(err error) bool {
+		return IsErrCursor(err)
+}
+
+// 是重复异常
+func (this *BaseModel) IsDuplicate(err error) bool {
+		return IsDuplicate(err)
+}
+
+func IsNotFound(err error) bool {
+		return mgo.ErrNotFound == err
+}
+
+func IsErrCursor(err error) bool {
+		return mgo.ErrCursor == err
+}
+
+func IsDuplicate(err error) bool {
+		return mgo.IsDup(err)
 }

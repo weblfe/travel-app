@@ -107,8 +107,8 @@ func (this *UserServiceImpl) UpdateByUid(uid string, data map[string]interface{}
 		// 无需ID
 		err := this.userModel.Update(bson.M{"_id": bson.ObjectIdHex(uid)}, data)
 		if info, ok := err.(*mgo.LastError); ok {
-				if mgo.IsDup(err) {
-						return common.NewErrors(info.Code, strings.Join(getDupKeys(info)," ")+" 已存在!")
+				if  this.userModel.IsDuplicate(err) {
+						return common.NewErrors(info.Code, strings.Join(getDupKeys(info), " ")+" 已存在!")
 				}
 				return common.NewErrors(info.Code, info.Err)
 		}
@@ -116,6 +116,26 @@ func (this *UserServiceImpl) UpdateByUid(uid string, data map[string]interface{}
 				return nil
 		}
 		return common.NewErrors(err)
+}
+
+func (this *UserServiceImpl) UpdateUserAddressById(id string, addr *models.UserAddress) error {
+		var (
+				userId    = bson.ObjectIdHex(id)
+				addrModel = models.UserAddressModelOf()
+				userAddr  = addrModel.GetAddressByUserId(userId, addr.Type)
+		)
+		if userAddr == nil {
+				addr.UserId = userId
+				addr.Type = models.AddressTypeRegister
+				addr.InitDefault()
+				err := addr.Save()
+				if err == nil {
+						return this.UpdateByUid(id, beego.M{"addressId": addr.Id})
+				}
+				return err
+		}
+		userAddr.SetAttributes(addr.M(), true)
+		return userAddr.Update()
 }
 
 func (this *UserServiceImpl) Lists(page int, size int, query ...interface{}) (items []*models.User, total int, more bool) {
@@ -205,10 +225,10 @@ func getUpdateFilter(fields []string, data beego.M) func(m beego.M) beego.M {
 // 获取重复键
 func getDupKeys(err *mgo.LastError) []string {
 		var (
-				keys   []string
-				reg    = regexp.MustCompile(`.+ dup key: (.+)`)
-				regs   = regexp.MustCompile(`.+ dup keys: (.+)`)
-				keysReg   = regexp.MustCompile(`.+ (\w+:).+`)
+				keys    []string
+				reg     = regexp.MustCompile(`.+ dup key: (.+)`)
+				regs    = regexp.MustCompile(`.+ dup keys: (.+)`)
+				keysReg = regexp.MustCompile(`.+ (\w+:).+`)
 		)
 		arr := reg.FindAllStringSubmatch(err.Err, -1)
 		if len(arr) == 0 {
@@ -216,12 +236,12 @@ func getDupKeys(err *mgo.LastError) []string {
 		}
 		str := arr[0][1]
 		if str != "" {
-				arr:=keysReg.FindAllStringSubmatch(str,-1)
-				if len(arr) < 0{
+				arr := keysReg.FindAllStringSubmatch(str, -1)
+				if len(arr) < 0 {
 						return keys
 				}
-				for _,k:=range arr[0][1:]{
-						keys = append(keys,k[0:len(k)-1])
+				for _, k := range arr[0][1:] {
+						keys = append(keys, k[0:len(k)-1])
 				}
 		}
 		return keys

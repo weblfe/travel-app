@@ -14,7 +14,7 @@ type Login struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
 		Email    string `json:"email"`
-		TransportImpl
+		transportImpl
 }
 
 func (this *Login) Boot() {
@@ -55,6 +55,6 @@ func (this *Login) Load(ctx *context.BeegoInput) *Login {
 
 func (this *Login)Init () TransportInterface {
 		this.Boot()
-		this.TransportImpl.Init()
+		this.transportImpl.Init()
 		return this
 }

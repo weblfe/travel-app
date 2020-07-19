@@ -3,7 +3,6 @@ package transforms
 import (
 		"github.com/astaxie/beego"
 		"github.com/globalsign/mgo/bson"
-		"github.com/weblfe/travel-app/services"
 		"reflect"
 		"time"
 )
@@ -23,23 +22,6 @@ func FilterUserBase(m beego.M) beego.M {
 		m = FilterUser(m)
 		delete(m, "accessTokens")
 		delete(m, "registerWay")
-		return FilterUserAvatarUrl(m)
-}
-
-// 用户头像追加
-func FilterUserAvatarUrl(m beego.M) beego.M {
-		if url, ok := m["avatarUrl"]; ok && url != nil && url != "" {
-				return m
-		}
-		if id, ok := m["avatarId"]; ok && id != nil && id != "" {
-				m["avatarUrl"] = services.AvatarServerOf().GetAvatarUrlById(id.(string))
-		} else {
-				gender := m["gender"]
-				if gender == nil {
-						gender = 0
-				}
-				m["avatarUrl"] = services.AvatarServerOf().GetAvatarUrlDefault(gender.(int))
-		}
 		return m
 }
 

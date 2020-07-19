@@ -7,7 +7,6 @@ import (
 		"github.com/weblfe/travel-app/middlewares"
 		"github.com/weblfe/travel-app/models"
 		"github.com/weblfe/travel-app/services"
-		"github.com/weblfe/travel-app/transforms"
 		"github.com/weblfe/travel-app/transports"
 		"regexp"
 		"time"
@@ -58,7 +57,7 @@ func (this *UserInfoRepositoryImpl) GetUserInfo() common.ResponseJson {
 		if user == nil || models.IsForbid(user) {
 				return common.NewErrorResp(common.NewErrors(common.PermissionCode, "账号禁用状态"))
 		}
-		data := user.M(transforms.FilterUserBase)
+		data := user.M(getBaseUserInfoTransform())
 		return common.NewSuccessResp(beego.M{"user": data}, "获取成功")
 }
 

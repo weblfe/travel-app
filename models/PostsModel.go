@@ -101,10 +101,10 @@ func (this *TravelNotes) Defaults() *TravelNotes {
 				this.Id = bson.NewObjectId()
 		}
 		if this.CreatedAt.IsZero() {
-				this.CreatedAt = time.Now()
+				this.CreatedAt = time.Now().Local()
 		}
 		if this.UpdatedAt.IsZero() {
-				this.UpdatedAt = time.Now()
+				this.UpdatedAt = time.Now().Local()
 		}
 		if this.Privacy == 0 {
 				this.Privacy = PublicPrivacy
@@ -207,7 +207,7 @@ func (this *TravelNotes) Save() error {
 				return model.UpdateById(id, this.M(func(m beego.M) beego.M {
 						delete(m, "id")
 						delete(m, "createdAt")
-						m["updatedAt"] = time.Now()
+						m["updatedAt"] = time.Now().Local()
 						return m
 				}))
 		}
