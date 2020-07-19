@@ -83,6 +83,7 @@ func NewAddress() *Address {
 // 地址模型
 func AddressModelOf() *AddressModel {
 		var addr = new(AddressModel)
+		addr._Self = addr
 		addr.Init()
 		return addr
 }
@@ -240,12 +241,7 @@ func (this *Address) setAttributes(data map[string]interface{}, safe ...bool) {
 						if this.Excludes(key) {
 								continue
 						}
-						// 空
-						if v == nil || v == "" || v == 0 {
-								continue
-						}
-						// 空时间
-						if t, ok := v.(time.Time); ok && t.IsZero() {
+						if this.IsEmpty(v) {
 								continue
 						}
 				}

@@ -258,6 +258,18 @@ func (this *dataClassImpl) Foreach(each func(k string, v interface{}) bool) {
 		}
 }
 
+func (this *dataClassImpl) IsEmpty(v interface{}) bool {
+		// 空
+		if v == nil || v == "" || v == 0 {
+				return true
+		}
+		// 空时间
+		if t, ok := v.(time.Time); ok && t.IsZero() {
+				return true
+		}
+		return false
+}
+
 // 遍历
 func (this *dataClassImpl) Map(each func(k string, v interface{}, result interface{}) interface{}, result ...interface{}) interface{} {
 		var ret = result[0]

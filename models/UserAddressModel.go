@@ -134,6 +134,7 @@ func GetTypeDesc(typ int) string {
 
 func UserAddressModelOf() *UserAddressModel {
 		var model = new(UserAddressModel)
+		model._Self = model
 		model.Init()
 		return model
 }
@@ -302,12 +303,7 @@ func (this *UserAddress) setAttributes(data map[string]interface{}, safe ...bool
 						if this.Excludes(key) {
 								continue
 						}
-						// 空
-						if v == nil || v == "" || v == 0 {
-								continue
-						}
-						// 空时间
-						if t, ok := v.(time.Time); ok && t.IsZero() {
+						if this.IsEmpty(v) {
 								continue
 						}
 				}
