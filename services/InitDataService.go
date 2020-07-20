@@ -251,6 +251,7 @@ func init() {
 		instance.SetLoader("sms", smsDataLoader)
 		instance.SetLoader("tags", tagsDataLoader)
 		instance.SetLoader("app_info", appInfoDataLoader)
+		instance.SetLoader("roles", userRoleConfigDataLoader)
 }
 
 // 短信数据数据模版加载器
@@ -291,6 +292,22 @@ func appInfoDataLoader(data []byte, filename string) bool {
 				return false
 		}
 		err := models.AppModelOf().Adds(jsonArr)
+		if err != nil {
+				return true
+		}
+		return true
+}
+
+// 用户角色 配置表
+func userRoleConfigDataLoader(data []byte, filename string) bool {
+		if !strings.Contains(filename, "roles") {
+				return false
+		}
+		var jsonArr = loaderJsons(data)
+		if jsonArr == nil {
+				return false
+		}
+		err := models.UserRolesConfigModelOf().Adds(jsonArr)
 		if err != nil {
 				return true
 		}

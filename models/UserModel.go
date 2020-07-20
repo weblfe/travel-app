@@ -36,6 +36,7 @@ type User struct {
 		CreatedAt          time.Time     `json:"createdAt" bson:"createdAt"`                   // 创建时间 注册时间
 		UpdatedAt          time.Time     `json:"updatedAt" bson:"updatedAt"`                   // 更新时间
 		DeletedAt          int64         `json:"deletedAt" bson:"deletedAt"`                   // 删除时间戳
+		dataClassImpl      `json:",omitempty" bson:",omitempty"`
 }
 
 const (
@@ -88,15 +89,15 @@ func (this *User) Load(data map[string]interface{}) *User {
 func (this *User) Set(key string, v interface{}) *User {
 		switch key {
 		case "userNumId":
-				this.UserNumId = v.(int64)
+				this.SetNumIntN(&this.UserNumId, v)
 		case "username":
-				this.UserName = v.(string)
+				this.SetString(&this.UserName, v)
 		case "intro":
 				fallthrough
 		case "Intro":
-				this.Intro = v.(string)
+				this.SetString(&this.Intro, v)
 		case "id":
-				this.Id = v.(bson.ObjectId)
+				this.SetObjectId(&this.Id, v)
 		case "passwordHash":
 				if this.PasswordHash != "" {
 						return this
@@ -105,17 +106,17 @@ func (this *User) Set(key string, v interface{}) *User {
 						this.PasswordHash = libs.PasswordHash(pass)
 				}
 		case "registerWay":
-				this.RegisterWay = v.(string)
+				this.SetString(&this.RegisterWay, v)
 		case "nickname":
-				this.NickName = v.(string)
+				this.SetString(&this.NickName, v)
 		case "mobile":
-				this.Mobile = v.(string)
+				this.SetString(&this.Mobile, v)
 		case "email":
-				this.Email = v.(string)
+				this.SetString(&this.Email, v)
 		case "resetPasswordTimes":
-				this.ResetPasswordTimes = v.(int)
+				this.SetNumInt(&this.ResetPasswordTimes, v)
 		case "status":
-				this.Status = v.(int)
+				this.SetNumInt(&this.Status, v)
 		case "accessTokens":
 				if str, ok := v.(string); ok {
 						this.AccessTokens = []string{str}
@@ -124,17 +125,17 @@ func (this *User) Set(key string, v interface{}) *User {
 						this.AccessTokens = str
 				}
 		case "lastLoginAt":
-				this.LastLoginAt = v.(int64)
+				this.SetNumIntN(&this.LastLoginAt, v)
 		case "role":
-				this.Role = v.(int)
+				this.SetNumInt(&this.Role, v)
 		case "lastLoginLocation":
-				this.LastLoginLocation = v.(string)
+				this.SetString(&this.LastLoginLocation, v)
 		case "createdAt":
-				this.CreatedAt = v.(time.Time)
+				this.SetTime(&this.CreatedAt, v)
 		case "updatedAt":
-				this.UpdatedAt = v.(time.Time)
+				this.SetTime(&this.UpdatedAt, v)
 		case "deletedAt":
-				this.DeletedAt = v.(int64)
+				this.SetNumIntN(&this.DeletedAt, v)
 		}
 		return this
 }
@@ -191,6 +192,7 @@ func (this *User) M(filter ...func(m beego.M) beego.M) beego.M {
 				"avatarId":           this.AvatarId,
 				"gender":             this.Gender,
 				"role":               this.Role,
+				"roleDesc":           this.GetRoleDesc(this.Role),
 				"genderDesc":         GenderText(this.Gender),
 				"passwordHash":       this.PasswordHash,
 				"username":           this.UserName,
@@ -236,6 +238,11 @@ func (this *User) Save() error {
 		return model.Add(this.Defaults())
 }
 
+// 获取角色描述
+func (this *User) GetRoleDesc(role int) string {
+		return UserRolesConfigModelOf().GetRoleName(role)
+}
+
 func (this *UserModel) CreateIndex() {
 		// unique mobile
 		_ = this.Collection().EnsureIndex(mgo.Index{
@@ -267,6 +274,8 @@ func (this *UserModel) CreateIndex() {
 func (this *UserModel) TableName() string {
 		return UserTable
 }
+
+
 
 func GetGenderKey(gender int) string {
 		switch gender {

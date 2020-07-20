@@ -45,14 +45,17 @@ func (this *AttachmentRepositoryImpl) init() {
 		this.attachmentService = services.AttachmentServiceOf()
 }
 
+// 罗列附件接口
 func (this *AttachmentRepositoryImpl) List() common.ResponseJson {
 		return common.NewInDevResp(this.ctx.GetActionId())
 }
 
+// 跨站上传ticket
 func (this *AttachmentRepositoryImpl) Ticket() common.ResponseJson {
 		return common.NewInDevResp(this.ctx.GetActionId())
 }
 
+// 单文件上传
 func (this *AttachmentRepositoryImpl) Upload() common.ResponseJson {
 		var (
 				ctx      = this.ctx.GetParent()
@@ -98,6 +101,7 @@ func (this *AttachmentRepositoryImpl) Upload() common.ResponseJson {
 		return common.NewSuccessResp(data, "上传成功")
 }
 
+// 多文件上传
 func (this *AttachmentRepositoryImpl) Uploads() common.ResponseJson {
 		var (
 				ctx      = this.ctx.GetParent()

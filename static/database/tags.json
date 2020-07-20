@@ -1,0 +1,66 @@
+[
+  {
+    "name": "美景随拍",
+    "alias": "",
+    "group": "post",
+    "comment": "游记默认标签",
+    "sort":90,
+    "state": 1
+  },
+  {
+    "name": "自然景观",
+    "alias": "",
+    "group": "post",
+    "comment": "游记默认标签",
+    "sort":80,
+    "state": 1
+  },
+  {
+    "name": "城市观光",
+    "alias": "",
+    "group": "post",
+    "comment": "游记默认标签",
+    "sort":70,
+    "state": 1
+  },
+  {
+    "name": "野外徙步",
+    "alias": "",
+    "group": "post",
+    "comment": "游记默认标签",
+    "sort":60,
+    "state": 1
+  },
+  {
+    "name": "民情风俗",
+    "alias": "",
+    "group": "post",
+    "comment": "游记默认标签",
+    "sort":50,
+    "state": 1
+  },
+  {
+    "name": "运动冒险",
+    "alias": "",
+    "group": "post",
+    "comment": "游记默认标签",
+    "sort":40,
+    "state": 1
+  },
+  {
+    "name": "人文古迹",
+    "alias": "",
+    "group": "post",
+    "comment": "游记默认标签",
+    "sort":30,
+    "state": 1
+  },
+  {
+    "name": "其它",
+    "alias": "",
+    "group": "post",
+    "sort":20,
+    "comment": "游记默认标签",
+    "state": 1
+  }
+]

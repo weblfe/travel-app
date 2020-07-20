@@ -20,6 +20,7 @@ type Tag struct {
 		Group     string        `json:"group" bson:"group"`         // 分组名
 		Comment   string        `json:"comment" bson:"comment"`     // 备注
 		State     int           `json:"state" bson:"state"`         // 状态 0:初始状态,1:正常,2:删除
+		Sort      int           `json:"sort" bson:"sort"`           // 排序 越大越靠前
 		CreatedAt time.Time     `json:"createdAt" bson:"createdAt"` // 创建时间
 		dataClassImpl
 }
@@ -50,6 +51,7 @@ func (this *Tag) data() beego.M {
 				"alias":     this.Alias,
 				"group":     this.Group,
 				"state":     this.State,
+				"sort":      this.Sort,
 				"createdAt": this.CreatedAt.Unix(),
 		}
 }
@@ -68,6 +70,7 @@ func (this *Tag) setAttributes(data map[string]interface{}, safe ...bool) {
 		}
 }
 
+// setter
 func (this *Tag) Set(key string, v interface{}) *Tag {
 		switch key {
 		case "id":
@@ -79,7 +82,9 @@ func (this *Tag) Set(key string, v interface{}) *Tag {
 		case "comment":
 				this.SetString(&this.Comment, v)
 		case "state":
-				this.State = v.(int)
+				this.SetNumInt(&this.State,v)
+		case "sort":
+				this.SetNumInt(&this.Sort,v)
 		case "createdAt":
 				this.SetTime(&this.CreatedAt, v, true)
 		}
@@ -109,6 +114,9 @@ func (this *Tag) setDefaults() {
 		}
 		if this.Group == "" {
 				this.Group = "post"
+		}
+		if this.Id == "" {
+				this.Id = bson.NewObjectId()
 		}
 }
 
@@ -141,7 +149,7 @@ func (this *TagModel) GetTagsByGroup(group ...string) []string {
 				arr    = make([]*Tag, 2)
 		)
 		arr = arr[:0]
-		if err := table.Find(bson.M{"group": group[0], "state": 1}).All(&arr); err == nil {
+		if err := table.Find(bson.M{"group": group[0], "state": 1}).Sort("+sort").All(&arr); err == nil {
 				for _, it := range arr {
 						strArr = append(strArr, it.Name)
 				}
@@ -149,28 +157,27 @@ func (this *TagModel) GetTagsByGroup(group ...string) []string {
 		return strArr
 }
 
-
 // 批量添加更新
 func (this *TagModel) Adds(items []map[string]interface{}) error {
 		if len(items) == 0 {
 				return ErrEmptyData
 		}
 		var result []interface{}
-		for _,it:=range items {
-				tag:=this.GetByUnique(it)
-				if  tag != nil {
-						_=this.Update(bson.M{"_id":tag.Id},it)
-				}else{
-						tag :=NewTag()
-						tag.SetAttributes(it,false)
+		for _, it := range items {
+				tag := this.GetByUnique(it)
+				if tag != nil {
+						_ = this.Update(bson.M{"_id": tag.Id}, it)
+				} else {
+						tag := NewTag()
+						tag.SetAttributes(it, false)
 						tag.InitDefault()
-						result = append(result,tag)
+						result = append(result, tag)
 				}
 		}
 		if len(result) == 0 {
 				return nil
 		}
-		if err:=this.Inserts(result);err!=nil {
+		if err := this.Inserts(result); err != nil {
 				return err
 		}
 		return nil

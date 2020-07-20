@@ -1,0 +1,59 @@
+[
+
+  {
+    "name": "普通用户",
+    "role": 0,
+    "comment": "默认用户注册后就是普通用户",
+    "level": 1,
+    "state": 1,
+    "extras": {}
+  },
+  {
+    "name": "会员",
+    "role": 2,
+    "comment": "按月订阅付费用户",
+    "level": 10,
+    "state": 1,
+    "extras": {}
+  },
+  {
+    "name": "vip用户",
+    "role": 3,
+    "comment": "按年服务用户",
+    "level": 20,
+    "state": 1,
+    "extras": {}
+  },
+  {
+    "name": "大咖",
+    "role": 4,
+    "comment": "官方认证后台更新用户角色为大咖",
+    "level": 30,
+    "state": 1,
+    "extras": {}
+  },
+  {
+    "name": "景区运营",
+    "role": 5,
+    "comment": "平台认证审核，复合相关资质",
+    "level": 40,
+    "state": 1,
+    "extras": {}
+  },
+  {
+    "name": "平台运营",
+    "role": 6,
+    "comment": "本地平台运营号",
+    "level": 60,
+    "state": 1,
+    "extras": {}
+  },
+  {
+    "name": "超级用户",
+    "role": 7,
+    "comment": "平台超级管理员",
+    "state": 1,
+    "level": 99999,
+    "extras": {}
+  }
+]

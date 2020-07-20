@@ -13,7 +13,7 @@ type AppModel struct {
 }
 
 const (
-		AppVersionTable = "app_version_info"
+		AppVersionTable = "app_versions_info"
 )
 
 func AppModelOf() *AppModel {
@@ -25,13 +25,14 @@ func AppModelOf() *AppModel {
 
 // app 信息模型
 type AppInfo struct {
-		Id            bson.ObjectId `json:"id" bson:"_id"`              // ID
-		Driver        string        `json:"driver" bson:"driver"`       // 设备类型 ios,android,win
-		Download      string        `json:"download" bson:"download"`   // 下载链接
-		Version       string        `json:"version" bson:"version"`     // 版本号
-		Content       string        `json:"content" bson:"content"`     // 更新内容
-		State         int           `json:"state" bson:"state"`         // 状态
-		CreatedAt     time.Time     `json:"createdAt" bson:"createdAt"` // 创建时间
+		Id            bson.ObjectId `json:"id" bson:"_id"`                  // ID
+		Driver        string        `json:"driver" bson:"driver"`           // 设备类型 ios,android,win
+		Download      string        `json:"download" bson:"download"`       // 下载链接
+		Version       string        `json:"version" bson:"version"`         // 版本号
+		Content       string        `json:"content" bson:"content"`         // 更新内容
+		State         int           `json:"state" bson:"state"`             // 状态
+		PublishTime   int64         `json:"publishTime" bson:"publishTime"` // 版本发布时间
+		CreatedAt     time.Time     `json:"createdAt" bson:"createdAt"`     // 创建时间
 		dataClassImpl `bson:",omitempty"  json:",omitempty"`
 }
 
@@ -51,13 +52,14 @@ func (this *AppInfo) Init() {
 
 func (this *AppInfo) data() beego.M {
 		return beego.M{
-				"id":        this.Id.Hex(),
-				"driver":    this.Driver,
-				"download":  this.Download,
-				"version":   this.Version,
-				"content":   this.Content,
-				"state":     this.State,
-				"createdAt": this.CreatedAt.Unix(),
+				"id":          this.Id.Hex(),
+				"driver":      this.Driver,
+				"download":    this.Download,
+				"version":     this.Version,
+				"content":     this.Content,
+				"state":       this.State,
+				"publishTime": this.PublishTime,
+				"createdAt":   this.CreatedAt.Unix(),
 		}
 }
 
@@ -97,10 +99,22 @@ func (this *AppInfo) Set(key string, v interface{}) *AppInfo {
 				this.SetString(&this.Driver, v)
 		case "download":
 				this.SetString(&this.Download, v)
+		case "content":
+				this.SetString(&this.Content, v)
 		case "version":
 				this.SetString(&this.Version, v)
 		case "state":
-				this.State = v.(int)
+				this.SetNumInt(&this.State, v)
+		case "publishTime":
+				if str, ok := v.(string); ok {
+						t, err := time.Parse("2020/10/07 10:00:00", str)
+						if err != nil {
+								return this
+						}
+						this.PublishTime = t.Unix()
+						return this
+				}
+				this.PublishTime = v.(int64)
 		case "createdAt":
 				this.SetTime(&this.CreatedAt, v)
 		}
@@ -113,6 +127,9 @@ func (this *AppInfo) setDefaults() {
 		}
 		if this.State == 0 {
 				this.State = 1
+		}
+		if this.Id == "" {
+				this.Id = bson.NewObjectId()
 		}
 }
 

@@ -6,6 +6,7 @@ import (
 		"github.com/globalsign/mgo/bson"
 		"github.com/weblfe/travel-app/common"
 		"reflect"
+		"strconv"
 		"strings"
 		"time"
 )
@@ -231,6 +232,16 @@ func (this *dataClassImpl) SetMapper(tObj *beego.M, v interface{}, force ...bool
 		return false
 }
 
+// bson Map 赋值
+func (this *dataClassImpl) SetBsonMapper(tObj *bson.M, v interface{}, force ...bool) bool {
+		return this.SetMapper((*beego.M)(tObj), v, force...)
+}
+
+//  Map 赋值
+func (this *dataClassImpl) SetMap(tObj *map[string]interface{}, v interface{}, force ...bool) bool {
+		return this.SetMapper((*beego.M)(tObj), v, force...)
+}
+
 // 数据键集合
 func (this *dataClassImpl) Keys() []string {
 		var keys []string
@@ -317,6 +328,135 @@ func (this *dataClassImpl) SetString(str *string, v interface{}) bool {
 		}
 		*str = fmt.Sprintf("%v", v)
 		return true
+}
+
+// 设置数字
+func (this *dataClassImpl) SetNumInt(num *int, v interface{}) bool {
+		switch v.(type) {
+		case int:
+				*num = v.(int)
+		case int8:
+				*num = int(v.(int8))
+		case int16:
+				*num = int(v.(int16))
+		case int32:
+				*num = int(v.(int32))
+		case int64:
+				*num = int(v.(int64))
+		case float64:
+				*num = int(v.(float64))
+		case float32:
+				*num = int(v.(float32))
+		case string:
+				if n, err := strconv.Atoi(v.(string)); err == nil {
+						*num = n
+						return true
+				}
+				return false
+		default:
+				return false
+		}
+		return false
+}
+
+// 设置数字
+func (this *dataClassImpl) SetNumIntN(num *int64, v interface{}) bool {
+		switch v.(type) {
+		case int:
+				*num = int64(v.(int))
+		case int8:
+				*num = int64(v.(int8))
+		case int16:
+				*num = int64(v.(int16))
+		case int32:
+				*num = int64(v.(int32))
+		case int64:
+				*num = v.(int64)
+		case float64:
+				*num = int64(v.(float64))
+		case float32:
+				*num = int64(v.(float32))
+		case string:
+				if n, err := strconv.Atoi(v.(string)); err == nil {
+						*num = int64(n)
+						return true
+				}
+				return false
+		default:
+				return false
+		}
+		return false
+}
+
+// 设置数字
+func (this *dataClassImpl) SetBool(value *bool, v interface{}) bool {
+		switch v.(type) {
+		case int:
+				n := v.(int)
+				if n > 0 {
+						*value = true
+				} else {
+						*value = false
+				}
+
+		case int8:
+				n := v.(int8)
+				if n > 0 {
+						*value = true
+				} else {
+						*value = false
+				}
+		case int16:
+				n := v.(int16)
+				if n > 0 {
+						*value = true
+				} else {
+						*value = false
+				}
+		case int32:
+				n := v.(int32)
+				if n > 0 {
+						*value = true
+				} else {
+						*value = false
+				}
+		case int64:
+				n := v.(int64)
+				if n > 0 {
+						*value = true
+				} else {
+						*value = false
+				}
+		case float64:
+				n := v.(float64)
+				if n > 0 {
+						*value = true
+				} else {
+						*value = false
+				}
+		case float32:
+				n := v.(float32)
+				if n > 0 {
+						*value = true
+				} else {
+						*value = false
+				}
+		case string:
+				n := v.(string)
+				if n == "" {
+						*value = false
+						return true
+				}
+				for _, it := range []string{"yes", "ok", "on", "1", "true", "open"} {
+						if it == n || strings.EqualFold(it, n) {
+								*value = true
+								return true
+						}
+				}
+		default:
+				return false
+		}
+		return false
 }
 
 // 相同类型赋值
