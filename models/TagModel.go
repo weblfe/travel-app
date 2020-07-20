@@ -22,7 +22,7 @@ type Tag struct {
 		State     int           `json:"state" bson:"state"`         // 状态 0:初始状态,1:正常,2:删除
 		Sort      int           `json:"sort" bson:"sort"`           // 排序 越大越靠前
 		CreatedAt time.Time     `json:"createdAt" bson:"createdAt"` // 创建时间
-		dataClassImpl
+		dataClassImpl      `json:",omitempty" bson:",omitempty"`
 }
 
 const (
@@ -164,11 +164,11 @@ func (this *TagModel) Adds(items []map[string]interface{}) error {
 		}
 		var result []interface{}
 		for _, it := range items {
-				tag := this.GetByUnique(it)
+				var tag = this.GetByUnique(it)
 				if tag != nil {
 						_ = this.Update(bson.M{"_id": tag.Id}, it)
 				} else {
-						tag := NewTag()
+						var tag = NewTag()
 						tag.SetAttributes(it, false)
 						tag.InitDefault()
 						result = append(result, tag)
