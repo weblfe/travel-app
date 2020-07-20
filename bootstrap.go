@@ -150,6 +150,10 @@ func initMiddleware() {
 
 func registerGob()  {
 		gob.Register(beego.M{})
+		gob.Register(models.Tag{})
 		gob.Register(models.User{})
 		gob.Register(models.Address{})
+		gob.Register(models.AppInfo{})
+		gob.Register(models.Attachment{})
+		gob.Register(models.RequestLog{})
 }

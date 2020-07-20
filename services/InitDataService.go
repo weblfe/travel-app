@@ -247,18 +247,62 @@ func (this *initDataServiceImpl) getLoader(name string) *struct {
 }
 
 func init() {
-		GetInitDataServiceInstance().SetLoader("sms", smsDataLoader)
+		var instance = GetInitDataServiceInstance()
+		instance.SetLoader("sms", smsDataLoader)
+		instance.SetLoader("tags", tagsDataLoader)
+		instance.SetLoader("app_info", appInfoDataLoader)
 }
 
 // 短信数据数据模版加载器
 func smsDataLoader(data []byte, filename string) bool {
-		var arr []map[string]interface{}
-		err := json.Unmarshal(data, &arr)
-		if err != nil {
+		var jsonArr = loaderJsons(data)
+		if jsonArr == nil {
 				return false
 		}
-		if err := models.MessageTemplateModelOf().Adds(arr); err != nil {
+		if err := models.MessageTemplateModelOf().Adds(jsonArr); err != nil {
 				return false
 		}
 		return true
+}
+
+// tag 自动 更新|添加|初始
+func tagsDataLoader(data []byte, filename string) bool {
+		if !strings.Contains(filename, "tags") {
+				return false
+		}
+		var jsonArr = loaderJsons(data)
+		if jsonArr == nil {
+				return false
+		}
+		err := models.TagsModelOf().Adds(jsonArr)
+		if err != nil {
+				return true
+		}
+		return true
+}
+
+// app info 自动添加
+func appInfoDataLoader(data []byte, filename string) bool {
+		if !strings.Contains(filename, "app_info") {
+				return false
+		}
+		var jsonArr = loaderJsons(data)
+		if jsonArr == nil {
+				return false
+		}
+		err := models.AppModelOf().Adds(jsonArr)
+		if err != nil {
+				return true
+		}
+		return true
+}
+
+// 加载json数据
+func loaderJsons(data []byte) []map[string]interface{} {
+		var arr []map[string]interface{}
+		err := json.Unmarshal(data, &arr)
+		if err != nil {
+				return nil
+		}
+		return arr
 }

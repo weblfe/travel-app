@@ -89,7 +89,7 @@ func (this *Tag) Set(key string, v interface{}) *Tag {
 func (this *Tag) save() error {
 		var (
 				newTag = NewTag()
-				model  = TagModelOf()
+				model  = TagsModelOf()
 		)
 		err := model.FindOne(beego.M{"name": this.Name, "group": this.Group}, newTag)
 		if err == nil {
@@ -116,7 +116,7 @@ func (this *TagModel) TableName() string {
 		return TagModelTableName
 }
 
-func TagModelOf() *TagModel {
+func TagsModelOf() *TagModel {
 		var model = new(TagModel)
 		model._Self = model
 		model.Init()
@@ -147,4 +147,47 @@ func (this *TagModel) GetTagsByGroup(group ...string) []string {
 				}
 		}
 		return strArr
+}
+
+
+// 批量添加更新
+func (this *TagModel) Adds(items []map[string]interface{}) error {
+		if len(items) == 0 {
+				return ErrEmptyData
+		}
+		var result []interface{}
+		for _,it:=range items {
+				tag:=this.GetByUnique(it)
+				if  tag != nil {
+						_=this.Update(bson.M{"_id":tag.Id},it)
+				}else{
+						tag :=NewTag()
+						tag.SetAttributes(it,false)
+						tag.InitDefault()
+						result = append(result,tag)
+				}
+		}
+		if len(result) == 0 {
+				return nil
+		}
+		if err:=this.Inserts(result);err!=nil {
+				return err
+		}
+		return nil
+}
+
+// 通过唯一索引查询
+func (this *TagModel) GetByUnique(data map[string]interface{}) *Tag {
+		var (
+				info        = NewTag()
+				name, group = data["name"], data["group"]
+		)
+		if name == nil || group == nil {
+				return nil
+		}
+		err := this.FindOne(bson.M{"name": name, "group": group}, info)
+		if err == nil {
+				return info
+		}
+		return nil
 }

@@ -1,6 +1,7 @@
 package models
 
 import (
+		"errors"
 		"github.com/astaxie/beego"
 		"github.com/astaxie/beego/logs"
 		"github.com/globalsign/mgo"
@@ -61,6 +62,7 @@ var (
 		initLock      sync.Once
 		readWriteLock sync.Mutex
 		_baseProfiles *map[string]interface{}
+		ErrEmptyData  = errors.New("empty data call")
 )
 
 func newBaseModel() *BaseModel {
