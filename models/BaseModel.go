@@ -281,9 +281,6 @@ func (this *BaseModel) destroy() {
 func (this *BaseModel) Add(docs interface{}) error {
 		table := this.Collection()
 		defer this.destroy()
-		if m, ok := docs.(MapperAble); ok {
-				return table.Insert(m.M())
-		}
 		return table.Insert(docs)
 }
 
@@ -371,10 +368,6 @@ func (this *BaseModel) setUpdate(data interface{}) interface{} {
 						return data
 				}
 				newData["$set"] = data
-				return newData
-		}
-		if m, ok := data.(MapperAble); ok {
-				newData["$set"] = m.M()
 				return newData
 		}
 		var t = reflect.TypeOf(data)

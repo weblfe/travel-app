@@ -34,7 +34,7 @@ type Address struct {
 		Lat        float64       `json:"lat" bson:"lat"`               // 纬度
 		CreatedAt  time.Time     `json:"createdAt"`                    // 创建时间
 		DeletedAt  int64         `json:"deletedAt" json:"deletedAt"`   // 删除时间 ｜ 废弃时间
-		dataClassImpl
+		dataClassImpl `bson:",omitempty"  json:",omitempty"`
 }
 
 const (
