@@ -92,8 +92,10 @@ func (this *AttachmentRepositoryImpl) Upload() common.ResponseJson {
 		if result == nil {
 				return common.NewErrorResp(common.NewErrors(common.InvalidTokenCode, "文件保存失败"))
 		}
-		filter := transforms.FilterWrapper(transforms.FilterAttachment, transforms.FilterEmptyMapper, transforms.FieldsFilter([]string{"path", "id", "createdAt", "extrasInfo"}))
-		return common.NewSuccessResp(result.M(filter), "上传成功")
+		filter := transforms.FilterWrapper(this.getAttachmentFilters()...)
+		data  = result.M(filter)
+		data["url"] = services.UrlTicketServiceOf().GetTicketUrlByAttach(result)
+		return common.NewSuccessResp(data, "上传成功")
 }
 
 func (this *AttachmentRepositoryImpl) Uploads() common.ResponseJson {
@@ -116,7 +118,7 @@ func (this *AttachmentRepositoryImpl) Uploads() common.ResponseJson {
 				failCount    int
 				successCount int
 				results      []beego.M
-				filter       = transforms.FilterWrapper(transforms.FilterAttachment, transforms.FilterEmptyMapper, transforms.FieldsFilter([]string{"path", "id", "createdAt", "extrasInfo"}))
+				filter       = transforms.FilterWrapper(this.getAttachmentFilters()...)
 		)
 		// 是否同一中类型
 		if fileType != "" {
@@ -132,6 +134,7 @@ func (this *AttachmentRepositoryImpl) Uploads() common.ResponseJson {
 						}
 				}
 		}
+		var ticketService = services.UrlTicketServiceOf()
 		// 文件保存
 		for _, m := range fsArr {
 				fs, openErr := m.Open()
@@ -154,7 +157,9 @@ func (this *AttachmentRepositoryImpl) Uploads() common.ResponseJson {
 						results = append(results, beego.M{"filename": m.Filename, "status": -1, "error": "save failed!"})
 				} else {
 						successCount++
-						results = append(results, result.M(filter))
+						it:= result.M(filter)
+						it["url"] = ticketService.GetTicketUrlByAttach(result)
+						results = append(results, it)
 				}
 		}
 		if successCount == 0 {
@@ -221,4 +226,20 @@ func (this *AttachmentRepositoryImpl) getAttachmentPath() string {
 				date             = fmt.Sprintf("%d-%d-%d", year, month, day)
 		)
 		return services.PathsServiceOf().StoragePath("/" + date)
+}
+
+func (this *AttachmentRepositoryImpl) getAttachmentFilters() []func(beego.M) beego.M {
+		return []func(beego.M) beego.M{
+				transforms.FilterAttachment, transforms.FilterEmptyMapper,
+				transforms.FieldsFilter([]string{"path", "id", "createdAt", "extrasInfo"}),
+		}
+}
+
+func (this *AttachmentRepositoryImpl) transUrl(m beego.M) beego.M {
+		var id = m["mediaId"]
+		if id == nil || id == "" {
+				return m
+		}
+		m["url"] = this.attachmentService.GetUrl(id.(string))
+		return m
 }
