@@ -13,15 +13,15 @@ type MessageTemplateModel struct {
 }
 
 type MessageTemplate struct {
-		Id         bson.ObjectId `json:"id" bson:"_id"`                                      // 目标Id
-		Type       string        `json:"type" bson:"type"`                                   // 模版类型名
-		Title      string        `json:"title" bson:"title"`                                 // 模版标题
-		Name       string        `json:"name" bson:"name"`                                   // 模版名称
-		Template   bson.M        `json:"template" bson:"template"`                           // 模版信息
+		Id         bson.ObjectId `json:"id" bson:"_id"`                                    // 目标Id
+		Type       string        `json:"type" bson:"type"`                                 // 模版类型名
+		Title      string        `json:"title" bson:"title"`                               // 模版标题
+		Name       string        `json:"name" bson:"name"`                                 // 模版名称
+		Template   bson.M        `json:"template" bson:"template"`                         // 模版信息
 		TemplateId string        `json:"templateId,omitempty" bson:"templateId,omitempty"` // 第三方模版ID
-		Platform   string        `json:"platform" bson:"platform"`                           // 平台
-		Comment    string        `json:"comment,omitempty" bson:"comment,omitempty"`         // 备注
-		State      int           `json:"state" bson:"state"`                                 // 状态 0:不可用,1:可用
+		Platform   string        `json:"platform" bson:"platform"`                         // 平台
+		Comment    string        `json:"comment,omitempty" bson:"comment,omitempty"`       // 备注
+		State      int           `json:"state" bson:"state"`                               // 状态 0:不可用,1:可用
 		UpdatedAt  time.Time     `json:"updatedAt" bson:"updatedAt"`                       // 更新时间
 		CreatedAt  time.Time     `json:"createdAt" bson:"createdAt"`                       // 创建时间
 }
@@ -147,6 +147,7 @@ func (this *MessageTemplateModel) TableName() string {
 		return MessageTemplateModelTableName
 }
 
+// 创建索引
 func (this *MessageTemplateModel) CreateIndex() {
 		_ = this.Collection().EnsureIndex(mgo.Index{
 				Key:    []string{"type", "name"},
@@ -159,6 +160,7 @@ func (this *MessageTemplateModel) CreateIndex() {
 		_ = this.Collection().EnsureIndexKey("platform")
 }
 
+// 批量添加
 func (this *MessageTemplateModel) Adds(data []map[string]interface{}) error {
 		for _, it := range data {
 				tmp := NewSmsTemplate()
@@ -179,13 +181,38 @@ func (this *MessageTemplateModel) Adds(data []map[string]interface{}) error {
 						"templateId": t.TemplateId,
 						"platform":   t.Platform,
 				}
-				if this.Exists(query) {
+
+				template := this.GetByUnique(query)
+				if template != nil {
+						_ = this.Update(bson.M{"_id": template.Id}, it)
 						continue
 				}
 				t = t.Defaults()
 				if err := this.Add(t); err != nil {
 						return err
 				}
+		}
+		return nil
+}
+
+// 通过唯一查询条件获取
+func (this *MessageTemplateModel) GetByUnique(data map[string]interface{}) *MessageTemplate {
+		var (
+				name, typ, title, templateId, platform = data["name"], data["type"], data["title"], data["templateId"], data["platform"]
+		)
+		if name == "" || name == nil || typ == nil || templateId == nil || templateId == "" || platform == "" {
+				return nil
+		}
+		query := bson.M{
+				"name":       name,
+				"type":       typ,
+				"title":      title,
+				"templateId": templateId,
+				"platform":   platform,
+		}
+		var info = NewMessageTemplate()
+		if err := this.FindOne(query, info); err == nil {
+				return info
 		}
 		return nil
 }
