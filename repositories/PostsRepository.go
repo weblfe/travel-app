@@ -109,7 +109,7 @@ func (this *postRepositoryImpl) GetById(id ...string) common.ResponseJson {
 		if data == nil || data.DeletedAt != 0 {
 				return common.NewFailedResp(common.RecordNotFound, common.RecordNotFoundError)
 		}
-		return common.NewSuccessResp(data.M(getMediaInfoTransform(), transforms.FilterEmpty), "获取成功")
+		return common.NewSuccessResp(data.M(getMediaInfoTransform()), "获取成功")
 }
 
 func (this *postRepositoryImpl) RemoveId(id ...string) common.ResponseJson {

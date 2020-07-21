@@ -142,8 +142,8 @@ func (this *TravelNotes) M(filters ...func(m beego.M) beego.M) beego.M {
 				"address":     this.Address,
 				"privacy":     this.Privacy,
 				"privacyText": this.GetPrivacy(),
-				"updatedAt":   this.UpdatedAt,
-				"createdAt":   this.CreatedAt,
+				"updatedAt":   this.UpdatedAt.Unix(),
+				"createdAt":   this.CreatedAt.Unix(),
 				"deletedAt":   this.DeletedAt,
 		}
 		for _, filter := range filters {

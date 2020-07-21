@@ -47,6 +47,43 @@ func FilterEmpty(m beego.M) beego.M {
 		return m
 }
 
+// 过滤空数据
+func FilterEmptyWithOutNumber(m beego.M) beego.M {
+		for k, v := range m {
+				if v == "" || v == nil {
+						delete(m, k)
+						continue
+				}
+				getValue := reflect.ValueOf(v)
+				if getValue.IsZero() && !IsNumber(v) {
+						delete(m, k)
+						continue
+				}
+				if t, ok := v.(time.Time); ok {
+						if t.IsZero() {
+								delete(m, k)
+						}
+				}
+
+		}
+		return m
+}
+
+func IsNumber(value interface{}) bool {
+		var v = reflect.TypeOf(value)
+		switch v.Kind() {
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				return true
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+				return true
+		case reflect.Float32, reflect.Float64:
+				return true
+		case reflect.Complex64, reflect.Complex128:
+				return true
+		}
+		return false
+}
+
 // 过滤 任意空值
 func Filter(m beego.M, extras ...map[string]interface{}) beego.M {
 		if len(extras) == 0 {
