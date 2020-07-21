@@ -38,7 +38,7 @@ type HeaderSchema struct {
 		RemoteAddr   string  `json:"Remote-Address,omitempty" json:"remoteAddr,omitempty"`    //  远程请求ip
 		ContentType  string  `json:"Content-Type" bson:"contentType"`                         //  请求数据格式
 		Scheme       string  `json:":scheme" bson:"scheme"`                                   //  请求 schema [http,https]
-		dataClassImpl
+		dataClassImpl      `json:",omitempty" bson:",omitempty"`
 }
 
 // 请求日志

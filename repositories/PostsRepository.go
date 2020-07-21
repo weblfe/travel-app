@@ -23,7 +23,7 @@ type postRepositoryImpl struct {
 		ctx     common.BaseRequestContext
 }
 
-func NewPostsRepository(ctx  common.BaseRequestContext) PostsRepository {
+func NewPostsRepository(ctx common.BaseRequestContext) PostsRepository {
 		var repository = new(postRepositoryImpl)
 		repository.init()
 		repository.ctx = ctx
@@ -38,9 +38,9 @@ func (this *postRepositoryImpl) Create() common.ResponseJson {
 		var (
 				ctx  = this.ctx.GetParent()
 				data = new(models.TravelNotes)
-				id = ctx.GetSession(middlewares.AuthUserId)
+				id   = ctx.GetSession(middlewares.AuthUserId)
 		)
-		err := 	this.ctx.JsonDecode(data)
+		err := this.ctx.JsonDecode(data)
 		if err != nil {
 				err = this.ctx.GetParent().ParseForm(data)
 				if err != nil {
@@ -68,10 +68,10 @@ func (this *postRepositoryImpl) Update() common.ResponseJson {
 
 func (this *postRepositoryImpl) Lists(typ ...string) common.ResponseJson {
 		var (
-				ctx  = this.ctx.GetParent()
+				ctx      = this.ctx.GetParent()
 				meta     *models.Meta
 				items    []*models.TravelNotes
-				page, _  =ctx.GetInt("page", 1)
+				page, _  = ctx.GetInt("page", 1)
 				count, _ = ctx.GetInt("count", 20)
 				limit    = models.NewListParam(page, count)
 				ty       = ctx.GetString("type")
@@ -81,7 +81,7 @@ func (this *postRepositoryImpl) Lists(typ ...string) common.ResponseJson {
 		}
 		switch ty {
 		case "my":
-				id :=  ctx.GetSession(middlewares.AuthUserId)
+				id := ctx.GetSession(middlewares.AuthUserId)
 				items, meta = this.service.Lists(id.(string), limit)
 		case "address":
 				items, meta = this.service.ListByAddress(ctx.GetString(":address"), limit)
@@ -93,8 +93,8 @@ func (this *postRepositoryImpl) Lists(typ ...string) common.ResponseJson {
 		}
 		if items != nil && len(items) > 0 && meta != nil {
 				var arr []beego.M
-				for _,item:=range items{
-						arr = append(arr,item.M(transforms.FilterEmpty))
+				for _, item := range items {
+						arr = append(arr, item.M(transforms.FilterEmpty))
 				}
 				return common.NewSuccessResp(beego.M{"items": arr, "meta": meta}, "罗列成功")
 		}
@@ -109,7 +109,7 @@ func (this *postRepositoryImpl) GetById(id ...string) common.ResponseJson {
 		if data == nil || data.DeletedAt != 0 {
 				return common.NewFailedResp(common.RecordNotFound, common.RecordNotFoundError)
 		}
-		return common.NewSuccessResp(data.M(transforms.FilterEmpty), "获取成功")
+		return common.NewSuccessResp(data.M(getMediaInfoTransform(), transforms.FilterEmpty), "获取成功")
 }
 
 func (this *postRepositoryImpl) RemoveId(id ...string) common.ResponseJson {

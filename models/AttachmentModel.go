@@ -55,6 +55,7 @@ type Attachment struct {
 
 // 图片
 type Image struct {
+		MediaId  string `json:"mediaId" bson:"mediaId"`
 		Url      string `json:"url" bson:"url"`
 		Size     int    `json:"size" bson:"size"`
 		SizeText string `json:"sizeText" bson:"sizeText"`
@@ -64,6 +65,7 @@ type Image struct {
 
 // 视频
 type Video struct {
+		MediaId  string        `json:"mediaId" bson:"mediaId"`
 		Url      string        `json:"url" bson:"url"`
 		Size     int           `json:"size" bson:"size"`
 		SizeText string        `json:"sizeText" bson:"sizeText"`
@@ -333,7 +335,8 @@ func (this *Attachment) M(filters ...func(m beego.M) beego.M) beego.M {
 				"width":         this.Width,
 				"height":        this.Height,
 				"coverId":       this.CoverId,
-				"createdAt":     this.CreatedAt,
+				"updatedAt":     this.UpdatedAt.Unix(),
+				"createdAt":     this.CreatedAt.Unix(),
 				"deletedAt":     this.DeletedAt,
 		}
 		if len(filters) != 0 {
@@ -357,6 +360,7 @@ func (this *Attachment) GetUrl() string {
 func (this *Attachment) Image() *Image {
 		var image = new(Image)
 		image.Height = this.Height
+		image.MediaId = this.Id.Hex()
 		image.Width = this.Width
 		image.SizeText = this.SizeText
 		image.Size = int(this.Size)
@@ -370,6 +374,7 @@ func (this *Attachment) Video() *Video {
 		if this.CoverId != "" {
 				video.CoverId = this.CoverId.Hex()
 		}
+		video.MediaId = this.Id.Hex()
 		video.SizeText = this.SizeText
 		video.Size = int(this.Size)
 		video.Url = this.GetUrl()
@@ -400,6 +405,7 @@ func (this *Video) M(filters ...func(m beego.M) beego.M) beego.M {
 		var data = beego.M{
 				"url":      this.Url,
 				"size":     this.Size,
+				"mediaId":  this.MediaId,
 				"sizeText": this.SizeText,
 				"coverId":  this.CoverId,
 				"duration": this.Duration,
@@ -412,6 +418,7 @@ func (this *Video) M(filters ...func(m beego.M) beego.M) beego.M {
 
 func (this *Image) M(filters ...func(m beego.M) beego.M) beego.M {
 		var data = beego.M{
+				"mediaId":  this.MediaId,
 				"url":      this.Url,
 				"size":     this.Size,
 				"sizeText": this.SizeText,
