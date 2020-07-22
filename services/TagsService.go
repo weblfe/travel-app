@@ -24,6 +24,9 @@ func TagsServiceOf() TagsService {
 func (this *tagsServiceImpl) Init() {
 		this.init()
 		this.model = models.TagsModelOf()
+		this.Constructor = func(args ...interface{}) interface{} {
+				return TagsServiceOf()
+		}
 }
 
 func (this *tagsServiceImpl) GetTags(group string) ([]string, *models.Meta) {

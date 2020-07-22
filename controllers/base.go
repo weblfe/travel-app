@@ -224,3 +224,11 @@ func (this *BaseController) getJsonRequest() beego.M {
 		}
 		return *this._Request
 }
+
+func (this *BaseController) GetDriver() string {
+		var driver = this.Ctx.Request.Header.Get("driver")
+		if driver == "" {
+				return "android"
+		}
+		return driver
+}

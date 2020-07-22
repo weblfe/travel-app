@@ -498,3 +498,30 @@ func Merger(m beego.M, m2 beego.M) beego.M {
 		}
 		return m
 }
+
+// 是否数字类型
+func IsNumber(v interface{}) bool {
+		switch v.(type) {
+		case int:
+				return true
+		case int8:
+				return true
+		case int16:
+				return true
+		case int32:
+				return true
+		case int64:
+				return true
+		case float64:
+				return true
+		case float32:
+				return true
+		}
+		return false
+}
+
+// 是否为空
+func IsEmpty(v interface{}) bool {
+		var getValue = reflect.ValueOf(v)
+		return getValue.IsZero() || getValue.IsNil()
+}

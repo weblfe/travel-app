@@ -272,11 +272,11 @@ func (this *BaseModel) GetProfile(key string, defaults ...interface{}) interface
 
 // 回收session
 func (this *BaseModel) destroy() {
-	 this.Release()
+		this.Release()
 }
 
 // 释放
-func (this *BaseModel)Release()  {
+func (this *BaseModel) Release() {
 		for _, sess := range this._Sess {
 				if sess != nil {
 						sess.Close()
@@ -468,6 +468,11 @@ func (this *BaseModel) FindOne(query interface{}, result interface{}, selects ..
 				return table.Find(query).Select(selects[0]).One(result)
 		}
 		return table.Find(query).One(result)
+}
+
+func (this *BaseModel) NewQuery(query bson.M) *mgo.Query {
+		table := this.Collection()
+		return table.Find(query)
 }
 
 func (this *BaseModel) Gets(query interface{}, result interface{}, selects ...interface{}) error {
