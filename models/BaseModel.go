@@ -272,6 +272,11 @@ func (this *BaseModel) GetProfile(key string, defaults ...interface{}) interface
 
 // 回收session
 func (this *BaseModel) destroy() {
+	 this.Release()
+}
+
+// 释放
+func (this *BaseModel)Release()  {
 		for _, sess := range this._Sess {
 				if sess != nil {
 						sess.Close()
@@ -443,6 +448,17 @@ func (this *BaseModel) Lists(query interface{}, result interface{}, limit ListsP
 				return total, table.Find(query).Select(selects[0]).Limit(size).Skip(skip).All(result)
 		}
 		return total, table.Find(query).Limit(limit.Count()).Skip(skip).All(result)
+}
+
+func (this *BaseModel) ListsQuery(query interface{}, limit ListsParams, selects ...interface{}) *mgo.Query {
+		table := this.Collection()
+		var (
+				size, skip = limit.Count(), limit.Skip()
+		)
+		if len(selects) > 0 {
+				return table.Find(query).Select(selects[0]).Limit(size).Skip(skip)
+		}
+		return table.Find(query).Limit(limit.Count()).Skip(skip)
 }
 
 func (this *BaseModel) FindOne(query interface{}, result interface{}, selects ...interface{}) error {

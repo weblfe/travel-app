@@ -149,7 +149,7 @@ func (this *TagModel) GetTagsByGroup(group ...string) []string {
 				arr    = make([]*Tag, 2)
 		)
 		arr = arr[:0]
-		if err := table.Find(bson.M{"group": group[0], "state": 1}).Sort("+sort").All(&arr); err == nil {
+		if err := table.Find(bson.M{"group": group[0], "state": 1}).Sort("-sort").All(&arr); err == nil {
 				for _, it := range arr {
 						strArr = append(strArr, it.Name)
 				}

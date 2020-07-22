@@ -134,7 +134,7 @@ func (this *TravelNotes) M(filters ...func(m beego.M) beego.M) beego.M {
 				"imagesInfo":  this.GetImages(),
 				"userId":      this.UserId,
 				"videos":      this.Videos,
-				"videoInfo":   this.GetVideos(),
+				"videosInfo":   this.GetVideos(),
 				"tags":        this.Tags,
 				"status":      this.Status,
 				"statusText":  this.GetState(),
@@ -212,6 +212,13 @@ func (this *TravelNotes) Save() error {
 				}))
 		}
 		return model.Add(this)
+}
+
+func (this *TravelNotes) IsEmpty() bool  {
+		if this.Content == "" || (len(this.Videos) == 0  && len(this.Images)==0) {
+				return true
+		}
+		return false
 }
 
 func (this *PostsModel) TableName() string {

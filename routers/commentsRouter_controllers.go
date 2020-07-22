@@ -7,6 +7,15 @@ import (
 
 func init() {
 
+    beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:AppController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:AppController"],
+        beego.ControllerComments{
+            Method: "GetGlobalConfig",
+            Router: `/app/config`,
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
     beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:AttachmentController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:AttachmentController"],
         beego.ControllerComments{
             Method: "List",
@@ -228,6 +237,15 @@ func init() {
             Method: "Update",
             Router: `/posts/update`,
             AllowHTTPMethods: []string{"put"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:TagsController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:TagsController"],
+        beego.ControllerComments{
+            Method: "Lists",
+            Router: `/tags`,
+            AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})

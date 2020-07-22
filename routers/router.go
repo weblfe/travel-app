@@ -28,4 +28,8 @@ func init() {
 		beego.Include(controllers.AttachmentControllerOf())
 		// 点赞模块
 		beego.Include(controllers.ThumbsUpControllerOf())
+		// 标签
+		beego.Include(controllers.TagsControllerOf())
+		// app
+		beego.Include(controllers.AppControllerOf())
 }

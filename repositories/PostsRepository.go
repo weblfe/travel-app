@@ -36,16 +36,20 @@ func (this *postRepositoryImpl) init() {
 
 func (this *postRepositoryImpl) Create() common.ResponseJson {
 		var (
+				err  error
 				ctx  = this.ctx.GetParent()
 				data = new(models.TravelNotes)
 				id   = ctx.GetSession(middlewares.AuthUserId)
 		)
-		err := this.ctx.JsonDecode(data)
-		if err != nil {
+
+		if err = this.ctx.JsonDecode(data); err != nil {
 				err = this.ctx.GetParent().ParseForm(data)
 				if err != nil {
 						return common.NewErrorResp(common.NewErrors(common.EmptyParamCode, err), "参数不足")
 				}
+		}
+		if data.IsEmpty() {
+				return common.NewErrorResp(common.NewErrors(common.EmptyParamCode,"post create failed"), "参数不足")
 		}
 		data.UserId = id.(string)
 		err = this.service.Create(data.Defaults())
@@ -82,6 +86,9 @@ func (this *postRepositoryImpl) Lists(typ ...string) common.ResponseJson {
 		switch ty {
 		case "my":
 				id := ctx.GetSession(middlewares.AuthUserId)
+				if id == nil {
+						return common.NewFailedResp(common.RecordNotFound, common.RecordNotFoundError)
+				}
 				items, meta = this.service.Lists(id.(string), limit)
 		case "address":
 				items, meta = this.service.ListByAddress(ctx.GetString(":address"), limit)

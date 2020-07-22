@@ -45,9 +45,13 @@ func (this *TravelPostServiceImpl) Lists(userId string, page models.ListsParams,
 		meta.Page = page.Page()
 		meta.Size = len(lists)
 		meta.Count = page.Count()
-		meta.Total, err = this.postModel.Lists(query, &lists, page)
+		defer this.postModel.Release()
+		listQuery := this.postModel.ListsQuery(query, page)
+		err = listQuery.Sort("-createdAt").All(&lists)
 		if err == nil {
+				meta.Total, _ = listQuery.Count()
 				meta.Boot()
+
 				return lists, meta
 		}
 		return nil, meta
