@@ -58,8 +58,11 @@ func (this *ThumbsUp) Set(key string, v interface{}) *ThumbsUp {
 }
 
 func (this *ThumbsUp) Defaults() *ThumbsUp {
-		if this.Status == 0 {
+		if this.Status == 0 && this.Id == "" && this.CreatedAt.IsZero() {
 				this.Status = 1
+		}
+		if this.Count == 0 && this.Id == "" && this.CreatedAt.IsZero() {
+				this.Count = 1
 		}
 		if this.Id == "" {
 				this.Id = bson.NewObjectId()
@@ -69,9 +72,6 @@ func (this *ThumbsUp) Defaults() *ThumbsUp {
 		}
 		if this.UpdatedAt.IsZero() {
 				this.UpdatedAt = time.Now().Local()
-		}
-		if this.Count == 0 {
-				this.Count = 1
 		}
 		return this
 }
@@ -95,12 +95,15 @@ func (this *ThumbsUp) M(filters ...func(m beego.M) beego.M) beego.M {
 
 func (this *ThumbsUp) Save() error {
 		var (
+				err   error
 				id    = this.Id.Hex()
-				tmp   = new(User)
+				tmp   = new(ThumbsUp)
 				model = ThumbsUpModelOf()
-				err   = model.GetById(id, tmp)
 		)
-		if err != nil {
+		if id != "" {
+				err = model.GetById(id, tmp)
+		}
+		if err == nil {
 				return model.UpdateById(id, this.M(func(m beego.M) beego.M {
 						delete(m, "id")
 						delete(m, "createdAt")

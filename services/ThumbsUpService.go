@@ -38,16 +38,19 @@ func (this *thumbsUpServiceImpl) Up(typ string, typeId string, userId string) in
 				up = new(models.ThumbsUp)
 		)
 		err := this.model.FindOne(data, up)
-		if err == nil {
+		if err != nil {
 				err = up.Defaults().Save()
 				if err == nil {
-						return up.Count
+						return this.Count(typ, typeId)
 				}
 		}
 		up.Count = 1
 		up.Status = 1
+		up.UserId = userId
+		up.Type =typ
+		up.TypeId = typeId
 		_ = up.Save()
-		return up.Count
+		return this.Count(typ, typeId)
 }
 
 func (this *thumbsUpServiceImpl) Down(typ string, typeId string, userId string) int {
@@ -58,13 +61,16 @@ func (this *thumbsUpServiceImpl) Down(typ string, typeId string, userId string) 
 				up = new(models.ThumbsUp)
 		)
 		err := this.model.FindOne(data, up)
-		if err == nil {
-				return 0
+		if err != nil {
+				return this.Count(typ, typeId)
 		}
 		up.Count = 0
 		up.Status = 0
+		up.TypeId= typeId
+		up.Type = typ
+		up.UserId = userId
 		_ = up.Save()
-		return up.Count
+		return this.Count(typ, typeId)
 }
 
 func (this *thumbsUpServiceImpl) Count(typ string, typId string, userId ...string) int {

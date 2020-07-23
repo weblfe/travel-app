@@ -18,7 +18,7 @@ type UpdateUserRequest struct {
 		Birthday          int64    `json:"birthday,omitempty"`
 		Address           string   `json:"address,omitempty"`
 		Modifies          []string `json:"modifies,omitempty"`
-		transportImpl
+		transportImpl `json:",omitempty"`
 }
 
 func (this *UpdateUserRequest) Boot() {

@@ -252,9 +252,9 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:ThumbsUpController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:ThumbsUpController"],
         beego.ControllerComments{
-            Method: "Get",
-            Router: `/thumbs/count`,
-            AllowHTTPMethods: []string{"get"},
+            Method: "Post",
+            Router: `/thumbsUp`,
+            AllowHTTPMethods: []string{"post"},
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})
@@ -262,16 +262,16 @@ func init() {
     beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:ThumbsUpController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:ThumbsUpController"],
         beego.ControllerComments{
             Method: "Delete",
-            Router: `/thumbs/down`,
-            AllowHTTPMethods: []string{"get"},
+            Router: `/thumbsUp`,
+            AllowHTTPMethods: []string{"delete"},
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})
 
     beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:ThumbsUpController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:ThumbsUpController"],
         beego.ControllerComments{
-            Method: "Post",
-            Router: `/thumbs/up`,
+            Method: "Get",
+            Router: `/thumbsUp/count`,
             AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
             Filters: nil,

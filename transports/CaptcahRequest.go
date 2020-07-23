@@ -10,7 +10,7 @@ import (
 type MobileRequest struct {
 		Mobile string `json:"mobile"`
 		Type   string `json:"type"`
-		transportImpl
+		transportImpl `json:",omitempty"`
 }
 
 

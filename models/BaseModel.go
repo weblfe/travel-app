@@ -499,23 +499,30 @@ func (this *BaseModel) Sum(query bson.M, sum string) int {
 		defer this.destroy()
 		var (
 				resultPipe struct {
-						ID int `bson:"_id"`
-						C  int `bson:"c"`
+						ID bson.ObjectId `bson:"_id"`
+						C  int    `bson:"c"`
 				}
 				pipe = []bson.M{
+						{"$match": query},
 						{
-								"$project": bson.M{
+								"$group": bson.M{
+										"_id": "$_id",
 										"c": bson.M{
-												"$sum": []interface{}{"$" + sum},
+												"$sum": "$" + sum + "",
 										},
 								},
 						},
-						{
-								"$match": query,
-						},
 				}
 		)
+		//resultPipe = resultPipe[:0]
+		// ['$match' => $map],
+		//    ['$group' => [
+		//        '_id' => null,
+		//        'total_money' => ['$sum' => '$money'],
+		//        'total_money_usd' => ['$sum' => '$money_usd']
+		//    ]]
 		err := table.Pipe(pipe).One(&resultPipe)
+		// table.Pipe(pipe).AllowDiskUse().Iter()
 		if err == nil {
 				return resultPipe.C
 		}
