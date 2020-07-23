@@ -479,6 +479,7 @@ func (this *dataClassImpl) SetSameTypeValue(obj interface{}, v interface{}) bool
 func (this *dataClassImpl) AddFilters(filters ...func(m beego.M) beego.M) {
 		if this.filters == nil {
 				this.filters = make([]func(m beego.M) beego.M, 2)
+				this.filters = this.filters[:0]
 		}
 		this.filters = append(this.filters, filters...)
 }

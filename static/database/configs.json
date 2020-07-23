@@ -1,0 +1,53 @@
+[
+  {
+    "key" : "appName",
+    "value": "游迹网",
+    "title": "应用名",
+    "root": "app"
+  },
+  {
+    "key" : "appCode",
+    "title": "授权注册码",
+    "root": "app"
+  },
+  {
+    "key" : "appHelpUrl",
+    "value": "https://www.baidu.com",
+    "title": "帮助页",
+    "root": "app"
+  },
+  {
+    "key" : "appAboutUs",
+    "value": "https://www.baidu.com",
+    "title": "关于我们",
+    "root": "app"
+  },
+  {
+    "key" : "appUserAgreement",
+    "value": "https://www.baidu.com",
+    "title": "用户协议页",
+    "root": "app"
+  },
+  {
+    "key" : "appPrivacy",
+    "value": "https://www.baidu.com",
+    "title": "隐私条款页",
+    "root": "app"
+  },
+  {
+    "key" : "appCustomers",
+    "value": {
+      "QQ": ["994685563"],
+      "WeChat": ["weblinuxgame"],
+      "Email": ["nuokwan@163.com"]
+    },
+    "title": "客服信息",
+    "root": "app"
+  },
+  {
+    "key" : "allegeEmail",
+    "value": "nuokwan@163.com",
+    "title": "申述邮箱",
+    "root": "app"
+  }
+]

@@ -348,8 +348,8 @@ func (this *BaseModel) GetByObjectId(id bson.ObjectId, result interface{}, selec
 
 func (this *BaseModel) Update(query interface{}, data interface{}) error {
 		table := this.Collection()
-		defer this.destroy()
 		data = this.setUpdate(data)
+		defer this.destroy()
 		return table.Update(query, data)
 }
 

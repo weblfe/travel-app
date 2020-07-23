@@ -15,12 +15,14 @@ type ConfigModel struct {
 }
 
 type Config struct {
-		Id            bson.ObjectId `json:"id" bson:"_id"`
-		Key           string        `json:"key" bson:"key"`
-		Value         interface{}   `json:"value" json:"value"`
-		Root          string        `json:"root" bson:"root"`
-		State         int           `json:"state" bson:"state"`
-		CreatedAt     time.Time     `json:"createdAt" bson:"createdAt"`
+		Id            bson.ObjectId `json:"id" bson:"_id"`              // ID
+		Key           string        `json:"key" bson:"key"`             // 键名
+		Value         interface{}   `json:"value" json:"value"`         // 值
+		Root          string        `json:"root" bson:"root"`           // 分组
+		State         int           `json:"state" bson:"state"`         // 状态
+		Title         string        `json:"title" bson:"title"`         // 备注
+		UpdatedAt     time.Time     `json:"updatedAt" bson:"updatedAt"` // 更新时间
+		CreatedAt     time.Time     `json:"createdAt" bson:"createdAt"` // 创建时间
 		dataClassImpl `bson:",omitempty"  json:",omitempty"`
 }
 
@@ -61,21 +63,40 @@ func (this *Config) data() beego.M {
 				"value":     this.Value,
 				"root":      this.Root,
 				"state":     this.State,
+				"title":     this.Title,
+				"updatedAt": this.UpdatedAt.Unix(),
 				"createdAt": this.CreatedAt.Unix(),
 		}
 }
 
 func (this *Config) save() error {
 		var (
-				cnf   *Config
 				model = ConfigModelOf()
 		)
-		cnf = model.GetByUnique(this.M())
+		this.InitTimes()
+		var cnf = model.GetByUnique(this.M())
 		if cnf == nil {
 				this.InitDefault()
 				return model.Add(this)
 		}
-		return model.Update(bson.M{"_id": cnf.Id}, this.M())
+		(*this.dataClassImpl.data)["updatedAt"] = time.Now().Unix()
+		return model.Update(bson.M{"_id": cnf.Id}, this.M(this.formatTime))
+}
+
+// 更新时间
+func (this *Config) formatTime(m beego.M) beego.M {
+		m["createdAt"] = time.Unix(m["createdAt"].(int64), 0)
+		m["updatedAt"] = time.Unix(m["updatedAt"].(int64), 0)
+		return m
+}
+
+func (this *Config) InitTimes() {
+		if this.CreatedAt.IsZero() {
+				this.CreatedAt = time.Now().Local()
+		}
+		if this.UpdatedAt.IsZero() {
+				this.UpdatedAt = time.Now().Local()
+		}
 }
 
 func (this *Config) setDefaults() {
@@ -88,6 +109,7 @@ func (this *Config) setDefaults() {
 		if this.Root == "" {
 				this.Root = DefaultConfigRoot
 		}
+		this.InitTimes()
 }
 
 func (this *Config) setAttributes(data map[string]interface{}, safe ...bool) {
@@ -115,10 +137,14 @@ func (this *Config) Set(key string, v interface{}) *Config {
 				this.Value = v
 		case "root":
 				this.SetString(&this.Root, v)
+		case "title":
+				this.SetString(&this.Title, v)
 		case "state":
 				this.SetNumInt(&this.State, v)
 		case "createdAt":
 				this.SetTime(&this.CreatedAt, v)
+		case "updatedAt":
+				this.SetTime(&this.UpdatedAt, v)
 		}
 		return this
 }
@@ -144,7 +170,7 @@ func (this *ConfigModel) GetByUnique(data map[string]interface{}, state ...int) 
 		var (
 				err       error
 				cnf       = NewConfig()
-				key, root = data["root"], data["key"]
+				key, root = data["key"], data["root"]
 		)
 		if key == "" || root == "" {
 				return nil
@@ -170,7 +196,7 @@ func (this *ConfigModel) Set(key string, v interface{}, scope ...string) error {
 		}
 		data.Root = scope[0]
 		data.State = ConfigStateOk
-		return data.save()
+		return data.Save()
 }
 
 // 移除配置
@@ -182,7 +208,7 @@ func (this *ConfigModel) Remove(key string, scope ...string) error {
 		}
 		data.Root = scope[0]
 		data.State = ConfigStateDel
-		return data.save()
+		return data.Save()
 }
 
 // 获取对应数据配置
@@ -231,7 +257,7 @@ func (this *ConfigModel) Get(key string, scope string, state ...int) *Config {
 				err error
 				cnf = NewConfig()
 		)
-		err = this.FindOne(bson.M{"key": key, "scope": scope[0], "state": ConfigStateOk}, cnf)
+		err = this.FindOne(bson.M{"key": key, "root": scope, "state": ConfigStateOk}, cnf)
 		if err == nil {
 				return cnf
 		}

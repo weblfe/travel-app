@@ -4,6 +4,7 @@ import (
 		"github.com/astaxie/beego"
 		"github.com/astaxie/beego/cache"
 		"github.com/globalsign/mgo/bson"
+		"github.com/weblfe/travel-app/libs"
 		"github.com/weblfe/travel-app/models"
 		"strings"
 )
@@ -34,9 +35,15 @@ const (
 		AppPrivacyKey       = "appPrivacy"
 		AppCustomersKey     = "appCustomers"
 		AppBuiltKey         = "appBuilt"
+		AppAllegeEmail      = "allegeEmail"
 )
 
 func AppServiceOf() AppService {
+		return newAppService()
+}
+
+// 创建新app服务
+func newAppService() *appServiceImpl {
 		var service = new(appServiceImpl)
 		service.Init()
 		return service
@@ -100,19 +107,25 @@ func (this *appServiceImpl) GetAppCustomers() []string {
 // 获取app 配置信息
 func (this *appServiceImpl) GetAppInfos(driver ...string) map[string]interface{} {
 		var (
-				it = this.GetConfig(ConfigAppScope)
+				arr   []interface{}
+				it    = this.GetConfig(ConfigAppScope)
+				items = this.GetAppBuiltItems(driver...)
 		)
-		it[AppBuiltKey] = this.GetAppBuiltItems(driver...)
+		for _, it := range items {
+				it.Init()
+				arr = append(arr, it.M())
+		}
+		it[AppBuiltKey] = arr
 		return it
 }
 
 // 获取构建版本信息内容
-func (this *appServiceImpl) GetAppBuiltItems(device ...string) []models.AppInfo {
+func (this *appServiceImpl) GetAppBuiltItems(drivers ...string) []*models.AppInfo {
 		var (
 				err   error
-				count = len(device)
-				items = make([]models.AppInfo, 2)
-				query = bson.M{"device": bson.M{"$in": device}, "state": 1}
+				count = len(drivers)
+				items = make([]*models.AppInfo, 2)
+				query = bson.M{"driver": bson.M{"$in": drivers}, "state": 1}
 		)
 		if count == 0 {
 				count = 3
@@ -140,18 +153,23 @@ func (this *appServiceImpl) GetConfig(typ ...string) beego.M {
 				return result
 		}
 		arr = arr[:0]
-		for i, it := range items {
-				arr[i] = beego.M{
+		for _, it := range items {
+				arr = append(arr, beego.M{
 						"key":   it.Key,
 						"value": it.Value,
-				}
+						"title": it.Title,
+				})
 		}
+		result["configs"] = arr
 		return result
 }
 
 // 获取 App 三端 统一授权码
 func (this *appServiceImpl) GetAppCode(defaults ...string) string {
 		var code = this.configModel.GetString(AppCodeKey)
+		if len(defaults) == 0 {
+				defaults = append(defaults, "")
+		}
 		if code == "" {
 				return defaults[0]
 		}
@@ -161,6 +179,9 @@ func (this *appServiceImpl) GetAppCode(defaults ...string) string {
 // 获取帮助 Url
 func (this *appServiceImpl) GetHelpUrl(defaults ...string) string {
 		var url = this.configModel.GetString(AppHelpUrlKey)
+		if len(defaults) == 0 {
+				defaults = append(defaults, "")
+		}
 		if url == "" {
 				return defaults[0]
 		}
@@ -169,7 +190,10 @@ func (this *appServiceImpl) GetHelpUrl(defaults ...string) string {
 
 // 获取 申述 邮箱
 func (this *appServiceImpl) GetAllegeEmail(defaults ...string) string {
-		var email = this.configModel.GetString(AppCodeKey)
+		var email = this.configModel.GetString(AppAllegeEmail)
+		if len(defaults) == 0 {
+				defaults = append(defaults, "")
+		}
 		if email == "" {
 				return defaults[0]
 		}
@@ -183,9 +207,22 @@ func (this *appServiceImpl) SetAppCode(code string) bool {
 		return false
 }
 
+// 获取缓存存储器
 func (this *appServiceImpl) GetStore() cache.Cache {
 		if this.store == nil {
 				this.store = GetCacheService().Get(AppCache)
 		}
 		return this.store
+}
+
+func (this *appServiceImpl) code() string {
+		return libs.RandomWord(6)
+}
+
+// 设置App Code
+func (this *appServiceImpl) InitCode() {
+		var code = this.GetAppCode()
+		if code == "" {
+				this.SetAppCode(this.code())
+		}
 }

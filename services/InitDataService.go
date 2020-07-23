@@ -252,6 +252,8 @@ func init() {
 		instance.SetLoader("tags", tagsDataLoader)
 		instance.SetLoader("app_info", appInfoDataLoader)
 		instance.SetLoader("roles", userRoleConfigDataLoader)
+		instance.SetLoader("init",initLoader)
+		instance.SetLoader("configs",configsLoader)
 }
 
 // 短信数据数据模版加载器
@@ -322,4 +324,37 @@ func loaderJsons(data []byte) []map[string]interface{} {
 				return nil
 		}
 		return arr
+}
+
+// 加载系统初始数据
+func initLoader(data []byte, filename string) bool  {
+		if !strings.Contains(filename, "init") {
+				return false
+		}
+		var jsonArr = loaderJsons(data)
+		if jsonArr == nil {
+				return false
+		}
+		for _,item:=range jsonArr {
+				switch item["system"] {
+				case "code":
+					newAppService().InitCode()
+				}
+		}
+		return true
+}
+
+// 配置信息载入初始化
+func configsLoader(data []byte,filename string) bool  {
+		if !strings.Contains(filename, "configs") {
+				return false
+		}
+		var jsonArr = loaderJsons(data)
+		if jsonArr == nil {
+				return false
+		}
+		if err:=ConfigServiceOf().Adds(jsonArr);err==nil {
+				return true
+		}
+		return false
 }
