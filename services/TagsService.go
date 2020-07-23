@@ -3,7 +3,7 @@ package services
 import "github.com/weblfe/travel-app/models"
 
 type TagsService interface {
-		GetTags(group string) ([]string, *models.Meta)
+		GetTags(group string) ([]models.Tag, *models.Meta)
 }
 
 type tagsServiceImpl struct {
@@ -29,12 +29,12 @@ func (this *tagsServiceImpl) Init() {
 		}
 }
 
-func (this *tagsServiceImpl) GetTags(group string) ([]string, *models.Meta) {
+func (this *tagsServiceImpl) GetTags(group string) ([]models.Tag, *models.Meta) {
 		var (
-				items []string
+				items []models.Tag
 				meta  = models.NewMeta()
 		)
-		items = this.model.GetTagsByGroup(group)
+		items = this.model.GetTags(group)
 		meta.Page = 1
 		meta.Count = len(items)
 		meta.Total = meta.Count
