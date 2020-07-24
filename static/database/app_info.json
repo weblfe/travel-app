@@ -4,15 +4,19 @@
     "download": "https://apple.store.com",
     "version": "1.0.0",
     "content": "#项目核心功能上线",
-    "state": 1,
+    "forcedUpdate": 0,
+    "appBuild" : 1,
+    "remark" : "第一个ios版本",
     "publishTime": "2020-07-28 10:00:00"
   },
   {
     "driver": "android",
-    "download": "https://apple.store.com",
+    "download": "https://android.store.com",
     "version": "1.0.0",
     "content": "#项目核心功能上线",
-    "state": 1,
+    "forcedUpdate": true,
+    "appBuild" : 1,
+    "remark" : "第一个android版本",
     "publishTime": "2020-07-28 10:00:00"
   }
 ]

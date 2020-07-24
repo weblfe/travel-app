@@ -36,6 +36,7 @@ const (
 		AppCustomersKey     = "appCustomers"
 		AppBuiltKey         = "appBuilt"
 		AppAllegeEmail      = "allegeEmail"
+		AppConfigsKey       = "configs"
 )
 
 func AppServiceOf() AppService {
@@ -105,18 +106,31 @@ func (this *appServiceImpl) GetAppCustomers() []string {
 }
 
 // 获取app 配置信息
-func (this *appServiceImpl) GetAppInfos(driver ...string) map[string]interface{} {
+func (this *appServiceImpl) GetAppInfos(drivers ...string) map[string]interface{} {
 		var (
-				arr   []interface{}
-				it    = this.GetConfig(ConfigAppScope)
-				items = this.GetAppBuiltItems(driver...)
+				arr     []interface{}
+				results = beego.M{}
+				it      = this.GetAppBaseConfigs(drivers...)
+				items   = this.GetAppBuiltItems(drivers...)
 		)
 		for _, it := range items {
 				it.Init()
 				arr = append(arr, it.M())
 		}
-		it[AppBuiltKey] = arr
-		return it
+		if len(arr) <= 0 || arr == nil {
+				results[AppBuiltKey] = nil
+		} else {
+				results[AppBuiltKey] = arr[0]
+		}
+		results[AppConfigsKey] = it
+		return results
+}
+
+// 获取app 基础配置
+func (this *appServiceImpl) GetAppBaseConfigs(drivers ...string) *models.AppBaseConfig {
+		var info = new(models.AppBaseConfig)
+		info.Load(drivers...)
+		return info
 }
 
 // 获取构建版本信息内容
@@ -125,13 +139,13 @@ func (this *appServiceImpl) GetAppBuiltItems(drivers ...string) []*models.AppInf
 				err   error
 				count = len(drivers)
 				items = make([]*models.AppInfo, 2)
-				query = bson.M{"driver": bson.M{"$in": drivers}, "state": 1}
+				query = bson.M{"driver": bson.M{"$in": drivers}}
 		)
 		if count == 0 {
 				count = 3
 		}
 		items = items[:0]
-		err = this.appModel.NewQuery(query).Sort("-publishTime").Limit(count).All(&items)
+		err = this.appModel.NewQuery(query).Sort("-publishTime","-appBuild").Limit(count).All(&items)
 		if err == nil {
 				return items
 		}

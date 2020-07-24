@@ -398,7 +398,6 @@ func (this *dataClassImpl) SetBool(value *bool, v interface{}) bool {
 				} else {
 						*value = false
 				}
-
 		case int8:
 				n := v.(int8)
 				if n > 0 {
@@ -453,6 +452,8 @@ func (this *dataClassImpl) SetBool(value *bool, v interface{}) bool {
 								return true
 						}
 				}
+		case bool:
+				*value = v.(bool)
 		default:
 				return false
 		}
