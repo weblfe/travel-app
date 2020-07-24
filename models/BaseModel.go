@@ -494,6 +494,15 @@ func (this *BaseModel) Count(query interface{}) int {
 		return 0
 }
 
+// [
+//  '$match' => $map],
+//   [
+//   '$group' => [
+//        '_id' => null,
+//        'total_money' => ['$sum' => '$money'],
+//        'total_money_usd' => ['$sum' => '$money_usd']
+//    ]
+//   ]
 func (this *BaseModel) Sum(query bson.M, sum string) int {
 		table := this.Collection()
 		defer this.destroy()
@@ -506,7 +515,7 @@ func (this *BaseModel) Sum(query bson.M, sum string) int {
 						{"$match": query},
 						{
 								"$group": bson.M{
-										"_id": "$_id",
+										"_id": nil,
 										"c": bson.M{
 												"$sum": "$" + sum + "",
 										},
@@ -514,15 +523,8 @@ func (this *BaseModel) Sum(query bson.M, sum string) int {
 						},
 				}
 		)
-		//resultPipe = resultPipe[:0]
-		// ['$match' => $map],
-		//    ['$group' => [
-		//        '_id' => null,
-		//        'total_money' => ['$sum' => '$money'],
-		//        'total_money_usd' => ['$sum' => '$money_usd']
-		//    ]]
+
 		err := table.Pipe(pipe).One(&resultPipe)
-		// table.Pipe(pipe).AllowDiskUse().Iter()
 		if err == nil {
 				return resultPipe.C
 		}
