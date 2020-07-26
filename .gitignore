@@ -7,3 +7,4 @@ travel-app.out
 routers/commentsRouter__*.go
 static/storage/*
 .env
+*.log

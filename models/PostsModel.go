@@ -130,10 +130,10 @@ func (this *TravelNotes) M(filters ...func(m beego.M) beego.M) beego.M {
 				"content":     this.Content,
 				"type":        this.Type,
 				"typeText":    this.GetType(),
-				"images":      this.Images,
+				"images":      this.getImages(),
 				"imagesInfo":  this.GetImages(),
 				"userId":      this.UserId,
-				"videos":      this.Videos,
+				"videos":      this.getVideos(),
 				"videosInfo":  this.GetVideos(),
 				"tags":        this.Tags,
 				"status":      this.Status,
@@ -152,9 +152,24 @@ func (this *TravelNotes) M(filters ...func(m beego.M) beego.M) beego.M {
 		return data
 }
 
+func (this *TravelNotes)getVideos()[]string  {
+		if this.Videos == nil {
+				return []string{}
+		}
+		return this.Videos
+}
+
+func (this *TravelNotes)getImages()[]string  {
+		if this.Images == nil {
+				return []string{}
+		}
+		return this.Images
+}
+
+
 func (this *TravelNotes) GetImages() []*Image {
 		if this.Images == nil || len(this.Images) == 0 {
-				return nil
+				return []*Image{}
 		}
 		var (
 				images      []*Image
@@ -180,7 +195,7 @@ func (this *TravelNotes) GetImages() []*Image {
 
 func (this *TravelNotes) GetVideos() []*Video {
 		if this.Videos == nil || len(this.Videos) == 0 {
-				return nil
+				return []*Video{}
 		}
 		var (
 				videos      []*Video
