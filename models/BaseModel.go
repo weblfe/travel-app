@@ -306,11 +306,6 @@ func (this *BaseModel) Inserts(docs []interface{}) error {
 		}
 		table := this.Collection()
 		defer this.destroy()
-		/*for i, it := range docs {
-				if m, ok := it.(MapperAble); ok {
-						docs[i] = m.M()
-				}
-		}*/
 		return table.Insert(docs...)
 }
 

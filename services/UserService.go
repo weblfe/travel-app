@@ -107,7 +107,7 @@ func (this *UserServiceImpl) UpdateByUid(uid string, data map[string]interface{}
 		// 无需ID
 		err := this.userModel.Update(bson.M{"_id": bson.ObjectIdHex(uid)}, data)
 		if info, ok := err.(*mgo.LastError); ok {
-				if  this.userModel.IsDuplicate(err) {
+				if this.userModel.IsDuplicate(err) {
 						return common.NewErrors(info.Code, strings.Join(getDupKeys(info), " ")+" 已存在!")
 				}
 				return common.NewErrors(info.Code, info.Err)
@@ -174,6 +174,10 @@ func (this *UserServiceImpl) GetById(id string) *models.User {
 		var user = new(models.User)
 		if err := this.userModel.GetById(id, user); err != nil {
 				return nil
+		}
+		if user.InviteCode == "" {
+				user.InviteCode = user.GetInviteCode()
+				_ = user.Save()
 		}
 		return user
 }
