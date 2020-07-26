@@ -40,8 +40,8 @@ type Attachment struct {
 		ReferId       string        `json:"referId" bson:"referId"`                                 // 记录涉及的document的ID
 		Size          int64         `json:"size" bson:"size"`                                       // 文件大小 单位: byte
 		SizeText      string        `json:"sizeText" bson:"sizeText"`                               // 带单的文件大小 eg: ..1G,120MB,1KB,1B,1byte
-		FileType      string        `json:"fileType" bson:"fileType"`                               // 文件类型 [doc,image,mp4,mp3,txt....]
-		Status        int           `json:"status" bson:"status"`                                   // 文件状态
+		FileType      string        `json:"fileType" bson:"fileType"`                               // 文件类型 [doc,image,avatar,mp4,mp3,txt....]
+		Status        int           `json:"status" bson:"status"`                                   // 文件状态 [0,1]
 		Privately     bool          `json:"privately" bson:"privately"`                             // 文件是否私有
 		Watermark     bool          `json:"watermark" bson:"watermark"`                             // 文件是否有水印
 		UpdatedAt     time.Time     `json:"updatedAt" bson:"updatedAt"`                             // 记录更新时间
@@ -68,6 +68,7 @@ type Video struct {
 		MediaId  string        `json:"mediaId" bson:"mediaId"`
 		Url      string        `json:"url" bson:"url"`
 		Size     int           `json:"size" bson:"size"`
+		CoverUrl string        `json:"coverUrl" bson:"coverUrl"` // 视频封面
 		SizeText string        `json:"sizeText" bson:"sizeText"`
 		Duration time.Duration `json:"width" bson:"width"`
 		CoverId  string        `json:"coverId" bson:"coverId"`
@@ -378,7 +379,26 @@ func (this *Attachment) Video() *Video {
 		video.SizeText = this.SizeText
 		video.Size = int(this.Size)
 		video.Url = this.GetUrl()
+		video.CoverId = this.CoverId.Hex()
+		var info = this.GetCoverInfo(this.CoverId)
+		if info != nil {
+				video.CoverUrl = info.GetUrl()
+		}
 		return video
+}
+
+func (this *Attachment) GetCoverInfo(id bson.ObjectId) *Attachment {
+		if id == "" {
+				return nil
+		}
+		var (
+				err    error
+				attach = NewAttachment()
+		)
+		if err = AttachmentModelOf().GetByObjectId(id, attach); err == nil {
+				return attach
+		}
+		return nil
 }
 
 func (this *AttachmentModel) CreateIndex() {

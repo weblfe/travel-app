@@ -13,6 +13,8 @@ require (
 	github.com/jordan-wright/email v0.0.0-20200602115436-fd8a7622303e
 	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
+	github.com/nats-io/nats.go v1.10.0
+	github.com/nats-io/nkeys v0.1.4
 	github.com/shiena/ansicolor v0.0.0-20151119151921-a422bbe96644 // indirect
 	github.com/smartystreets/goconvey v1.6.4
 	golang.org/x/tools v0.0.0-20200117065230-39095c1d176c

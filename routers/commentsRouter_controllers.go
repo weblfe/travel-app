@@ -180,6 +180,15 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PostsController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PostsController"],
         beego.ControllerComments{
+            Method: "DetailById",
+            Router: `/posts/:id`,
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PostsController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PostsController"],
+        beego.ControllerComments{
             Method: "RemoveById",
             Router: `/posts/:id`,
             AllowHTTPMethods: []string{"delete"},
@@ -189,8 +198,8 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PostsController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PostsController"],
         beego.ControllerComments{
-            Method: "DetailById",
-            Router: `/posts/:id`,
+            Method: "ListByAddress",
+            Router: `/posts/address/:address`,
             AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
             Filters: nil,
@@ -201,15 +210,6 @@ func init() {
             Method: "Create",
             Router: `/posts/create`,
             AllowHTTPMethods: []string{"post"},
-            MethodParams: param.Make(),
-            Filters: nil,
-            Params: nil})
-
-    beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PostsController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PostsController"],
-        beego.ControllerComments{
-            Method: "ListByAddress",
-            Router: `/posts/lists/:address`,
-            AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})
@@ -237,6 +237,15 @@ func init() {
             Method: "Update",
             Router: `/posts/update`,
             AllowHTTPMethods: []string{"put"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PostsController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PostsController"],
+        beego.ControllerComments{
+            Method: "ListUserPosts",
+            Router: `/posts/users/:userId`,
+            AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})

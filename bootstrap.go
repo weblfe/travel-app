@@ -10,6 +10,7 @@ import (
 		"github.com/weblfe/travel-app/libs"
 		"github.com/weblfe/travel-app/middlewares"
 		"github.com/weblfe/travel-app/models"
+		"github.com/weblfe/travel-app/plugins"
 		"github.com/weblfe/travel-app/services"
 		"os"
 		"path"
@@ -34,6 +35,8 @@ func bootstrap() {
 		initDatabase()
 		// middleware
 		initMiddleware()
+		// 注册插件
+		registerPlugins()
 
 }
 
@@ -148,7 +151,8 @@ func initMiddleware() {
 		manger.Boot()
 }
 
-func registerGob()  {
+// 注册结构体
+func registerGob() {
 		gob.Register(beego.M{})
 		gob.Register(models.Tag{})
 		gob.Register(models.User{})
@@ -156,4 +160,9 @@ func registerGob()  {
 		gob.Register(models.AppInfo{})
 		gob.Register(models.Attachment{})
 		gob.Register(models.RequestLog{})
+}
+
+// 注册插件
+func registerPlugins() {
+		plugins.GetNatsPlugin().Register()
 }

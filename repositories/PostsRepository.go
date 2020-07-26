@@ -6,7 +6,6 @@ import (
 		"github.com/weblfe/travel-app/middlewares"
 		"github.com/weblfe/travel-app/models"
 		"github.com/weblfe/travel-app/services"
-		"github.com/weblfe/travel-app/transforms"
 		"time"
 )
 
@@ -22,6 +21,11 @@ type postRepositoryImpl struct {
 		service services.PostService
 		ctx     common.BaseRequestContext
 }
+
+const (
+		PostImagesInfoKey = "imagesInfo"
+		PostVideoInfoKey  = "viedosInfo"
+)
 
 func NewPostsRepository(ctx common.BaseRequestContext) PostsRepository {
 		var repository = new(postRepositoryImpl)
@@ -49,7 +53,7 @@ func (this *postRepositoryImpl) Create() common.ResponseJson {
 				}
 		}
 		if data.IsEmpty() {
-				return common.NewErrorResp(common.NewErrors(common.EmptyParamCode,"post create failed"), "参数不足")
+				return common.NewErrorResp(common.NewErrors(common.EmptyParamCode, "post create failed"), "参数不足")
 		}
 		data.UserId = id.(string)
 		err = this.service.Create(data.Defaults())
@@ -95,13 +99,19 @@ func (this *postRepositoryImpl) Lists(typ ...string) common.ResponseJson {
 		case "tags":
 				address := ctx.GetString("tags")
 				items, meta = this.service.ListByAddress(address, limit)
+		case "user":
+				if len(typ) <= 1 {
+						break
+				}
+				userId := typ[1]
+				items, meta = this.service.Lists(userId, limit)
 		case "search":
 				items, meta = this.service.Search(beego.M{}, limit)
 		}
 		if items != nil && len(items) > 0 && meta != nil {
 				var arr []beego.M
 				for _, item := range items {
-						arr = append(arr, item.M(transforms.FilterEmpty))
+						arr = append(arr, item.M(getMediaInfoTransform()))
 				}
 				return common.NewSuccessResp(beego.M{"items": arr, "meta": meta}, "罗列成功")
 		}

@@ -110,8 +110,8 @@ func (this *appServiceImpl) GetAppInfos(drivers ...string) map[string]interface{
 		var (
 				arr     []interface{}
 				results = beego.M{}
-				it      = this.GetAppBaseConfigs(drivers...)
 				items   = this.GetAppBuiltItems(drivers...)
+				it      = this.GetAppBaseConfigs(drivers...)
 		)
 		for _, it := range items {
 				it.Init()

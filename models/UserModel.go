@@ -1,6 +1,7 @@
 package models
 
 import (
+		"fmt"
 		"github.com/astaxie/beego"
 		"github.com/globalsign/mgo"
 		"github.com/globalsign/mgo/bson"
@@ -33,6 +34,7 @@ type User struct {
 		Gender             int           `json:"gender" bson:"gender"`                         // 用户性别 0:保密 1:男 2:女 3:😯
 		Birthday           int64         `json:"birthday,omitempty" bson:"birthday,omitempty"` // 用户生日
 		Address            string        `json:"address" bson:"address"`                       // 用户地址
+		InviteCode         string        `json:"inviteCode" bson:"inviteCode"`                 // 邀请码 6-64
 		CreatedAt          time.Time     `json:"createdAt" bson:"createdAt"`                   // 创建时间 注册时间
 		UpdatedAt          time.Time     `json:"updatedAt" bson:"updatedAt"`                   // 更新时间
 		DeletedAt          int64         `json:"deletedAt" bson:"deletedAt"`                   // 删除时间戳
@@ -132,6 +134,8 @@ func (this *User) Set(key string, v interface{}) *User {
 				this.SetString(&this.LastLoginLocation, v)
 		case "createdAt":
 				this.SetTime(&this.CreatedAt, v)
+		case "inviteCode":
+				this.SetString(&this.InviteCode, v)
 		case "updatedAt":
 				this.SetTime(&this.UpdatedAt, v)
 		case "deletedAt":
@@ -142,14 +146,13 @@ func (this *User) Set(key string, v interface{}) *User {
 
 func (this *User) Defaults() *User {
 		if this.Id == "" {
-				this.Id = bson.NewObjectId()
+				this.Id = this.GetId()
 		}
 		if this.UserNumId == 0 {
-				user := UserModelOf()
-				this.UserNumId = libs.GetId(user.GetDatabaseName(), user.TableName(), user.GetConn())
+				this.UserNumId = this.GetUserNumId()
 		}
 		if this.CreatedAt.IsZero() {
-				this.CreatedAt = time.Now().Local()
+				this.CreatedAt = this.GetNow()
 		}
 		if this.Status == 0 {
 				this.Status = 1
@@ -161,17 +164,63 @@ func (this *User) Defaults() *User {
 				this.UserName = this.Email
 		}
 		if this.Mobile == "" && this.UserName != "" {
-				if libs.IsCnMobile(this.UserName) || libs.IsMobile(this.UserName) {
-						this.Mobile = this.UserName
-				}
+				this.Mobile = this.GetMobile()
 		}
 		if this.NickName == "" && this.UserName != "" {
-				this.NickName = this.UserName + "_nick"
+				this.NickName = this.GetNickName()
 		}
 		if this.PasswordHash == "" {
-				this.PasswordHash = libs.PasswordHash(beego.AppConfig.DefaultString("default_password", "123456&Hex"))
+				this.PasswordHash = this.GetPasswordHash()
+		}
+		if this.InviteCode == "" {
+				this.InviteCode = this.GetInviteCode()
 		}
 		return this
+}
+
+func (this *User) GetPasswordHash() string {
+		if this.PasswordHash == "" {
+				return libs.PasswordHash(beego.AppConfig.DefaultString("default_password", "123456&Hex"))
+		}
+		return this.PasswordHash
+}
+
+func (this *User) GetMobile() string {
+		if this.Mobile != "" {
+				return this.Mobile
+		}
+		if libs.IsCnMobile(this.UserName) || libs.IsMobile(this.UserName) {
+				return this.UserName
+		}
+		return ""
+}
+
+func (this *User) GetUserNumId() int64 {
+		if this.UserNumId != 0 {
+				return this.UserNumId
+		}
+		user := UserModelOf()
+		return libs.GetId(user.GetDatabaseName(), user.TableName(), user.GetConn())
+}
+
+func (this *User) GetNickName() string {
+		if this.NickName != "" {
+				return this.NickName
+		}
+		return this.UserName + "_nick"
+}
+
+func (this *User) GetInviteCode(refresh ...bool) string {
+		if len(refresh) == 0 {
+				refresh = append(refresh, false)
+		}
+		if refresh[0] {
+				return libs.Md5(fmt.Sprintf("%d", time.Now().Unix()))
+		}
+		if this.InviteCode == "" {
+				return libs.Md5(fmt.Sprintf("%d", time.Now().Unix()))
+		}
+		return this.InviteCode
 }
 
 func (this *User) GetAddress(typ ...int) string {
@@ -209,6 +258,7 @@ func (this *User) M(filter ...func(m beego.M) beego.M) beego.M {
 				"birthday":           this.Birthday,
 				"createdAt":          this.CreatedAt.Unix(),
 				"address":            this.GetAddress(),
+				"inviteCode":         this.InviteCode,
 				"lastLoginLocation":  this.LastLoginLocation,
 				"deletedAt":          this.DeletedAt,
 		}
@@ -274,8 +324,6 @@ func (this *UserModel) CreateIndex() {
 func (this *UserModel) TableName() string {
 		return UserTable
 }
-
-
 
 func GetGenderKey(gender int) string {
 		switch gender {

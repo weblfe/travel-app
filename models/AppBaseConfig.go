@@ -52,7 +52,7 @@ func (this *AppBaseConfig) GetDownloadUrl(drivers ...string) string {
 }
 
 func (this *AppBaseConfig) GetHelpUrl(drivers ...string) string {
-		if this.Download != "" {
+		if this.AppHelpUrl != "" {
 				return this.Download
 		}
 		if len(drivers) == 0 {
@@ -62,8 +62,8 @@ func (this *AppBaseConfig) GetHelpUrl(drivers ...string) string {
 }
 
 func (this *AppBaseConfig) GetAppAboutUs(drivers ...string) string {
-		if this.Download != "" {
-				return this.Download
+		if this.AppAboutUs != "" {
+				return this.AppAboutUs
 		}
 		if len(drivers) == 0 {
 				drivers = append(drivers, DefaultConfigRoot)
@@ -72,8 +72,8 @@ func (this *AppBaseConfig) GetAppAboutUs(drivers ...string) string {
 }
 
 func (this *AppBaseConfig) GetAppUserAgreement(drivers ...string) string {
-		if this.Download != "" {
-				return this.Download
+		if this.AppUserAgreement != "" {
+				return this.AppUserAgreement
 		}
 		if len(drivers) == 0 {
 				drivers = append(drivers, DefaultConfigRoot)
@@ -82,7 +82,7 @@ func (this *AppBaseConfig) GetAppUserAgreement(drivers ...string) string {
 }
 
 func (this *AppBaseConfig) GetMail(drivers ...string) string {
-		if this.Download != "" {
+		if this.Email != "" {
 				return this.Download
 		}
 		if len(drivers) == 0 {
@@ -92,7 +92,7 @@ func (this *AppBaseConfig) GetMail(drivers ...string) string {
 }
 
 func (this *AppBaseConfig) GetWeChat(drivers ...string) string {
-		if this.Download != "" {
+		if this.WeChat != "" {
 				return this.Download
 		}
 		if len(drivers) == 0 {
@@ -102,7 +102,7 @@ func (this *AppBaseConfig) GetWeChat(drivers ...string) string {
 }
 
 func (this *AppBaseConfig) GetQQ(drivers ...string) string {
-		if this.Download != "" {
+		if this.QQ != "" {
 				return this.Download
 		}
 		if len(drivers) == 0 {
@@ -112,7 +112,7 @@ func (this *AppBaseConfig) GetQQ(drivers ...string) string {
 }
 
 func (this *AppBaseConfig) GetAppPrivacy(drivers ...string) string {
-		if this.Download != "" {
+		if this.AppPrivacy != "" {
 				return this.Download
 		}
 		if len(drivers) == 0 {

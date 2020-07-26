@@ -45,18 +45,18 @@ func getBaseUserInfoTransform() func(m beego.M) beego.M {
 func getMediaInfoTransform() func(m beego.M) beego.M {
 		return func(m beego.M) beego.M {
 				var (
-						key     = "imagesInfo"
+						key     = PostImagesInfoKey
 						arr, ok = m[key]
 						service = services.AttachmentServiceOf()
 				)
 				if !ok {
-						key = "viedosInfo"
+						key = PostVideoInfoKey
 						arr, ok = m[key]
 						if !ok {
 								return m
 						}
 				}
-				if key == "imagesInfo" {
+				if key == PostImagesInfoKey {
 						var items = arr.([]*models.Image)
 						if items == nil || len(items) == 0 {
 								return m
@@ -67,13 +67,16 @@ func getMediaInfoTransform() func(m beego.M) beego.M {
 						}
 						m[key] = items
 				}
-				if key == "viedosInfo" {
+				if key == PostVideoInfoKey {
 						var items = arr.([]*models.Video)
 						if items == nil || len(items) == 0 {
 								return m
 						}
 						for i, it := range items {
 								it.Url = service.GetAccessUrl(it.MediaId)
+								if it.CoverId != "" {
+										it.CoverUrl = service.GetAccessUrl(it.CoverId)
+								}
 								items[i] = it
 						}
 						m[key] = items

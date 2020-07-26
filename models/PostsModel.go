@@ -134,7 +134,7 @@ func (this *TravelNotes) M(filters ...func(m beego.M) beego.M) beego.M {
 				"imagesInfo":  this.GetImages(),
 				"userId":      this.UserId,
 				"videos":      this.Videos,
-				"videosInfo":   this.GetVideos(),
+				"videosInfo":  this.GetVideos(),
 				"tags":        this.Tags,
 				"status":      this.Status,
 				"statusText":  this.GetState(),
@@ -156,14 +156,24 @@ func (this *TravelNotes) GetImages() []*Image {
 		if this.Images == nil || len(this.Images) == 0 {
 				return nil
 		}
-		var images []*Image
-		for _, id := range this.Images {
-				attach := NewAttachment()
-				err := AttachmentModelOf().GetById(id, attach)
-				if err != nil {
-						continue
+		var (
+				images      []*Image
+				ids         []bson.ObjectId
+				attachArr   = make([]*Attachment, 2)
+				attachModel = AttachmentModelOf()
+		)
+		for _, v := range this.Images {
+				ids = append(ids, bson.ObjectIdHex(v))
+		}
+		attachArr = attachArr[:0]
+		var err = attachModel.Gets(bson.M{"_id": bson.M{"$in": ids}}, &attachArr)
+		if err == nil {
+				for _, attach := range attachArr {
+						if attach == nil {
+								continue
+						}
+						images = append(images, attach.Image())
 				}
-				images = append(images, attach.Image())
 		}
 		return images
 }
@@ -172,14 +182,24 @@ func (this *TravelNotes) GetVideos() []*Video {
 		if this.Videos == nil || len(this.Videos) == 0 {
 				return nil
 		}
-		var videos []*Video
-		for _, id := range this.Images {
-				attach := NewAttachment()
-				err := AttachmentModelOf().GetById(id, attach)
-				if err != nil {
-						continue
+		var (
+				videos      []*Video
+				ids         []bson.ObjectId
+				attachArr   = make([]*Attachment, 2)
+				attachModel = AttachmentModelOf()
+		)
+		for _, v := range this.Videos {
+				ids = append(ids, bson.ObjectIdHex(v))
+		}
+		attachArr = attachArr[:0]
+		var err = attachModel.Gets(bson.M{"_id": bson.M{"$in": ids}}, &attachArr)
+		if err == nil {
+				for _, attach := range attachArr {
+						if attach == nil {
+								continue
+						}
+						videos = append(videos, attach.Video())
 				}
-				videos = append(videos, attach.Video())
 		}
 		return videos
 }
@@ -214,8 +234,8 @@ func (this *TravelNotes) Save() error {
 		return model.Add(this)
 }
 
-func (this *TravelNotes) IsEmpty() bool  {
-		if this.Content == "" || (len(this.Videos) == 0  && len(this.Images)==0) {
+func (this *TravelNotes) IsEmpty() bool {
+		if this.Content == "" || (len(this.Videos) == 0 && len(this.Images) == 0) {
 				return true
 		}
 		return false

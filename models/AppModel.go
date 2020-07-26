@@ -213,7 +213,7 @@ func (this *AppModel) Adds(items []map[string]interface{}) error {
 						info.Init()
 						info.setAttributes(it)
 						info.InitDefault()
-						_ = this.Update(bson.M{"_id": info.Id}, info.M())
+						_ = this.Update(bson.M{"_id": info.Id}, info.M(info.GetFormatterTime("createdAt")))
 				} else {
 						info := NewAppInfo()
 						info.SetAttributes(it, false)

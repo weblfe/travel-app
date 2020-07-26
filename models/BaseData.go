@@ -67,6 +67,14 @@ func (this *dataClassImpl) Excludes(key string) bool {
 		return false
 }
 
+func (this *dataClassImpl) GetNow() time.Time {
+		return time.Now().Local()
+}
+
+func (this *dataClassImpl) GetId() bson.ObjectId {
+		return bson.NewObjectId()
+}
+
 // 添加排除键
 func (this *dataClassImpl) AddExcludeKeys(key ...string) {
 		for _, k := range key {
@@ -114,6 +122,71 @@ func (this *dataClassImpl) M(filter ...func(m beego.M) beego.M) beego.M {
 				data = filter(data)
 		}
 		return data
+}
+
+// 时间戳格式
+func (this *dataClassImpl) GetFormatterTime(key string) func(data beego.M) beego.M {
+		return func(data beego.M) beego.M {
+				var value, ok = data[key]
+				if !ok {
+						return data
+				}
+				if v, ok := value.(int64); ok {
+						data[key] = time.Unix(v, 0)
+						return data
+				}
+				if v, ok := value.(int); ok {
+						data[key] = time.Unix(int64(v), 0)
+						return data
+				}
+				return data
+		}
+}
+
+// 字段过滤器
+func (this *dataClassImpl) GetKeysFilter(keys []string, excludes ...bool) func(data beego.M) beego.M {
+		if len(excludes) == 0 {
+				excludes = append(excludes, true)
+		}
+		return func(data beego.M) beego.M {
+				var exclude = excludes[0]
+				if len(keys) == 0 {
+						return data
+				}
+				if !exclude {
+						var results = beego.M{}
+						for _, key := range keys {
+								if v, ok := data[key]; ok {
+										results[key] = v
+								}
+						}
+						return results
+				}
+				for _, key := range keys {
+						delete(data, key)
+				}
+				return data
+		}
+}
+
+// 字段转换器
+func (this *dataClassImpl) GetTransformFilterByKey(key string, trans func(v interface{}) interface{}) func(data beego.M) beego.M {
+		return func(data beego.M) beego.M {
+				if v, ok := data[key]; ok {
+						data[key] = trans(v)
+				}
+				return data
+		}
+}
+
+// 字段转换器
+func (this *dataClassImpl) GetTransformFilter(transform func(key string, v interface{}, data *beego.M)) func(data beego.M) beego.M {
+		return func(data beego.M) beego.M {
+				for key, v := range data {
+						transform(key, v, &data)
+				}
+				return data
+		}
 }
 
 // 设置属性值
