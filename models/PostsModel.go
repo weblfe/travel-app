@@ -190,6 +190,9 @@ func (this *TravelNotes) GetImages() []*Image {
 						images = append(images, attach.Image())
 				}
 		}
+		if images == nil {
+				return []*Image{}
+		}
 		return images
 }
 
@@ -215,6 +218,9 @@ func (this *TravelNotes) GetVideos() []*Video {
 						}
 						videos = append(videos, attach.Video())
 				}
+		}
+		if videos == nil {
+				return []*Video{}
 		}
 		return videos
 }
