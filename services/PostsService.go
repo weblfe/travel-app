@@ -2,7 +2,8 @@ package services
 
 import (
 	"github.com/astaxie/beego"
-	"github.com/weblfe/travel-app/libs"
+		"github.com/globalsign/mgo/bson"
+		"github.com/weblfe/travel-app/libs"
 	"github.com/weblfe/travel-app/models"
 )
 
@@ -102,6 +103,10 @@ func (this *TravelPostServiceImpl) ListByAddress(address string, page models.Lis
 
 func (this *TravelPostServiceImpl) Create(notes *models.TravelNotes) error {
 		var images = notes.Images
+		// 矫正类型
+		if notes.Videos!=nil && len(notes.Videos) > 0 {
+				notes.Type = PostTypeVideo
+		}
 		if notes.Type == PostTypeVideo {
 				notes.Images = notes.Images[:0]
 		}
@@ -152,8 +157,9 @@ func (this *TravelPostServiceImpl) attachments(notes *models.TravelNotes) {
 				if notes.Type == PostTypeVideo && len(notes.Videos) == 1 {
 						var (
 								service = AttachmentServiceOf()
-								update  = beego.M{"coverId": notes.Images[0]}
+								update  = beego.M{"coverId": bson.ObjectIdHex(notes.Images[0])}
 						)
+
 						_ = service.UpdateById(notes.Videos[0], update)
 				}
 
