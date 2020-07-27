@@ -12,6 +12,7 @@ type AvatarService interface {
 		GetDefaultAvatar(...int) *models.Attachment
 		GetAvatarUrlById(string) string
 		GetAvatarUrlDefault(...int) string
+		GetAvatarById(string, ...int) *AvatarInfo
 }
 
 type avatarServerImpl struct {
@@ -22,6 +23,12 @@ var (
 		_avatarLock   sync.Once
 		_avatarServer *avatarServerImpl
 )
+
+type AvatarInfo struct {
+		Url    string `json:"url"`
+		Id     string `json:"id"`
+		Gender int    `json:"gender"`
+}
 
 func AvatarServerOf() AvatarService {
 		if _avatarServer == nil {
@@ -56,6 +63,23 @@ func (this *avatarServerImpl) GetDefaultAvatar(gender ...int) *models.Attachment
 				return nil
 		}
 		return m
+}
+
+func (this *avatarServerImpl) GetAvatarById(id string, gender ...int) *AvatarInfo {
+		var (
+				info = new(AvatarInfo)
+				url  = this.GetAvatarUrlById(id)
+		)
+		if len(gender) == 0 {
+				gender = append(gender, 0)
+		}
+		if url == "" {
+				url = this.GetAvatarUrlDefault(gender...)
+		}
+		info.Url = url
+		info.Gender = gender[0]
+		info.Id = id
+		return info
 }
 
 func (this *avatarServerImpl) GetAvatarUrlById(id string) string {

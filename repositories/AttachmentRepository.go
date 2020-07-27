@@ -235,7 +235,7 @@ func (this *AttachmentRepositoryImpl) getAttachmentPath() string {
 func (this *AttachmentRepositoryImpl) getAttachmentFilters() []func(beego.M) beego.M {
 		return []func(beego.M) beego.M{
 				transforms.FilterAttachment, transforms.FilterEmptyMapper,
-				transforms.FieldsFilter([]string{"path", "id", "createdAt", "extrasInfo"}),
+				transforms.FieldsFilter([]string{"path", "id", "createdAt","updatedAt", "extrasInfo"}),
 		}
 }
 

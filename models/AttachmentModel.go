@@ -70,7 +70,7 @@ type Video struct {
 		Size     int           `json:"size" bson:"size"`
 		CoverUrl string        `json:"coverUrl" bson:"coverUrl"` // 视频封面
 		SizeText string        `json:"sizeText" bson:"sizeText"`
-		Duration time.Duration `json:"width" bson:"width"`
+		Duration time.Duration `json:"duration" bson:"duration"`
 		CoverId  string        `json:"coverId" bson:"coverId"`
 }
 

@@ -101,9 +101,14 @@ func (this *TravelPostServiceImpl) ListByAddress(address string, page models.Lis
 }
 
 func (this *TravelPostServiceImpl) Create(notes *models.TravelNotes) error {
+		var images = notes.Images
+		if notes.Type == PostTypeVideo {
+				notes.Images = notes.Images[:0]
+		}
 		var err = this.postModel.Add(notes)
 		if err == nil {
 				// 异步更新 附件归属
+				notes.Images = images
 				go this.attachments(notes)
 		}
 		return err
