@@ -67,8 +67,10 @@ func getMediaInfoTransform() func(m beego.M) beego.M {
 				items[i] = it
 			}
 			m[key] = items
+			key = PostVideoInfoKey
+			arr, ok = m[key]
 		}
-		if key == PostVideoInfoKey {
+		if key == PostVideoInfoKey && ok {
 			logs.Info("debug: ", arr)
 			var items = arr.([]*models.Video)
 			if items == nil || len(items) == 0 {
