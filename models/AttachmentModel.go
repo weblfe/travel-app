@@ -462,3 +462,7 @@ func (this *AttachmentModel) GetByMediaId(id string) (*Attachment, error) {
 		}
 		return nil, err
 }
+
+func (this *Attachment)GetLocal() string  {
+	return filepath.Join(this.Path,this.FileName)
+}

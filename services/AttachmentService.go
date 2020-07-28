@@ -108,7 +108,7 @@ func (this *AttachmentServiceImpl) after(attachment *models.Attachment) {
 func (this *AttachmentServiceImpl) video(attachment *models.Attachment) bool {
 	var err error
 	if attachment.Duration == 0 && attachment.Path != "" {
-		attachment.Duration, err = libs.GetMp4FileDuration(attachment.Path)
+		attachment.Duration, err = libs.GetMp4FileDuration(attachment.GetLocal())
 		if err != nil {
 			return false
 		}
