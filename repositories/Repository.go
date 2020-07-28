@@ -2,7 +2,8 @@ package repositories
 
 import (
 		"github.com/astaxie/beego"
-		"github.com/weblfe/travel-app/models"
+	"github.com/astaxie/beego/logs"
+	"github.com/weblfe/travel-app/models"
 		"github.com/weblfe/travel-app/services"
 		"github.com/weblfe/travel-app/transforms"
 )
@@ -74,6 +75,7 @@ func getMediaInfoTransform() func(m beego.M) beego.M {
 						}
 						for i, it := range items {
 								it.Url = service.GetAccessUrl(it.MediaId)
+								logs.Info("debug: ",it.M())
 								if it.CoverId != "" {
 										it.CoverUrl = service.GetAccessUrl(it.CoverId)
 								}
