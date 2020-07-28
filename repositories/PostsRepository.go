@@ -24,7 +24,7 @@ type postRepositoryImpl struct {
 
 const (
 		PostImagesInfoKey = "imagesInfo"
-		PostVideoInfoKey  = "viedosInfo"
+		PostVideoInfoKey  = "videosInfo"
 )
 
 func NewPostsRepository(ctx common.BaseRequestContext) PostsRepository {

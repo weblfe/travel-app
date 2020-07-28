@@ -110,9 +110,6 @@ func (this *TravelPostServiceImpl) Create(notes *models.TravelNotes) error {
 	if notes.Videos != nil && len(notes.Videos) > 0 {
 		notes.Type = PostTypeVideo
 	}
-	if notes.Type == PostTypeVideo {
-		notes.Images = notes.Images[:0]
-	}
 	var err = this.postModel.Add(notes)
 	if err == nil {
 		// 异步更新 附件归属
