@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"github.com/astaxie/beego"
-	"github.com/astaxie/beego/logs"
 	"github.com/weblfe/travel-app/models"
 	"github.com/weblfe/travel-app/services"
 	"github.com/weblfe/travel-app/transforms"
@@ -70,7 +69,6 @@ func getMediaInfoTransform() func(m beego.M) beego.M {
 			arr, ok = m[key]
 		}
 		if key == PostVideoInfoKey && ok {
-			logs.Info("debug: ", arr)
 			var items = arr.([]*models.Video)
 			if items != nil && len(items) > 0 {
 				for i, it := range items {
