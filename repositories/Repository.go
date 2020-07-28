@@ -50,6 +50,7 @@ func getMediaInfoTransform() func(m beego.M) beego.M {
 			arr, ok = m[key]
 			service = services.AttachmentServiceOf()
 		)
+		logs.Info("debug: ", ok,arr)
 		if !ok {
 			key = PostVideoInfoKey
 			arr, ok = m[key]
