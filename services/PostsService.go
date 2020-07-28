@@ -2,8 +2,8 @@ package services
 
 import (
 	"github.com/astaxie/beego"
-		"github.com/globalsign/mgo/bson"
-		"github.com/weblfe/travel-app/libs"
+	"github.com/globalsign/mgo/bson"
+	"github.com/weblfe/travel-app/libs"
 	"github.com/weblfe/travel-app/models"
 )
 
@@ -102,21 +102,24 @@ func (this *TravelPostServiceImpl) ListByAddress(address string, page models.Lis
 }
 
 func (this *TravelPostServiceImpl) Create(notes *models.TravelNotes) error {
-		var images = notes.Images
-		// 矫正类型
-		if notes.Videos!=nil && len(notes.Videos) > 0 {
-				notes.Type = PostTypeVideo
-		}
-		if notes.Type == PostTypeVideo {
-				notes.Images = notes.Images[:0]
-		}
-		var err = this.postModel.Add(notes)
-		if err == nil {
-				// 异步更新 附件归属
-				notes.Images = images
-				go this.attachments(notes)
-		}
-		return err
+	var images []string
+	if notes.Images != nil && len(notes.Images) > 0 {
+		images = notes.Images[:]
+	}
+	// 矫正类型
+	if notes.Videos != nil && len(notes.Videos) > 0 {
+		notes.Type = PostTypeVideo
+	}
+	if notes.Type == PostTypeVideo {
+		notes.Images = notes.Images[:0]
+	}
+	var err = this.postModel.Add(notes)
+	if err == nil {
+		// 异步更新 附件归属
+		notes.Images = images
+		go this.attachments(notes)
+	}
+	return err
 }
 
 func (this *TravelPostServiceImpl) GetById(id string) *models.TravelNotes {
@@ -135,50 +138,48 @@ func (this *TravelPostServiceImpl) GetById(id string) *models.TravelNotes {
 }
 
 func (this *TravelPostServiceImpl) attachments(notes *models.TravelNotes) {
-		if notes.Videos != nil && len(notes.Videos) > 0 && notes.Type == PostTypeVideo {
-				var (
-						service = AttachmentServiceOf()
-						update  = beego.M{"referName": this.postModel.TableName(), "referId": notes.Id.Hex()}
-				)
-				for _, id := range notes.Videos {
-						_ = service.UpdateById(id, update)
-				}
+	if notes.Videos != nil && len(notes.Videos) > 0 && notes.Type == PostTypeVideo {
+		var (
+			service = AttachmentServiceOf()
+			update  = beego.M{"referName": this.postModel.TableName(), "referId": notes.Id.Hex()}
+		)
+		for _, id := range notes.Videos {
+			_ = service.UpdateById(id, update)
 		}
-		if notes.Images != nil && len(notes.Images) > 0 {
-				var (
-						service = AttachmentServiceOf()
-						update  = beego.M{"referName": this.postModel.TableName(), "referId": notes.Id.Hex()}
-				)
-				// 更新图片归属
-				for _, id := range notes.Images {
-						_ = service.UpdateById(id, update)
-				}
-				// 设置视频封面
-				if notes.Type == PostTypeVideo && len(notes.Videos) == 1 {
-						var (
-								service = AttachmentServiceOf()
-								update  = beego.M{"coverId": bson.ObjectIdHex(notes.Images[0])}
-						)
-
-						_ = service.UpdateById(notes.Videos[0], update)
-				}
-
+	}
+	var (
+		service = AttachmentServiceOf()
+		update  = beego.M{"referName": this.postModel.TableName(), "referId": notes.Id.Hex()}
+	)
+	if notes.Images != nil && len(notes.Images) > 0 {
+		// 更新图片归属
+		for _, id := range notes.Images {
+			_ = service.UpdateById(id, update)
 		}
+		// 设置视频封面
+		if notes.Type == PostTypeVideo && len(notes.Videos) == 1 {
+			update["coverId"] = bson.ObjectIdHex(notes.Images[0])
+		}
+	}
+	// 设置视频关联
+	if notes.Type == PostTypeVideo && len(notes.Videos) == 1 {
+		_ = service.UpdateById(notes.Videos[0], update)
+	}
 }
 
 func (this *TravelPostServiceImpl) Search(search beego.M, page models.ListsParams) ([]*models.TravelNotes, *models.Meta) {
-		var (
-				err   error
-				lists []*models.TravelNotes
-				meta  = models.NewMeta()
-		)
-		meta.Page = page.Page()
-		meta.Size = len(lists)
-		meta.Count = page.Count()
-		meta.Total, err = this.postModel.Lists(search, lists, page)
-		if err == nil {
-				meta.Boot()
-				return lists, meta
-		}
-		return nil, meta
+	var (
+		err   error
+		lists []*models.TravelNotes
+		meta  = models.NewMeta()
+	)
+	meta.Page = page.Page()
+	meta.Size = len(lists)
+	meta.Count = page.Count()
+	meta.Total, err = this.postModel.Lists(search, lists, page)
+	if err == nil {
+		meta.Boot()
+		return lists, meta
+	}
+	return nil, meta
 }
