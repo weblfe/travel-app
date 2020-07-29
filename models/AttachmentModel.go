@@ -55,23 +55,24 @@ type Attachment struct {
 
 // 图片
 type Image struct {
-		MediaId  string `json:"mediaId" bson:"mediaId"`
-		Url      string `json:"url" bson:"url"`
-		Size     int    `json:"size" bson:"size"`
-		SizeText string `json:"sizeText" bson:"sizeText"`
-		Width    int    `json:"width" bson:"width"`
-		Height   int    `json:"height" bson:"height"`
+		MediaId  string `json:"mediaId" bson:"mediaId"`   // id
+		Url      string `json:"url" bson:"url"`           // url
+		Size     int    `json:"size" bson:"size"`         // 大小
+		SizeText string `json:"sizeText" bson:"sizeText"` // 大小描述
+		Width    int    `json:"width" bson:"width"`       // 宽
+		Height   int    `json:"height" bson:"height"`     // 高
 }
 
 // 视频
 type Video struct {
-		MediaId  string        `json:"mediaId" bson:"mediaId"`
-		Url      string        `json:"url" bson:"url"`
-		Size     int           `json:"size" bson:"size"`
-		CoverUrl string        `json:"coverUrl" bson:"coverUrl"` // 视频封面
-		SizeText string        `json:"sizeText" bson:"sizeText"`
-		Duration time.Duration `json:"duration" bson:"duration"`
-		CoverId  string        `json:"coverId" bson:"coverId"`
+		MediaId      string        `json:"mediaId" bson:"mediaId"`           // ID
+		Url          string        `json:"url" bson:"url"`                   // url
+		Size         int           `json:"size" bson:"size"`                 // 大小
+		CoverUrl     string        `json:"coverUrl" bson:"coverUrl"`         // 视频封面
+		SizeText     string        `json:"sizeText" bson:"sizeText"`         // 大小
+		Duration     time.Duration `json:"duration" bson:"duration"`         // 时长
+		DurationText string        `json:"durationText" bson:"durationText"` // 时长描述
+		CoverId      string        `json:"coverId" bson:"coverId"`           // 封面ID
 }
 
 const (
@@ -384,6 +385,9 @@ func (this *Attachment) Video() *Video {
 		if info != nil {
 				video.CoverUrl = info.GetUrl()
 		}
+		if video.Duration != 0 {
+				video.DurationText = video.Duration.String()
+		}
 		return video
 }
 
@@ -463,6 +467,6 @@ func (this *AttachmentModel) GetByMediaId(id string) (*Attachment, error) {
 		return nil, err
 }
 
-func (this *Attachment)GetLocal() string  {
-	return filepath.Join(this.Path,this.FileName)
+func (this *Attachment) GetLocal() string {
+		return filepath.Join(this.Path, this.FileName)
 }
