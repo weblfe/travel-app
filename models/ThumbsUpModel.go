@@ -127,7 +127,7 @@ func ThumbsUpModelOf() *ThumbsUpModel {
 }
 
 const (
-		ThumbsUpTable = "thumbsUp"
+		ThumbsUpTable = "thumbs_up"
 )
 
 func (this *ThumbsUpModel) TableName() string {

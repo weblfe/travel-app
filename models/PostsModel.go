@@ -171,7 +171,7 @@ func (this *TravelNotes) GetTagsText() []string {
 				result = make([]string, 1)
 				arr    = make([]bson.ObjectId, 0)
 				tags   = make([]*Tag, len(this.Tags))
-				regex  = regexp.MustCompile(`/[a-zA-Z0-9]/`)
+				regex  = regexp.MustCompile(`^\w+$`)
 		)
 		tags = tags[:0]
 		for _, tag := range this.Tags {
@@ -196,7 +196,7 @@ func (this *TravelNotes) getTags() []string {
 		}
 		var (
 				arr   = make([]string, 2)
-				regex = regexp.MustCompile(`/[a-zA-Z0-9]/`)
+				regex = regexp.MustCompile(`^\w+$`)
 		)
 		arr = arr[:0]
 		for _, tag := range this.Tags {
