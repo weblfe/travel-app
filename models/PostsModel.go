@@ -4,6 +4,7 @@ import (
 		"github.com/astaxie/beego"
 		"github.com/globalsign/mgo"
 		"github.com/globalsign/mgo/bson"
+		"regexp"
 		"time"
 )
 
@@ -139,7 +140,7 @@ func (this *TravelNotes) M(filters ...func(m beego.M) beego.M) beego.M {
 				"userId":      this.UserId,
 				"videos":      this.getVideos(),
 				"videosInfo":  this.GetVideos(),
-				"tags":        this.Tags,
+				"tags":        this.getTags(),
 				"tagsText":    this.GetTagsText(),
 				"status":      this.Status,
 				"statusText":  this.GetState(),
@@ -167,22 +168,43 @@ func (this *TravelNotes) GetTagsText() []string {
 		}
 		var (
 				err    error
-				result []string
+				result = make([]string, 1)
 				arr    = make([]bson.ObjectId, 0)
 				tags   = make([]*Tag, len(this.Tags))
+				regex  = regexp.MustCompile(`/[a-zA-Z0-9]/`)
 		)
 		tags = tags[:0]
 		for _, tag := range this.Tags {
-				arr = append(arr, bson.ObjectIdHex(tag))
+				if regex.MatchString(tag) {
+						arr = append(arr, bson.ObjectIdHex(tag))
+				}
 		}
 		err = TagsModelOf().Gets(bson.M{"_id": beego.M{"$in": arr}}, &tags)
 		if err != nil {
 				return []string{}
 		}
+		result = result[:0]
 		for _, it := range tags {
 				result = append(result, it.Name)
 		}
 		return result
+}
+
+func (this *TravelNotes) getTags() []string {
+		if this.Tags == nil || len(this.Tags) <= 0 {
+				return []string{}
+		}
+		var (
+				arr   = make([]string, 2)
+				regex = regexp.MustCompile(`/[a-zA-Z0-9]/`)
+		)
+		arr = arr[:0]
+		for _, tag := range this.Tags {
+				if regex.MatchString(tag) {
+						arr = append(arr, tag)
+				}
+		}
+		return arr
 }
 
 func (this *TravelNotes) getVideos() []string {
@@ -306,7 +328,7 @@ func (this *PostsModel) CreateIndex() {
 		_ = this.Collection().EnsureIndexKey("group")
 		_ = this.Collection().EnsureIndexKey("address", "privacy")
 
-		_ = this.Collection().EnsureIndexKey("thumbsUpNum","commentNum","score")
+		_ = this.Collection().EnsureIndexKey("thumbsUpNum", "commentNum", "score")
 		// null unique username
 		_ = this.Collection().EnsureIndex(mgo.Index{
 				Key:              []string{"$text:content"},
