@@ -13,17 +13,18 @@ type CommentModel struct {
 
 // 评论数据
 type Comment struct {
-		Id        bson.ObjectId `json:"id" bson:"_id"`              // ID
-		UserId    string        `json:"userId" bson:"userId"`       // 评论人
-		Content   string        `json:"content" bson:"content"`     // 评论内容
-		PostId    bson.ObjectId `json:"postId" bson:"postId"`       // 评论文章ID
-		Status    int           `json:"status" bson:"status"`       // 状态
-		CommentId bson.ObjectId `json:"commentId" bson:"commentId"` // 评论 评论的ID
-		Sort      int64         `json:"sort" bson:"sort"`           // 排序
-		Tags      []string      `json:"tags" bson:"tags"`           // 评论标签
-		CreatedAt time.Time     `json:"createdAt" bson:"createdAt"` // 评论时间
-		UpdatedAt time.Time     `json:"updatedAt" bson:"updatedAt"` // 更新时间
-		DeletedAt int64         `json:"deletedAt" bson:"deletedAt"` //删除时间戳
+		Id          bson.ObjectId `json:"id" bson:"_id"`                                  // ID
+		UserId      string        `json:"userId" bson:"userId"`                           // 评论人
+		Content     string        `json:"content" bson:"content"`                         // 评论内容
+		PostId      bson.ObjectId `json:"postId" bson:"postId"`                           // 评论文章ID
+		Status      int           `json:"status" bson:"status"`                           // 审核状态
+		CommentId   bson.ObjectId `json:"commentId,omitempty" bson:"commentId,omitempty"` // 评论 评论的ID
+		ThumbsUpNum int64         `json:"thumbsUpNum" bson:"thumbsUpNum"`                 // 评论点赞数
+		Sort        int64         `json:"sort" bson:"sort"`                               // 排序
+		Tags        []string      `json:"tags" bson:"tags"`                               // 评论标签
+		CreatedAt   time.Time     `json:"createdAt" bson:"createdAt"`                     // 评论时间
+		UpdatedAt   time.Time     `json:"updatedAt" bson:"updatedAt"`                     // 更新时间
+		DeletedAt   int64         `json:"deletedAt" bson:"deletedAt"`                     // 删除时间戳
 }
 
 func CommentModelOf() *CommentModel {
@@ -124,17 +125,18 @@ func (this *Comment) Defaults() *Comment {
 
 func (this *Comment) M(filters ...func(m beego.M) beego.M) beego.M {
 		var data = beego.M{
-				"id":        this.Id.Hex(),
-				"sort":      this.Sort,
-				"userId":    this.UserId,
-				"postId":    this.PostId.Hex(),
-				"comment":   this.CommentId.Hex(),
-				"content":   this.Content,
-				"tags":      this.Tags,
-				"status":    this.Status,
-				"updatedAt": this.UpdatedAt,
-				"createdAt": this.CreatedAt,
-				"deletedAt": this.DeletedAt,
+				"id":          this.Id.Hex(),
+				"sort":        this.Sort,
+				"userId":      this.UserId,
+				"postId":      this.PostId.Hex(),
+				"comment":     this.CommentId.Hex(),
+				"content":     this.Content,
+				"tags":        this.Tags,
+				"status":      this.Status,
+				"thumbsUpNum": this.ThumbsUpNum,
+				"updatedAt":   this.UpdatedAt.Unix(),
+				"createdAt":   this.CreatedAt.Unix(),
+				"deletedAt":   this.DeletedAt,
 		}
 		for _, filter := range filters {
 				data = filter(data)

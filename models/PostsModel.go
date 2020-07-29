@@ -2,6 +2,7 @@ package models
 
 import (
 		"github.com/astaxie/beego"
+		"github.com/globalsign/mgo"
 		"github.com/globalsign/mgo/bson"
 		"time"
 )
@@ -19,21 +20,24 @@ func PostsModelOf() *PostsModel {
 
 // 游记
 type TravelNotes struct {
-		Id        bson.ObjectId `json:"id" bson:"_id"`
-		Title     string        `json:"title" bson:"title"`
-		Content   string        `json:"content" bson:"content"`
-		Type      int           `json:"type" bson:"type"`
-		Images    []string      `json:"images,omitempty" bson:"images,omitempty"`
-		UserId    string        `json:"userId" bson:"userId"`
-		Videos    []string      `json:"videos,omitempty" bson:"videos,omitempty"`
-		Group     string        `json:"group" bson:"group"`
-		Tags      []string      `json:"tags" bson:"tags"`
-		Status    int           `json:"status" bson:"status"`
-		Address   string        `json:"address" bson:"address"`
-		Privacy   int           `json:"privacy" bson:"privacy"`
-		UpdatedAt time.Time     `json:"updatedAt" bson:"updatedAt"`
-		CreatedAt time.Time     `json:"createdAt" bson:"createdAt"`
-		DeletedAt int64         `json:"deletedAt" bson:"deletedAt"`
+		Id          bson.ObjectId `json:"id" bson:"_id"`
+		Title       string        `json:"title" bson:"title"`                       // 标题
+		Content     string        `json:"content" bson:"content"`                   // 内容
+		Type        int           `json:"type" bson:"type"`                         // 类型
+		Images      []string      `json:"images,omitempty" bson:"images,omitempty"` // 图片ID
+		UserId      string        `json:"userId" bson:"userId"`                     // 用户ID
+		Videos      []string      `json:"videos,omitempty" bson:"videos,omitempty"` // 视频ID
+		Group       string        `json:"group" bson:"group"`                       // 分组类型名
+		Tags        []string      `json:"tags" bson:"tags"`                         // 标签ID
+		Status      int           `json:"status" bson:"status"`                     // 审核状态
+		Address     string        `json:"address" bson:"address"`                   // 地址
+		Privacy     int           `json:"privacy" bson:"privacy"`                   // 是否公开
+		ThumbsUpNum int64         `json:"thumbsUpNum" bson:"thumbsUpNum"`           // 点赞数
+		CommentNum  int64         `json:"commentNum" bson:"commentNum"`             // 评论数
+		Score       int64         `json:"score" bson:"score"`                       // 作品评分
+		UpdatedAt   time.Time     `json:"updatedAt" bson:"updatedAt"`               // 更新时间
+		CreatedAt   time.Time     `json:"createdAt" bson:"createdAt"`               // 创建时间
+		DeletedAt   int64         `json:"deletedAt" bson:"deletedAt"`               // 删除时间
 }
 
 const (
@@ -136,11 +140,15 @@ func (this *TravelNotes) M(filters ...func(m beego.M) beego.M) beego.M {
 				"videos":      this.getVideos(),
 				"videosInfo":  this.GetVideos(),
 				"tags":        this.Tags,
+				"tagsText":    this.GetTagsText(),
 				"status":      this.Status,
 				"statusText":  this.GetState(),
 				"group":       this.Group,
 				"address":     this.Address,
 				"privacy":     this.Privacy,
+				"commentNum":  this.CommentNum,
+				"thumbsUpNum": this.ThumbsUpNum,
+				"score":       this.Score,
 				"privacyText": this.GetPrivacy(),
 				"updatedAt":   this.UpdatedAt.Unix(),
 				"createdAt":   this.CreatedAt.Unix(),
@@ -152,20 +160,44 @@ func (this *TravelNotes) M(filters ...func(m beego.M) beego.M) beego.M {
 		return data
 }
 
-func (this *TravelNotes)getVideos()[]string  {
+// 获取标签描述
+func (this *TravelNotes) GetTagsText() []string {
+		if this.Tags == nil || len(this.Tags) == 0 {
+				return []string{}
+		}
+		var (
+				err    error
+				result []string
+				arr    = make([]bson.ObjectId, 0)
+				tags   = make([]*Tag, len(this.Tags))
+		)
+		tags = tags[:0]
+		for _, tag := range this.Tags {
+				arr = append(arr, bson.ObjectIdHex(tag))
+		}
+		err = TagsModelOf().Gets(bson.M{"_id": beego.M{"$in": arr}}, &tags)
+		if err != nil {
+				return []string{}
+		}
+		for _, it := range tags {
+				result = append(result, it.Name)
+		}
+		return result
+}
+
+func (this *TravelNotes) getVideos() []string {
 		if this.Videos == nil {
 				return []string{}
 		}
 		return this.Videos
 }
 
-func (this *TravelNotes)getImages()[]string  {
+func (this *TravelNotes) getImages() []string {
 		if this.Images == nil {
 				return []string{}
 		}
 		return this.Images
 }
-
 
 func (this *TravelNotes) GetImages() []*Image {
 		if this.Images == nil || len(this.Images) == 0 {
@@ -267,10 +299,26 @@ func (this *PostsModel) TableName() string {
 }
 
 func (this *PostsModel) CreateIndex() {
-		_ = this.Collection().EnsureIndexKey("title")
+		//	_ = this.Collection().EnsureIndexKey("title")
 		_ = this.Collection().EnsureIndexKey("type")
 		_ = this.Collection().EnsureIndexKey("userId")
 		_ = this.Collection().EnsureIndexKey("tags")
 		_ = this.Collection().EnsureIndexKey("group")
 		_ = this.Collection().EnsureIndexKey("address", "privacy")
+
+		_ = this.Collection().EnsureIndexKey("thumbsUpNum","commentNum","score")
+		// null unique username
+		_ = this.Collection().EnsureIndex(mgo.Index{
+				Key:              []string{"$text:content"},
+				DefaultLanguage:  "chinese",
+				LanguageOverride: "language",
+		})
+}
+
+// 增加
+func (this *PostsModel) Incr(id string, typ string, num ...int) error {
+		if len(num) == 0 {
+				num = append(num, 1)
+		}
+		return this.IncrBy(bson.M{"_id": bson.ObjectIdHex(id)}, beego.M{typ: int64(num[0])})
 }

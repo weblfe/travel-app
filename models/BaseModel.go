@@ -504,7 +504,7 @@ func (this *BaseModel) Sum(query bson.M, sum string) int {
 		var (
 				resultPipe struct {
 						ID bson.ObjectId `bson:"_id"`
-						C  int    `bson:"c"`
+						C  int           `bson:"c"`
 				}
 				pipe = []bson.M{
 						{"$match": query},
@@ -537,6 +537,12 @@ func (this *BaseModel) Exists(query interface{}) bool {
 				return len(tmp) > 0
 		}
 		return false
+}
+
+func (this *BaseModel) IncrBy(query interface{}, incr interface{}) error {
+		table := this.Collection()
+		defer this.destroy()
+		return table.Update(query, bson.M{"$inc": incr})
 }
 
 // 记录不存在异常

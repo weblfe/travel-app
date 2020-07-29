@@ -15,13 +15,18 @@ type ThumbsUpModel struct {
 type ThumbsUp struct {
 		Id        bson.ObjectId `json:"id" bson:"_id"`
 		Status    int           `json:"status" bson:"status"`
-		Type      string        `json:"type" bson:"type"`
+		Type      string        `json:"type" bson:"type"` // 类型
 		UserId    string        `json:"userId" bson:"userId"`
 		TypeId    string        `json:"typeId" bson:"typeId"`
 		Count     int           `json:"count" bson:"count"`
 		CreatedAt time.Time     `json:"createdAt" bson:"createdAt"`
 		UpdatedAt time.Time     `json:"updatedAt" bson:"updatedAt"`
 }
+
+const (
+		ThumbsTypePost    = "post"    // 游记点
+		ThumbsTypeComment = "comment" // 评论点赞
+)
 
 func (this *ThumbsUp) Load(data map[string]interface{}) *ThumbsUp {
 		for key, v := range data {
