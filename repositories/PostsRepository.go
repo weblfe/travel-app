@@ -111,7 +111,7 @@ func (this *postRepositoryImpl) Lists(typ ...string) common.ResponseJson {
 		if items != nil && len(items) > 0 && meta != nil {
 				var arr []beego.M
 				for _, item := range items {
-						arr = append(arr, item.M(getMediaInfoTransform()))
+						arr = append(arr, item.M(this.getPostTransform()))
 				}
 				return common.NewSuccessResp(beego.M{"items": arr, "meta": meta}, "罗列成功")
 		}
@@ -126,7 +126,7 @@ func (this *postRepositoryImpl) GetById(id ...string) common.ResponseJson {
 		if data == nil || data.DeletedAt != 0 {
 				return common.NewFailedResp(common.RecordNotFound, common.RecordNotFoundError)
 		}
-		return common.NewSuccessResp(data.M(getMediaInfoTransform()), "获取成功")
+		return common.NewSuccessResp(data.M(this.getPostTransform()), "获取成功")
 }
 
 func (this *postRepositoryImpl) RemoveId(id ...string) common.ResponseJson {
@@ -143,4 +143,20 @@ func (this *postRepositoryImpl) RemoveId(id ...string) common.ResponseJson {
 				common.NewSuccessResp(beego.M{"timestamp": time.Now().Unix()}, "删除成功")
 		}
 		return common.NewFailedResp(common.RecordNotFound, "删除失败")
+}
+
+// 获取文章内容转换器
+func (this *postRepositoryImpl) getPostTransform() func(m beego.M) beego.M {
+		return func(m beego.M) beego.M {
+				m = getMediaInfoTransform()(m)
+				var userId, ok = m["userId"]
+				m["userInfo"] = nil
+				if !ok {
+						return m
+				}
+				if id, ok := userId.(string); ok {
+						m["userInfo"] = GetDtoRepository().GetUserById(id)
+				}
+				return m
+		}
 }

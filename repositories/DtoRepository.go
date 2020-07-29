@@ -2,6 +2,7 @@ package repositories
 
 import (
 		"github.com/astaxie/beego"
+		"github.com/globalsign/mgo/bson"
 		"github.com/weblfe/travel-app/models"
 		"github.com/weblfe/travel-app/services"
 		"time"
@@ -14,8 +15,6 @@ type BaseUser struct {
 		UserId     string  `json:"id"`       // 用户ID
 		Nickname   string  `json:"nickname"` // 用户昵称
 		AvatarInfo *Avatar `json:"avatar"`   // 用户头像
-		Role       int     `json:"role"`     // 账号类型Id
-		RoleDesc   string  `json:"roleDesc"` // 账号类型描述
 }
 
 // 简单用户信息
@@ -23,6 +22,8 @@ type SimpleUser struct {
 		BaseUser
 		InviteCode string `json:"inviteCode"` // 邀请码
 		Intro      string `json:"intro"`      // 简介
+		Role       int    `json:"role"`       // 账号类型Id
+		RoleDesc   string `json:"roleDesc"`   // 账号类型描述
 }
 
 // 用户隐私数据
@@ -38,6 +39,7 @@ type PrivacyUser struct {
 type User struct {
 		PrivacyUser
 		PasswordHash string    `json:"passwordHash"` // 密码
+		Mobile       string    `json:"mobile"`       // 密码
 		CreatedAt    time.Time `json:"createdAt"`    // 创建时间
 		UpdatedAt    time.Time `json:"updatedAt"`    // 更新时间
 }
@@ -67,8 +69,43 @@ func (this *DtoRepository) GetUserById(id string) *BaseUser {
 		user.UserId = data.Id.Hex()
 		user.Nickname = data.NickName
 		user.AvatarInfo = this.GetAvatar(data.AvatarId, data.Gender)
-		user.Role = data.Role
-		user.RoleDesc = this.getRoleDesc(user.Role)
+		return user
+}
+
+func (this *DtoRepository) GetBaseUser(data *models.User) *BaseUser {
+		var user = new(BaseUser)
+		if data == nil {
+				return user
+		}
+		user.UserId = data.Id.Hex()
+		user.Nickname = data.NickName
+		user.AvatarInfo = this.GetAvatar(data.AvatarId, data.Gender)
+		return user
+}
+
+func (this *DtoRepository) GetBaseUserByMapper(data map[string]interface{}) *BaseUser {
+		var user = new(BaseUser)
+		if data == nil {
+				return user
+		}
+		for key, v := range data {
+				if str, ok := v.(string); ok && key == "id" {
+						user.UserId = str
+				}
+				if id, ok := v.(bson.ObjectId); ok && key == "id" {
+						user.UserId = id.Hex()
+				}
+				if str, ok := v.(string); ok && key == "nickname" {
+						user.Nickname = str
+				}
+				if str, ok := v.(string); ok && key == "avatarId" {
+						gender := data["gender"]
+						if gender == nil {
+								gender = 0
+						}
+						user.AvatarInfo = this.GetAvatar(str, gender.(int))
+				}
+		}
 		return user
 }
 
@@ -105,26 +142,137 @@ func (this *DtoRepository) GetSimpleUserDetail(data interface{}) *SimpleUser {
 				var _user = data.(*models.User)
 				user.Role = _user.Role
 				user.RoleDesc = this.getRoleDesc(user.Role)
-				user.AvatarInfo = this.GetAvatar(_user.AvatarId,_user.Gender)
+				user.AvatarInfo = this.GetAvatar(_user.AvatarId, _user.Gender)
 				user.Nickname = _user.NickName
 				user.InviteCode = _user.InviteCode
 				user.Intro = _user.Intro
+				user.Role = _user.Role
+				user.RoleDesc = this.getRoleDesc(user.Role)
 		case beego.M:
-
+				return this.GetUserByMapper(data.(beego.M))
 		case map[string]interface{}:
-
+				return this.GetUser(data.(map[string]interface{}))
 		}
 		return user
 }
 
-func (this *DtoRepository) GetPrivacyUser(data interface{}) *SimpleUser {
-		var user = new(SimpleUser)
+func (this *DtoRepository) GetSimpleUserDetailById(id string) *SimpleUser {
+		var user = services.UserServiceOf().GetById(id)
+		if user != nil {
+				return this.GetSimpleUserDetail(user)
+		}
+		return nil
+}
 
+func (this *DtoRepository) GetPrivacyUser(data interface{}) *PrivacyUser {
+		var user = new(PrivacyUser)
+		switch data.(type) {
+		case *models.User:
+				var _user = data.(*models.User)
+				user.RoleDesc = this.getRoleDesc(_user.Role)
+				user.Role = _user.Role
+				user.Intro = _user.Intro
+				user.InviteCode = _user.InviteCode
+				user.Nickname = _user.NickName
+				user.Address = _user.Address
+				user.AvatarInfo = this.GetAvatar(_user.AvatarId, _user.Gender)
+				user.Birthday = _user.Birthday
+				user.GenderDesc = models.GenderText(_user.Gender)
+		case bson.M:
+				var _user = data.(bson.M)
+				return this.GetPrivacyUserByMapper(_user)
+		case beego.M:
+				var _user = data.(beego.M)
+				return this.GetPrivacyUserByMapper(_user)
+		case map[string]interface{}:
+				var _user = data.(map[string]interface{})
+				return this.GetPrivacyUserByMapper(_user)
+		}
 		return user
 }
 
-func (this *DtoRepository) GetUser(data interface{}) *SimpleUser {
-		var user = new(SimpleUser)
-
+func (this *DtoRepository) GetPrivacyUserByMapper(data map[string]interface{}) *PrivacyUser {
+		var user = new(PrivacyUser)
+		for key, v := range data {
+				if str, ok := v.(string); ok && key == "id" {
+						user.UserId = str
+				}
+				if id, ok := v.(bson.ObjectId); ok && key == "id" {
+						user.UserId = id.Hex()
+				}
+				if str, ok := v.(string); ok && key == "nickname" {
+						user.Nickname = str
+				}
+				if str, ok := v.(string); ok && key == "inviteCode" {
+						user.InviteCode = str
+				}
+				if str, ok := v.(string); ok && key == "intro" {
+						user.Intro = str
+				}
+				if str, ok := v.(string); ok && key == "address" {
+						user.Address = str
+				}
+				if gender, ok := v.(int); ok && key == "gender" {
+						user.Gender = gender
+				}
+				if role, ok := v.(int); ok && key == "role" {
+						user.Role = role
+				}
+				if roleDesc, ok := v.(string); ok && key == "roleDesc" {
+						user.RoleDesc = roleDesc
+				}
+				if str, ok := v.(string); ok && key == "avatarId" {
+						gender := data["gender"]
+						if gender == nil {
+								gender = 0
+						}
+						user.AvatarInfo = this.GetAvatar(str, gender.(int))
+				}
+		}
+		if user.GenderDesc == "" {
+				user.GenderDesc = models.GenderText(user.Gender)
+		}
 		return user
+}
+
+func (this *DtoRepository) GetUserByMapper(data beego.M) *SimpleUser {
+		var user = new(SimpleUser)
+		for key, v := range data {
+				if str, ok := v.(string); ok && key == "id" {
+						user.UserId = str
+				}
+				if id, ok := v.(bson.ObjectId); ok && key == "id" {
+						user.UserId = id.Hex()
+				}
+				if str, ok := v.(string); ok && key == "nickname" {
+						user.Nickname = str
+				}
+				if str, ok := v.(string); ok && key == "inviteCode" {
+						user.InviteCode = str
+				}
+				if str, ok := v.(string); ok && key == "intro" {
+						user.Intro = str
+				}
+				if role, ok := v.(int); ok && key == "role" {
+						user.Role = role
+				}
+				if roleDesc, ok := v.(string); ok && key == "roleDesc" {
+						user.RoleDesc = roleDesc
+				}
+				if str, ok := v.(string); ok && key == "avatarId" {
+						gender := data["gender"]
+						if gender == nil {
+								gender = 0
+						}
+						user.AvatarInfo = this.GetAvatar(str, gender.(int))
+				}
+		}
+		if user.Role != 0 && user.RoleDesc == "" {
+				user.RoleDesc = this.getRoleDesc(user.Role)
+		}
+		return user
+}
+
+func (this *DtoRepository) GetUser(data map[string]interface{}) *SimpleUser {
+		return this.GetUserByMapper(data)
 }
