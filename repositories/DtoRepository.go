@@ -276,3 +276,21 @@ func (this *DtoRepository) GetUserByMapper(data beego.M) *SimpleUser {
 func (this *DtoRepository) GetUser(data map[string]interface{}) *SimpleUser {
 		return this.GetUserByMapper(data)
 }
+
+func (this *DtoRepository) GetThumbsUpService() services.ThumbsUpService {
+		return services.ThumbsUpServiceOf()
+}
+
+// 是否已点赞
+func (this *DtoRepository) IsThumbsUp(postId string, userId string, status ...int) bool {
+		if len(status) == 0 {
+				status = append(status, 1)
+		}
+		var query = bson.M{
+				"typeId": postId,
+				"type":   "post",
+				"userId": userId,
+				"status": status[0],
+		}
+		return this.GetThumbsUpService().Exists(query)
+}

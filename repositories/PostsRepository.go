@@ -40,10 +40,9 @@ func (this *postRepositoryImpl) init() {
 
 func (this *postRepositoryImpl) Create() common.ResponseJson {
 		var (
-				err  error
-				ctx  = this.ctx.GetParent()
-				data = new(models.TravelNotes)
-				id   = ctx.GetSession(middlewares.AuthUserId)
+				err    error
+				data   = new(models.TravelNotes)
+				userId = this.GetUserId()
 		)
 
 		if err = this.ctx.JsonDecode(data); err != nil {
@@ -55,12 +54,26 @@ func (this *postRepositoryImpl) Create() common.ResponseJson {
 		if data.IsEmpty() {
 				return common.NewErrorResp(common.NewErrors(common.EmptyParamCode, "post create failed"), "参数不足")
 		}
-		data.UserId = id.(string)
+		data.UserId = userId
 		err = this.service.Create(data.Defaults())
 		if err != nil {
 				return common.NewErrorResp(common.NewErrors(common.ServiceFailed, err), "发布失败")
 		}
 		return common.NewSuccessResp(beego.M{"timestamp": time.Now().Unix(), "id": data.Id.Hex()}, "发布成功")
+}
+
+func (this *postRepositoryImpl) GetUserId() string {
+		var (
+				ctx = this.ctx.GetParent()
+				id  = ctx.GetSession(middlewares.AuthUserId)
+		)
+		if id == nil || id == "" {
+				return ""
+		}
+		if v, ok := id.(string); ok {
+				return v
+		}
+		return ""
 }
 
 func (this *postRepositoryImpl) Update() common.ResponseJson {
@@ -149,13 +162,21 @@ func (this *postRepositoryImpl) RemoveId(id ...string) common.ResponseJson {
 func (this *postRepositoryImpl) getPostTransform() func(m beego.M) beego.M {
 		return func(m beego.M) beego.M {
 				m = getMediaInfoTransform()(m)
-				var userId, ok = m["userId"]
+				var (
+						id, _      = m["id"]
+						userId, ok = m["userId"]
+						dto        = GetDtoRepository()
+				)
 				m["userInfo"] = nil
+				// 获取用户是否已点赞
+				if id != nil && id != "" {
+						m["isUp"] = dto.IsThumbsUp(id.(string), this.GetUserId())
+				}
 				if !ok {
 						return m
 				}
 				if id, ok := userId.(string); ok {
-						m["userInfo"] = GetDtoRepository().GetUserById(id)
+						m["userInfo"] = dto.GetUserById(id)
 				}
 				return m
 		}

@@ -6,6 +6,7 @@ import (
 )
 
 type ThumbsUpService interface {
+		Exists(query bson.M) bool
 		Count(string, string, ...string) int
 		Up(typ string, typeId string, userId string) int
 		Down(typ string, typeId string, userId string) int
@@ -46,11 +47,17 @@ func (this *thumbsUpServiceImpl) Up(typ string, typeId string, userId string) in
 		err := this.model.FindOne(data, up)
 		// 新的点赞
 		if err != nil {
+				up.Type = typ
+				up.TypeId = typeId
+				up.UserId = userId
 				err = up.Defaults().Save()
 				if err == nil {
 						defer this.After(typ, typeId, userId, ThumbsUpActUp)
-						return this.Count(typ, typeId)
 				}
+				return this.Count(typ, typeId)
+		}
+		if up.Status == 1 && up.Count == 1 {
+				return this.Count(typ, typeId)
 		}
 		// 更新取消的点赞
 		up.Count = 1
@@ -78,8 +85,11 @@ func (this *thumbsUpServiceImpl) Down(typ string, typeId string, userId string) 
 		if err != nil {
 				return this.Count(typ, typeId)
 		}
-		up.Count = 0
+		if up.Status == 0 {
+				return this.Count(typ, typeId)
+		}
 		up.Status = 0
+		up.Count = 0
 		up.TypeId = typeId
 		up.Type = typ
 		up.UserId = userId
@@ -147,4 +157,13 @@ func (this *thumbsUpServiceImpl) After(ty, id, userId string, act int) bool {
 		}
 
 		return err == nil
+}
+
+// 是否存在
+func (this *thumbsUpServiceImpl) Exists(query bson.M) bool {
+		var n, err = this.model.NewQuery(query).Count()
+		if err != nil {
+				return false
+		}
+		return n >= 1
 }
