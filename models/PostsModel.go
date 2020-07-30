@@ -161,6 +161,15 @@ func (this *TravelNotes) M(filters ...func(m beego.M) beego.M) beego.M {
 		return data
 }
 
+// 移除多余无需更新字段
+func (this *TravelNotes) removeUpdateExcludes(m beego.M) beego.M {
+		var keys = []string{"imagesInfo", "videosInfo", "tagsText", "statusText", "privacyText", "id", "createdAt"}
+		for _, k := range keys {
+				delete(m, k)
+		}
+		return m
+}
+
 // 获取标签描述
 func (this *TravelNotes) GetTagsText() []string {
 		if this.Tags == nil || len(this.Tags) == 0 {
@@ -300,8 +309,7 @@ func (this *TravelNotes) Save() error {
 		)
 		if err == nil {
 				return model.UpdateById(id, this.M(func(m beego.M) beego.M {
-						delete(m, "id")
-						delete(m, "createdAt")
+						m = this.removeUpdateExcludes(m)
 						m["updatedAt"] = time.Now().Local()
 						return m
 				}))

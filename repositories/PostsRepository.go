@@ -100,6 +100,7 @@ func (this *postRepositoryImpl) Lists(typ ...string) common.ResponseJson {
 		if ty == "" && len(typ) != 0 {
 				ty = typ[0]
 		}
+		var extras = beego.M{"privacy": 1, "status": 1}
 		switch ty {
 		case "my":
 				id := ctx.GetSession(middlewares.AuthUserId)
@@ -108,21 +109,21 @@ func (this *postRepositoryImpl) Lists(typ ...string) common.ResponseJson {
 				}
 				items, meta = this.service.Lists(id.(string), limit)
 		case "address":
-				items, meta = this.service.ListByAddress(ctx.GetString(":address"), limit)
+				items, meta = this.service.ListByAddress(ctx.GetString("address"), limit,extras)
 		case "tags":
 				tags := ctx.GetString("tags")
 				if tags != "" {
-						items, meta = this.service.ListByTags(strings.SplitN(tags,",",-1), limit)
-				}else{
+						items, meta = this.service.ListByTags(strings.SplitN(tags, ",", -1), limit, extras)
+				} else {
 						tags := ctx.GetStrings("tags")
-						items, meta = this.service.ListByTags(tags, limit)
+						items, meta = this.service.ListByTags(tags, limit, extras)
 				}
 		case "user":
 				if len(typ) <= 1 {
 						break
 				}
 				userId := typ[1]
-				items, meta = this.service.Lists(userId, limit)
+				items, meta = this.service.Lists(userId, limit, extras)
 		case "search":
 				items, meta = this.service.Search(beego.M{}, limit)
 		}
@@ -153,7 +154,7 @@ func (this *postRepositoryImpl) RemoveId(id ...string) common.ResponseJson {
 		}
 		var (
 				userId = this.GetUserId()
-			data = this.service.GetById(id[0])
+				data   = this.service.GetById(id[0])
 		)
 		if data == nil {
 				return common.NewFailedResp(common.RecordNotFound, common.RecordNotFoundError)
@@ -164,7 +165,7 @@ func (this *postRepositoryImpl) RemoveId(id ...string) common.ResponseJson {
 		data.DeletedAt = time.Now().Unix()
 		err := data.Save()
 		if err == nil {
-			return 	common.NewSuccessResp(beego.M{"timestamp": time.Now().Unix()}, "删除成功")
+				return common.NewSuccessResp(beego.M{"timestamp": time.Now().Unix()}, "删除成功")
 		}
 		return common.NewFailedResp(common.RecordNotFound, "删除失败")
 }

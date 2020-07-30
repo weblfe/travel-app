@@ -216,8 +216,8 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PostsController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PostsController"],
         beego.ControllerComments{
-            Method: "ListMy",
-            Router: `/posts/lists/my`,
+            Method: "ListBy",
+            Router: `/posts/lists`,
             AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
             Filters: nil,
@@ -225,8 +225,8 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PostsController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PostsController"],
         beego.ControllerComments{
-            Method: "ListByTags",
-            Router: `/posts/lists/tags`,
+            Method: "ListMy",
+            Router: `/posts/lists/my`,
             AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
             Filters: nil,
