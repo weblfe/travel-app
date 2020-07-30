@@ -302,8 +302,14 @@ func (this *DtoRepository) IsThumbsUp(postId string, userId string, status ...in
 		return this.GetThumbsUpService().Exists(query)
 }
 
-func (this *DtoRepository) GC() *DtoRepository {
-		this._Cache = nil
+func (this *DtoRepository) GC(key ...string) *DtoRepository {
+		if len(key) == 0 {
+				this._Cache = nil
+				return this
+		}
+		for _, k := range key {
+				delete(this._Cache, k)
+		}
 		return this
 }
 
