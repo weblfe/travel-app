@@ -30,6 +30,8 @@ func init() {
 		beego.Include(controllers.ThumbsUpControllerOf())
 		// 标签
 		beego.Include(controllers.TagsControllerOf())
-		// app
+		// app 信息
 		beego.Include(controllers.AppControllerOf())
+		// 评论
+		beego.Include(controllers.CommentControllerOf())
 }
