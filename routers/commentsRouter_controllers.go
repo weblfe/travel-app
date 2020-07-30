@@ -207,6 +207,15 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PostsController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PostsController"],
         beego.ControllerComments{
+            Method: "Audit",
+            Router: `/posts/audit`,
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PostsController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PostsController"],
+        beego.ControllerComments{
             Method: "Create",
             Router: `/posts/create`,
             AllowHTTPMethods: []string{"post"},

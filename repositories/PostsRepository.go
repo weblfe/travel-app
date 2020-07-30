@@ -2,6 +2,7 @@ package repositories
 
 import (
 		"github.com/astaxie/beego"
+		"github.com/globalsign/mgo/bson"
 		"github.com/weblfe/travel-app/common"
 		"github.com/weblfe/travel-app/middlewares"
 		"github.com/weblfe/travel-app/models"
@@ -182,24 +183,24 @@ func (this *postRepositoryImpl) RemoveId(id ...string) common.ResponseJson {
 		return common.NewFailedResp(common.RecordNotFound, "删除失败")
 }
 
-func (this *postRepositoryImpl)Audit() common.ResponseJson {
+func (this *postRepositoryImpl) Audit() common.ResponseJson {
 		var (
-				ids = this.ctx.GetString("ids")
+				ids = this.ctx.GetStrings("ids")
 		)
-		if ids == "" {
+		if len(ids) == 0 {
 				var data = struct {
-						Ids  []string `json:"ids"`
+						Ids []string `json:"ids"`
 				}{}
 				_ = this.ctx.JsonDecode(&data)
 				if len(data.Ids) > 0 && this.service.Audit(data.Ids...) {
-						return common.NewSuccessResp( "审核成功")
+						return common.NewSuccessResp("审核成功")
 				}
-				return common.NewFailedResp( common.ServiceFailed, "审核失败")
+				return common.NewFailedResp(common.ServiceFailed, "审核失败")
 		}
-		if this.service.Audit(strings.SplitN(ids,",",-1)...) {
-				return common.NewSuccessResp( "审核成功")
+		if this.service.Audit(ids...) {
+				return common.NewSuccessResp(bson.M{"timestamp": time.Now().Unix()}, "审核成功")
 		}
-		return common.NewFailedResp( common.ServiceFailed, "审核失败")
+		return common.NewFailedResp(common.ServiceFailed, "审核失败")
 }
 
 // 获取文章内容转换器
