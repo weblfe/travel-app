@@ -97,6 +97,15 @@ func init() {
             Filters: nil,
             Params: nil})
 
+    beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:CaptchaController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:CaptchaController"],
+        beego.ControllerComments{
+            Method: "Create",
+            Router: `/comment/create`,
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
     beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:IndexController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:IndexController"],
         beego.ControllerComments{
             Method: "Index",

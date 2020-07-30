@@ -41,7 +41,7 @@ func (this *commentServiceImpl) Commit(data *models.Comment) error {
 
 // 更新评论数
 func (this *commentServiceImpl) addSuccessAfter(comment *models.Comment) {
-		if comment.PostId != "" {
+		if comment.PostId != "" && comment.Status == models.StatusAuditPass {
 				_ = PostServiceOf().IncrComment(comment.PostId.Hex())
 		}
 }

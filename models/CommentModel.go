@@ -48,6 +48,10 @@ var (
 		}
 )
 
+func NewComment() *Comment  {
+		return new(Comment)
+}
+
 func (this *Comment) Load(data map[string]interface{}) *Comment {
 		for key, v := range data {
 				this.Set(key, v)
