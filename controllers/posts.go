@@ -32,6 +32,12 @@ func (this *PostsController) ListMy() {
 		this.Send(repositories.NewPostsRepository(this).Lists("my"))
 }
 
+// 列表我的
+// @router /posts/lists/tags [get]
+func (this *PostsController) ListByTags() {
+		this.Send(repositories.NewPostsRepository(this).Lists("tags"))
+}
+
 // 其他用户作品
 // @router /posts/users/:userId [get]
 func (this *PostsController) ListUserPosts() {

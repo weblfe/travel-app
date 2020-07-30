@@ -6,6 +6,7 @@ import (
 		"github.com/weblfe/travel-app/middlewares"
 		"github.com/weblfe/travel-app/models"
 		"github.com/weblfe/travel-app/services"
+		"strings"
 		"time"
 )
 
@@ -44,7 +45,6 @@ func (this *postRepositoryImpl) Create() common.ResponseJson {
 				data   = new(models.TravelNotes)
 				userId = this.GetUserId()
 		)
-
 		if err = this.ctx.JsonDecode(data); err != nil {
 				err = this.ctx.GetParent().ParseForm(data)
 				if err != nil {
@@ -110,8 +110,13 @@ func (this *postRepositoryImpl) Lists(typ ...string) common.ResponseJson {
 		case "address":
 				items, meta = this.service.ListByAddress(ctx.GetString(":address"), limit)
 		case "tags":
-				address := ctx.GetString("tags")
-				items, meta = this.service.ListByAddress(address, limit)
+				tags := ctx.GetString("tags")
+				if tags != "" {
+						items, meta = this.service.ListByTags(strings.SplitN(tags,",",-1), limit)
+				}else{
+						tags := ctx.GetStrings("tags")
+						items, meta = this.service.ListByTags(tags, limit)
+				}
 		case "user":
 				if len(typ) <= 1 {
 						break
@@ -146,14 +151,20 @@ func (this *postRepositoryImpl) RemoveId(id ...string) common.ResponseJson {
 		if len(id) == 0 {
 				id = append(id, this.ctx.GetParent().GetString(":id"))
 		}
-		var data = this.service.GetById(id[0])
+		var (
+				userId = this.GetUserId()
+			data = this.service.GetById(id[0])
+		)
 		if data == nil {
 				return common.NewFailedResp(common.RecordNotFound, common.RecordNotFoundError)
+		}
+		if data.UserId != userId {
+				return common.NewFailedResp(common.PermissionCode, common.PermissionError)
 		}
 		data.DeletedAt = time.Now().Unix()
 		err := data.Save()
 		if err == nil {
-				common.NewSuccessResp(beego.M{"timestamp": time.Now().Unix()}, "删除成功")
+			return 	common.NewSuccessResp(beego.M{"timestamp": time.Now().Unix()}, "删除成功")
 		}
 		return common.NewFailedResp(common.RecordNotFound, "删除失败")
 }

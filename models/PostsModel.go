@@ -298,7 +298,7 @@ func (this *TravelNotes) Save() error {
 				model = PostsModelOf()
 				err   = model.GetById(id, tmp)
 		)
-		if err != nil {
+		if err == nil {
 				return model.UpdateById(id, this.M(func(m beego.M) beego.M {
 						delete(m, "id")
 						delete(m, "createdAt")
