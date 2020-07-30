@@ -13,6 +13,7 @@ import (
 type PostsRepository interface {
 		Create() common.ResponseJson
 		Update() common.ResponseJson
+		Audit() common.ResponseJson
 		Lists(...string) common.ResponseJson
 		GetById(...string) common.ResponseJson
 		RemoveId(...string) common.ResponseJson
@@ -179,6 +180,26 @@ func (this *postRepositoryImpl) RemoveId(id ...string) common.ResponseJson {
 				return common.NewSuccessResp(beego.M{"timestamp": time.Now().Unix()}, "删除成功")
 		}
 		return common.NewFailedResp(common.RecordNotFound, "删除失败")
+}
+
+func (this *postRepositoryImpl)Audit() common.ResponseJson {
+		var (
+				ids = this.ctx.GetString("ids")
+		)
+		if ids == "" {
+				var data = struct {
+						Ids  []string `json:"ids"`
+				}{}
+				_ = this.ctx.JsonDecode(&data)
+				if len(data.Ids) > 0 && this.service.Audit(data.Ids...) {
+						return common.NewSuccessResp( "审核成功")
+				}
+				return common.NewFailedResp( common.ServiceFailed, "审核失败")
+		}
+		if this.service.Audit(strings.SplitN(ids,",",-1)...) {
+				return common.NewSuccessResp( "审核成功")
+		}
+		return common.NewFailedResp( common.ServiceFailed, "审核失败")
 }
 
 // 获取文章内容转换器

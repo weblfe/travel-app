@@ -74,3 +74,9 @@ func (this *PostsController) DetailById() {
 func (this *PostsController) RemoveById() {
 		this.Send(repositories.NewPostsRepository(this).RemoveId())
 }
+
+// 删除文章
+// @router /posts/audit  [post]
+func (this *PostsController)Audit() {
+		this.Send(repositories.NewPostsRepository(this).Audit())
+}

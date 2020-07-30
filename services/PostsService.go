@@ -9,9 +9,10 @@ import (
 )
 
 type PostService interface {
+		IncrComment(id string) error
+		Audit(...string) bool
 		Create(notes *models.TravelNotes) error
 		GetById(id string) *models.TravelNotes
-		IncrComment(id string) error
 		IncrThumbsUp(id string, incr int) error
 		Lists(userId string, page models.ListsParams, extras ...beego.M) ([]*models.TravelNotes, *models.Meta)
 		ListByTags(tags []string, page models.ListsParams, extras ...beego.M) ([]*models.TravelNotes, *models.Meta)
@@ -60,7 +61,7 @@ func (this *TravelPostServiceImpl) Lists(userId string, page models.ListsParams,
 		err = listQuery.Sort("-createdAt").All(&lists)
 		if err == nil {
 				meta.Size = len(lists)
-				meta.Total, _ = this.postModel.ListsQuery(query,nil).Count()
+				meta.Total, _ = this.postModel.ListsQuery(query, nil).Count()
 				meta.Boot()
 
 				return lists, meta
@@ -200,4 +201,19 @@ func (this *TravelPostServiceImpl) IncrThumbsUp(id string, incr int) error {
 				return errors.New("thumbsUp post id empty")
 		}
 		return this.postModel.Incr(id, "thumbsUpNum", incr)
+}
+
+func (this *TravelPostServiceImpl) Audit(id ...string) bool {
+		if len(id) == 0 {
+				return false
+		}
+		var arr []bson.ObjectId
+		for _, v := range id {
+				arr = append(arr, bson.ObjectIdHex(v))
+		}
+		var err = this.postModel.Update(bson.M{"_id": bson.M{"$in": arr}}, bson.M{"status": models.StatusAuditPass})
+		if err == nil {
+				return true
+		}
+		return false
 }
