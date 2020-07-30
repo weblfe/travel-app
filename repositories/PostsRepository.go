@@ -32,7 +32,12 @@ func NewPostsRepository(ctx common.BaseRequestContext) PostsRepository {
 		var repository = new(postRepositoryImpl)
 		repository.init()
 		repository.ctx = ctx
+		repository.GetDto().GC()
 		return repository
+}
+
+func (this *postRepositoryImpl) GetDto() *DtoRepository {
+		return GetDtoRepository()
 }
 
 func (this *postRepositoryImpl) init() {
@@ -89,8 +94,8 @@ func (this *postRepositoryImpl) Update() common.ResponseJson {
 
 func (this *postRepositoryImpl) Lists(typ ...string) common.ResponseJson {
 		var (
-				ctx      = this.ctx.GetParent()
 				meta     *models.Meta
+				ctx      = this.ctx.GetParent()
 				items    []*models.TravelNotes
 				page, _  = ctx.GetInt("page", 1)
 				count, _ = ctx.GetInt("count", 20)
@@ -100,17 +105,22 @@ func (this *postRepositoryImpl) Lists(typ ...string) common.ResponseJson {
 		if ty == "" && len(typ) != 0 {
 				ty = typ[0]
 		}
-		var extras = beego.M{"privacy": 1, "status": 1}
+		var extras = beego.M{"privacy": models.PublicPrivacy, "status": models.StatusAuditPass}
 		switch ty {
 		case "my":
 				id := ctx.GetSession(middlewares.AuthUserId)
 				if id == nil {
 						return common.NewFailedResp(common.RecordNotFound, common.RecordNotFoundError)
 				}
-				items, meta = this.service.Lists(id.(string), limit)
+				delete(extras, "privacy")
+				extras["status"] = beego.M{"$ne": models.StatusAuditNotPass}
+				// 查看自己的作品
+				items, meta = this.service.Lists(id.(string), limit, extras)
 		case "address":
-				items, meta = this.service.ListByAddress(ctx.GetString("address"), limit,extras)
+				// 通过地址罗列作品
+				items, meta = this.service.ListByAddress(ctx.GetString("address"), limit, extras)
 		case "tags":
+				// 通过标签罗列作品
 				tags := ctx.GetString("tags")
 				if tags != "" {
 						items, meta = this.service.ListByTags(strings.SplitN(tags, ",", -1), limit, extras)
@@ -122,6 +132,7 @@ func (this *postRepositoryImpl) Lists(typ ...string) common.ResponseJson {
 				if len(typ) <= 1 {
 						break
 				}
+				// 查询他人的作品列表
 				userId := typ[1]
 				items, meta = this.service.Lists(userId, limit, extras)
 		case "search":
@@ -172,23 +183,41 @@ func (this *postRepositoryImpl) RemoveId(id ...string) common.ResponseJson {
 
 // 获取文章内容转换器
 func (this *postRepositoryImpl) getPostTransform() func(m beego.M) beego.M {
+		var dto = this.GetDto()
 		return func(m beego.M) beego.M {
 				m = getMediaInfoTransform()(m)
 				var (
 						id, _      = m["id"]
 						userId, ok = m["userId"]
-						dto        = GetDtoRepository()
 				)
 				m["userInfo"] = nil
 				// 获取用户是否已点赞
 				if id != nil && id != "" {
-						m["isUp"] = dto.IsThumbsUp(id.(string), this.GetUserId())
+						var (
+								idStr  = id.(string)
+								userId = this.GetUserId()
+								key    = dto.Key(idStr, userId)
+								value  = dto.Get(key)
+						)
+						if value == nil {
+								value = dto.IsThumbsUp(id.(string), this.GetUserId())
+								dto.Cache(key, value)
+						}
+						m["isUp"] = value
 				}
 				if !ok {
 						return m
 				}
 				if id, ok := userId.(string); ok {
-						m["userInfo"] = dto.GetUserById(id)
+						var (
+								key   = dto.Key(id)
+								value = dto.Get(key)
+						)
+						if value == nil {
+								value = dto.GetUserById(id)
+						}
+						dto.Cache(key, value)
+						m["userInfo"] = value
 				}
 				return m
 		}

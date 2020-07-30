@@ -1,14 +1,21 @@
 package repositories
 
 import (
+		"crypto/md5"
+		"encoding/hex"
+		"fmt"
 		"github.com/astaxie/beego"
 		"github.com/globalsign/mgo/bson"
 		"github.com/weblfe/travel-app/models"
 		"github.com/weblfe/travel-app/services"
+		"sort"
+		"strings"
 		"time"
 )
 
-type DtoRepository struct{}
+type DtoRepository struct {
+		_Cache beego.M
+}
 
 // 基础用户信息
 type BaseUser struct {
@@ -293,4 +300,38 @@ func (this *DtoRepository) IsThumbsUp(postId string, userId string, status ...in
 				"status": status[0],
 		}
 		return this.GetThumbsUpService().Exists(query)
+}
+
+func (this *DtoRepository) GC() *DtoRepository {
+		this._Cache = nil
+		return this
+}
+
+func (this *DtoRepository) Get(key string) interface{} {
+		return this._Cache[key]
+}
+
+func (this *DtoRepository) Key(value ...interface{}) string {
+		if len(value) == 0 {
+				return ""
+		}
+		var (
+				ins  = md5.New()
+				keys = make([]string, 2)
+		)
+		keys = keys[:0]
+		for _, v := range value {
+				keys = append(keys, fmt.Sprintf("%v", v))
+		}
+		sort.Strings(keys)
+		ins.Write([]byte(strings.Join(keys, "-")))
+		return hex.EncodeToString(ins.Sum(nil))
+}
+
+func (this *DtoRepository) Cache(key string, v interface{}) *DtoRepository {
+		if this._Cache == nil {
+				this._Cache = beego.M{}
+		}
+		this._Cache[key] = v
+		return this
 }

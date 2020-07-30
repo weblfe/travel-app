@@ -470,7 +470,7 @@ func (this *BaseModel) Lists(query interface{}, result interface{}, limit ListsP
 				size, skip = limit.Count(), limit.Skip()
 		)
 		defer this.destroy()
-		query =this.WrapperScopeQuery(query)
+		query = this.WrapperScopeQuery(query)
 		defer this.resetScopeQuery()
 		total, err := table.Find(query).Count()
 		if err != nil {
@@ -488,12 +488,21 @@ func (this *BaseModel) Lists(query interface{}, result interface{}, limit ListsP
 func (this *BaseModel) ListsQuery(query interface{}, limit ListsParams, selects ...interface{}) *mgo.Query {
 		table := this.Collection()
 		var (
-				size, skip = limit.Count(), limit.Skip()
+				size, skip = 0, 0
 		)
+		if limit != nil {
+				size, skip = limit.Count(), limit.Skip()
+		}
 		query = this.WrapperScopeQuery(query)
 		defer this.resetScopeQuery()
 		if len(selects) > 0 {
+				if limit == nil {
+						return table.Find(query).Select(selects[0])
+				}
 				return table.Find(query).Select(selects[0]).Limit(size).Skip(skip)
+		}
+		if limit == nil {
+				return table.Find(query)
 		}
 		return table.Find(query).Limit(limit.Count()).Skip(skip)
 }
