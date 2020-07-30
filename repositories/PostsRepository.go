@@ -193,7 +193,7 @@ func (this *postRepositoryImpl) Audit() common.ResponseJson {
 				}{}
 				_ = this.ctx.JsonDecode(&data)
 				if len(data.Ids) > 0 && this.service.Audit(data.Ids...) {
-						return common.NewSuccessResp("审核成功")
+						return common.NewSuccessResp(bson.M{"timestamp": time.Now().Unix()}, "审核成功")
 				}
 				return common.NewFailedResp(common.ServiceFailed, "审核失败")
 		}
