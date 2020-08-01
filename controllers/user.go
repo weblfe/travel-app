@@ -21,7 +21,7 @@ func (this *UserController) Login() {
 		if res.IsSuccess() {
 				token := res.GetDataByKey("token", "")
 				if token != "" && token != nil {
-						this.Ctx.SetCookie(common.AppTokenCookie, token.(string))
+						this.Cookie(common.AppTokenCookie, token.(string))
 				}
 		}
 		this.Send(res)
@@ -36,6 +36,10 @@ func (this *UserController) Register() {
 				repositories.GetEventProvider().Dispatch("registerSuccess", res.GetData(), "UserRegister")
 		}
 		this.Send(res)
+}
+
+func (this *UserController)Logout()  {
+		this.Send(repositories.NewLoginRepository(this).Logout())
 }
 
 // 获取用户基本信息接口

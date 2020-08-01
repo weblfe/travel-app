@@ -4,14 +4,17 @@ import (
 		"github.com/astaxie/beego"
 		"github.com/weblfe/travel-app/common"
 		"github.com/weblfe/travel-app/libs"
+		"github.com/weblfe/travel-app/middlewares"
 		"github.com/weblfe/travel-app/models"
 		"github.com/weblfe/travel-app/services"
 		"github.com/weblfe/travel-app/transforms"
 		"github.com/weblfe/travel-app/transports"
+		"time"
 )
 
 type LoginRepository interface {
 		Login() common.ResponseJson
+		Logout() common.ResponseJson
 }
 
 type LoginRepositoryImpl struct {
@@ -34,6 +37,7 @@ func (this *LoginRepositoryImpl) init() {
 		this.authService = services.AuthServiceOf()
 }
 
+// 登录逻辑总汇
 func (this *LoginRepositoryImpl) Login() common.ResponseJson {
 		var (
 				typ     string
@@ -60,6 +64,7 @@ func (this *LoginRepositoryImpl) Login() common.ResponseJson {
 		return common.NewInvalidParametersResp(common.NewSuccessResp(1023, "未知登陆请求,登陆失败"))
 }
 
+// 判断登录方式
 func (this *LoginRepositoryImpl) choose(mobile, code, username, password, email string) string {
 		if mobile != "" && code != "" {
 				return "mobile"
@@ -79,6 +84,7 @@ func (this *LoginRepositoryImpl) choose(mobile, code, username, password, email 
 		return ""
 }
 
+// 手机号 + 短信验证码 登录
 func (this *LoginRepositoryImpl) loginByMobile(mobile string, code string) common.ResponseJson {
 		if !libs.IsCnMobile(mobile) {
 				return common.NewErrorResp(common.NewErrors(common.VerifyNotMatch, "手机号格式不正确"))
@@ -119,6 +125,7 @@ func (this *LoginRepositoryImpl) loginByMobile(mobile string, code string) commo
 		return common.NewSuccessResp(beego.M{"user": data, "token": token}, "登陆成功")
 }
 
+// 账号 + 密码 登录
 func (this *LoginRepositoryImpl) loginByAccountPassword(account string, password string) common.ResponseJson {
 		user := this.userService.GetByUserName(account)
 		if user == nil {
@@ -135,6 +142,7 @@ func (this *LoginRepositoryImpl) loginByAccountPassword(account string, password
 		return common.NewSuccessResp(beego.M{"user": data, "token": token}, "登陆成功")
 }
 
+// 手机号+用户密码 登录
 func (this *LoginRepositoryImpl) loginByMobilePassword(mobile string, password string) common.ResponseJson {
 		user := this.userService.GetByMobile(mobile)
 		if user == nil {
@@ -151,6 +159,7 @@ func (this *LoginRepositoryImpl) loginByMobilePassword(mobile string, password s
 		return common.NewSuccessResp(beego.M{"user": data, "token": token}, "登陆成功")
 }
 
+// 邮箱 + 邮件验证码登录
 func (this *LoginRepositoryImpl) loginByEmailCode(email string, code string) common.ResponseJson {
 		user := this.userService.GetByEmail(email)
 		if user == nil {
@@ -168,6 +177,7 @@ func (this *LoginRepositoryImpl) loginByEmailCode(email string, code string) com
 		return common.NewSuccessResp(beego.M{"user": data, "token": token}, "登陆成功")
 }
 
+// 邮箱+登录密码 登录
 func (this *LoginRepositoryImpl) loginByEmail(email string, password string) common.ResponseJson {
 		user := this.userService.GetByEmail(email)
 		if user == nil {
@@ -182,4 +192,26 @@ func (this *LoginRepositoryImpl) loginByEmail(email string, password string) com
 		token := this.authService.Token(user)
 		data := user.M(getBaseUserInfoTransform())
 		return common.NewSuccessResp(beego.M{"user": data, "token": token}, "登陆成功")
+}
+
+// 登出
+func (this *LoginRepositoryImpl) Logout() common.ResponseJson {
+		var id = getUserId(this.ctx)
+		if id == "" {
+				return common.NewUnLoginResp("please login!")
+		}
+		var err = this.getTokenService().Logout(id, getToken(this.ctx))
+		if err == nil {
+				this.ctx.Cookie(middlewares.AppAccessTokenHeader, nil)
+				return common.NewSuccessResp(beego.M{"id": id, "timestamp": time.Now().Unix()}, "logout success!")
+		}
+		return common.NewFailedResp(common.ServiceFailed, common.NewErrors(err, "logout success!"))
+}
+
+func (this *LoginRepositoryImpl) getUserService() services.UserService {
+		return services.UserServiceOf()
+}
+
+func (this *LoginRepositoryImpl) getTokenService() services.AuthService {
+		return services.AuthServiceOf()
 }

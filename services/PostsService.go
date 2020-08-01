@@ -70,20 +70,27 @@ func (this *TravelPostServiceImpl) Lists(userId string, page models.ListsParams,
 }
 
 func (this *TravelPostServiceImpl) ListByTags(tags []string, page models.ListsParams, extras ...beego.M) ([]*models.TravelNotes, *models.Meta) {
-		extras = append(extras, beego.M{"tags": beego.M{"$in": tags}})
 		var (
 				err   error
 				lists []*models.TravelNotes
 				meta  = models.NewMeta()
-				query = libs.MapMerge(extras...)
+				query beego.M
 		)
+		if len(tags) > 0 {
+				extras = append(extras, beego.M{"tags": beego.M{"$in": tags}})
+		}
+		query = libs.MapMerge(extras...)
 		meta.Page = page.Page()
 		meta.Size = len(lists)
 		meta.Count = page.Count()
 		this.postModel.UseSoftDelete()
-		meta.Total, err = this.postModel.Lists(query, &lists, page)
+
+		listQuery := this.postModel.ListsQuery(query, page)
+		// desc createdAt
+		err = listQuery.Sort("-createdAt").All(&lists)
 		if err == nil {
-				meta.Boot()
+				meta.Size = len(lists)
+				meta.Total, _ = this.postModel.ListsQuery(query, nil).Count()
 				return lists, meta
 		}
 		return nil, meta
@@ -101,9 +108,12 @@ func (this *TravelPostServiceImpl) ListByAddress(address string, page models.Lis
 		meta.Size = len(lists)
 		meta.Count = page.Count()
 		this.postModel.UseSoftDelete()
-		meta.Total, err = this.postModel.Lists(query, &lists, page)
+		listQuery := this.postModel.ListsQuery(query, page)
+		// desc createdAt
+		err = listQuery.Sort("-createdAt").All(&lists)
 		if err == nil {
-				meta.Boot()
+				meta.Size = len(lists)
+				meta.Total, _ = this.postModel.ListsQuery(query, nil).Count()
 				return lists, meta
 		}
 		return nil, meta

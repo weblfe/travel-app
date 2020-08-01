@@ -3,7 +3,6 @@ package models
 import (
 		"github.com/astaxie/beego"
 		"github.com/globalsign/mgo/bson"
-		"strings"
 		"time"
 )
 
@@ -13,18 +12,21 @@ type CommentModel struct {
 
 // 评论数据
 type Comment struct {
-		Id          bson.ObjectId `json:"id" bson:"_id"`                                  // ID
-		UserId      string        `json:"userId" bson:"userId"`                           // 评论人
-		Content     string        `json:"content" bson:"content"`                         // 评论内容
-		PostId      bson.ObjectId `json:"postId" bson:"postId"`                           // 评论文章ID
-		Status      int           `json:"status" bson:"status"`                           // 审核状态
-		CommentId   bson.ObjectId `json:"commentId,omitempty" bson:"commentId,omitempty"` // 评论 评论的ID
-		ThumbsUpNum int64         `json:"thumbsUpNum" bson:"thumbsUpNum"`                 // 评论点赞数
-		Sort        int64         `json:"sort" bson:"sort"`                               // 排序
-		Tags        []string      `json:"tags" bson:"tags"`                               // 评论标签
-		CreatedAt   time.Time     `json:"createdAt" bson:"createdAt"`                     // 评论时间
-		UpdatedAt   time.Time     `json:"updatedAt" bson:"updatedAt"`                     // 更新时间
-		DeletedAt   int64         `json:"deletedAt" bson:"deletedAt"`                     // 删除时间戳
+		Id            bson.ObjectId `json:"id" bson:"_id"`                                  // ID
+		UserId        string        `json:"userId" bson:"userId"`                           // 评论人
+		Content       string        `json:"content" bson:"content"`                         // 评论内容
+		TargetId      string        `json:"targetId" bson:"targetId"`                       // 评论目标ID
+		TargetType    string        `json:"targetType" bson:"targetType"`                   // 评论类型
+		Status        int           `json:"status" bson:"status"`                           // 审核状态
+		RefersIds     []string      `json:"refersIds,omitempty" bson:"refersIds,omitempty"` // 涉及ID
+		ThumbsUpNum   int64         `json:"thumbsUpNum" bson:"thumbsUpNum"`                 // 评论点赞数
+		ReviewNum     int64         `json:"reviewNum" bson:"reviewNum"`                     // 评论回复数量
+		Sort          int64         `json:"sort" bson:"sort"`                               // 排序
+		Tags          []string      `json:"tags" bson:"tags"`                               // 评论标签
+		CreatedAt     time.Time     `json:"createdAt" bson:"createdAt"`                     // 评论时间
+		UpdatedAt     time.Time     `json:"updatedAt" bson:"updatedAt"`                     // 更新时间
+		DeletedAt     int64         `json:"deletedAt" bson:"deletedAt"`                     // 删除时间戳
+		dataClassImpl `json:",omitempty" bson:",omitempty"`                                 // 工具类
 }
 
 func CommentModelOf() *CommentModel {
@@ -48,7 +50,7 @@ var (
 		}
 )
 
-func NewComment() *Comment  {
+func NewComment() *Comment {
 		return new(Comment)
 }
 
@@ -62,52 +64,36 @@ func (this *Comment) Load(data map[string]interface{}) *Comment {
 func (this *Comment) Set(key string, v interface{}) *Comment {
 		switch key {
 		case "id":
-				if str, ok := v.(string); ok && str != "" {
-						this.Id = bson.ObjectIdHex(str)
-				}
-				if obj, ok := v.(bson.ObjectId); ok && obj != "" {
-						this.Id = obj
-				}
+				this.SetObjectId(&this.Id, v)
 		case "userId":
-				this.UserId = v.(string)
+				this.SetString(&this.UserId, v)
 		case "content":
-				this.Content = v.(string)
+				this.SetString(&this.Content, v)
 		case "status":
-				this.Status = v.(int)
-		case "commentId":
-				if str, ok := v.(string); ok && str != "" {
-						this.CommentId = bson.ObjectIdHex(str)
-				}
-				if obj, ok := v.(bson.ObjectId); ok && obj != "" {
-						this.CommentId = obj
-				}
-		case "postId":
-				if str, ok := v.(string); ok && str != "" {
-						this.PostId = bson.ObjectIdHex(str)
-				}
-				if obj, ok := v.(bson.ObjectId); ok && obj != "" {
-						this.PostId = obj
-				}
+				this.SetNumInt(&this.Status, v)
+		case "targetId":
+				this.SetString(&this.TargetId, v)
+		case "type":
+				fallthrough
+		case "targetType":
+				this.SetString(&this.TargetType, v)
 		case "tags":
-				if str, ok := v.(string); ok && str != "" {
-						this.Tags = strings.SplitN(str, ",", -1)
-				}
-				if arr, ok := v.([]string); ok && len(arr) > 0 {
-						this.Tags = arr
-				}
+				this.SetStringArr(&this.Tags, v)
 		case "createdAt":
-				this.CreatedAt = v.(time.Time)
+				this.SetTime(&this.CreatedAt, v)
 		case "updatedAt":
-				this.UpdatedAt = v.(time.Time)
+				this.SetTime(&this.UpdatedAt, v)
 		case "deletedAt":
-				this.DeletedAt = v.(int64)
+				this.SetNumIntN(&this.DeletedAt, v)
+		case "reviewNum":
+				this.SetNumIntN(&this.ReviewNum, v)
 		case "sort":
-				this.Sort = v.(int64)
+				this.SetNumIntN(&this.Sort, v)
 		}
 		return this
 }
 
-func (this *Comment) GetStatus() string {
+func (this *Comment) GetStatusText() string {
 		return CommentStatusMap[this.Status]
 }
 
@@ -124,6 +110,12 @@ func (this *Comment) Defaults() *Comment {
 		if this.UpdatedAt.IsZero() {
 				this.UpdatedAt = time.Now().Local()
 		}
+		if this.Tags == nil {
+				this.Tags = []string{}
+		}
+		if this.RefersIds == nil {
+				this.RefersIds = []string{}
+		}
 		return this
 }
 
@@ -132,11 +124,13 @@ func (this *Comment) M(filters ...func(m beego.M) beego.M) beego.M {
 				"id":          this.Id.Hex(),
 				"sort":        this.Sort,
 				"userId":      this.UserId,
-				"postId":      this.PostId.Hex(),
-				"comment":     this.CommentId.Hex(),
+				"targetId":    this.TargetId,
+				"refersIds":   this.RefersIds,
 				"content":     this.Content,
 				"tags":        this.Tags,
 				"status":      this.Status,
+				"statusDesc":  this.GetStatusText(),
+				"reviewNum":   this.ReviewNum,
 				"thumbsUpNum": this.ThumbsUpNum,
 				"updatedAt":   this.UpdatedAt.Unix(),
 				"createdAt":   this.CreatedAt.Unix(),
@@ -155,15 +149,22 @@ func (this *Comment) Save() error {
 				model = CommentModelOf()
 				err   = model.GetById(id, tmp)
 		)
-		if err != nil {
+		if err == nil {
 				return model.UpdateById(id, this.M(func(m beego.M) beego.M {
-						delete(m, "id")
-						delete(m, "createdAt")
+						m = this.excludesKeys(m)
 						m["updatedAt"] = time.Now().Local()
 						return m
 				}))
 		}
 		return model.Add(this.Defaults())
+}
+
+func (this *Comment) excludesKeys(m beego.M) beego.M {
+		var excludes = []string{"id", "createdAt", "statusDesc", "updatedAt"}
+		for _, k := range excludes {
+				delete(m, k)
+		}
+		return m
 }
 
 func (this *CommentModel) TableName() string {

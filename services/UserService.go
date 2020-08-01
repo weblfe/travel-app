@@ -172,6 +172,7 @@ func (this *UserServiceImpl) GetByEmail(email string) *models.User {
 
 func (this *UserServiceImpl) GetById(id string) *models.User {
 		var user = new(models.User)
+		this.userModel.UseSoftDelete()
 		if err := this.userModel.GetById(id, user); err != nil {
 				return nil
 		}

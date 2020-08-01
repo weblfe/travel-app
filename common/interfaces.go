@@ -4,6 +4,7 @@ import (
 		"github.com/astaxie/beego"
 		"github.com/astaxie/beego/context"
 		"github.com/astaxie/beego/session"
+		"net/http"
 )
 
 type RouterAction struct {
@@ -28,5 +29,8 @@ type BaseRequestContext interface {
 		GetString(key string, def ...string) string
 		GetStrings(key string, def ...[]string) []string
 		Session(key string, v ...interface{}) interface{}
+		GetHeader() http.Header
+		SetHeader(string,string)
+		Cookie(string,...interface{}) interface{}
 		GetParam(key string, defaults ...interface{}) (interface{}, bool)
 }

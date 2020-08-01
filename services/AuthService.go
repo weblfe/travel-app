@@ -18,7 +18,9 @@ type AuthService interface {
 		GetByAccessToken(string) (*models.User, common.Errors)
 		Keep(token string, duration ...time.Duration)
 		Token(user *models.User, args ...interface{}) string
+		Release(token string) error
 		ReleaseByUserId(...string) bool
+		Logout(userId, token string) error
 }
 
 type AuthServiceImpl struct {
@@ -217,7 +219,7 @@ func (this *AuthServiceImpl) ReleaseByUserId(ids ...string) bool {
 				return false
 		}
 		var (
-				userService = UserServiceOf()
+				userService = this.getUserService()
 				user        = userService.GetById(ids[0])
 		)
 		if user == nil {
@@ -233,4 +235,53 @@ func (this *AuthServiceImpl) ReleaseByUserId(ids ...string) bool {
 		data := beego.M{"accessTokens": user.AccessTokens, "modifies": []string{"accessTokens"}}
 		_ = userService.UpdateByUid(user.Id.Hex(), data)
 		return false
+}
+
+// 通过 userId, token
+func (this *AuthServiceImpl) Logout(userId, token string) error {
+		var (
+				userService = this.getUserService()
+				user, err   = this.GetByAccessToken(token)
+		)
+		if err == nil {
+				_ = this.GetCache().Delete(token)
+		}
+		// 用户异常
+		if user == nil {
+				user = userService.GetById(userId)
+				if user == nil {
+						return common.NewErrors(common.RecordNotFound, "用户不存在")
+				}
+		}
+		// 调用异常
+		if user.Id.Hex() != userId {
+				return common.NewErrors(common.Error, "令牌和身份不匹配")
+		}
+		for i, value := range user.AccessTokens {
+				if value == token {
+						user.AccessTokens = append(user.AccessTokens[:i], user.AccessTokens[i+1:]...)
+						break
+				}
+		}
+		return userService.UpdateByUid(userId, beego.M{"accessTokens": user.AccessTokens})
+}
+
+// 通过 token 释放
+func (this *AuthServiceImpl) Release(token string) error {
+		var user, err = this.GetByAccessToken(token)
+		if err != nil {
+				return err
+		}
+		_ = this.GetCache().Delete(token)
+		for i, value := range user.AccessTokens {
+				if value == token {
+						user.AccessTokens = append(user.AccessTokens[:i], user.AccessTokens[i+1:]...)
+						break
+				}
+		}
+		return this.getUserService().UpdateByUid(user.Id.Hex(), beego.M{"accessTokens": user.AccessTokens})
+}
+
+func (this *AuthServiceImpl) getUserService() UserService {
+		return UserServiceOf()
 }

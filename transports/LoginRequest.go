@@ -9,12 +9,25 @@ import (
 
 // 登陆参数
 type Login struct {
-		Mobile   string `json:"mobile"`
-		Code     string `json:"code"`
-		Username string `json:"username"`
-		Password string `json:"password"`
-		Email    string `json:"email"`
-		transportImpl
+		Mobile        string `json:"mobile"`
+		Code          string `json:"code"`
+		Username      string `json:"username"`
+		Password      string `json:"password"`
+		Email         string `json:"email"`
+		transportImpl `json:",omitempty"`
+}
+
+func NewLoginInstance() *Login {
+		var login = new(Login)
+		return login
+}
+
+func NewLogin(ctx ...*context.BeegoInput) *Login {
+		var login = NewLoginInstance()
+		if len(ctx) > 0 {
+				login.Load(ctx[0]).Init()
+		}
+		return login
 }
 
 func (this *Login) Boot() {
@@ -53,7 +66,7 @@ func (this *Login) Load(ctx *context.BeegoInput) *Login {
 		return this
 }
 
-func (this *Login)Init () TransportInterface {
+func (this *Login) Init() TransportInterface {
 		this.Boot()
 		this.transportImpl.Init()
 		return this

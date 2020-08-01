@@ -1,9 +1,16 @@
 package transports
 
 import (
+		"bytes"
+		"encoding/gob"
+		"encoding/json"
 		"fmt"
 		"github.com/astaxie/beego"
+		"github.com/astaxie/beego/context"
+		"net/http"
+		"net/url"
 		"reflect"
+		"strings"
 )
 
 type TransportInterface interface {
@@ -219,4 +226,90 @@ func (this *transportImpl) Print() {
 				fmt.Printf("  %s:%v ,\n", key, v)
 		}
 		fmt.Println("}")
+}
+
+// 数据对象复制
+func (this *transportImpl) Copy(data interface{}, dest interface{}) error {
+		var (
+				err  error
+				buff = new(bytes.Buffer)
+				enc  = gob.NewEncoder(buff)
+				dec  = gob.NewDecoder(buff)
+		)
+		err = enc.Encode(data)
+		if err == nil {
+				err = dec.Decode(dest)
+				if err == nil {
+						return nil
+				}
+		}
+		return err
+}
+
+// 对象拷贝
+func (this *transportImpl) Clone(source interface{}, dest interface{}) error {
+		var byt, err = json.Marshal(source)
+		if err == nil {
+				err = json.Unmarshal(byt, dest)
+				if err == nil {
+						return nil
+				}
+		}
+		return err
+}
+
+func (this *transportImpl) IsJson(header http.Header) bool {
+		return strings.Contains(header.Get("Content-Type"), "json")
+}
+
+func (this *transportImpl) IsForm(header http.Header) bool {
+		return strings.Contains(header.Get("Content-Type"), "form")
+}
+
+func (this *transportImpl) Decoder(ctx *context.BeegoInput, v interface{}) error {
+		var (
+				err  error
+				data = beego.M{}
+		)
+		// 是否Get
+		if this.IsGet(ctx.Context.Request.Method) {
+				data := ctx.Context.Input.Params()
+				return this.Copy(data, v)
+		}
+		// 是json 数据请求
+		if this.IsJson(ctx.Context.Request.Header) {
+				err = json.Unmarshal(ctx.RequestBody, v)
+		}
+		// 表单请求
+		if err != nil || this.IsForm(ctx.Context.Request.Header) {
+				if len(ctx.Context.Request.PostForm) > 0 {
+						data = this.listFrom(ctx.Context.Request.PostForm)
+				}
+				if len(data) <= 0 && len(ctx.Context.Request.Form) > 0 {
+						data = this.listFrom(ctx.Context.Request.Form)
+				}
+				return this.Clone(data, v)
+		}
+		return err
+}
+
+func (this *transportImpl) IsGet(method string) bool {
+		return strings.EqualFold("GET", method)
+}
+
+func (this *transportImpl) listFrom(values url.Values) beego.M {
+		var data = beego.M{}
+		for key, items := range values {
+				size := len(items)
+				if size <= 0 {
+						data[key] = nil
+						continue
+				}
+				if size == 1 {
+						data[key] = items[0]
+						continue
+				}
+				data[key] = items
+		}
+		return data
 }

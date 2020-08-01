@@ -34,7 +34,7 @@ func NewPostsRepository(ctx common.BaseRequestContext) PostsRepository {
 		var repository = new(postRepositoryImpl)
 		repository.init()
 		repository.ctx = ctx
-		repository.GetDto().GC()
+		repository.GetDto()
 		return repository
 }
 

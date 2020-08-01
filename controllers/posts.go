@@ -57,12 +57,6 @@ func (this *PostsController) ListByAddress() {
 		this.Send(repositories.NewPostsRepository(this).Lists("address"))
 }
 
-// 查询
-// @router /posts/search  [get]
-func (this *PostsController) Search() {
-		this.Send(repositories.NewPostsRepository(this).Lists("search"))
-}
-
 // 文章详情
 // @router /posts/:id   [get]
 func (this *PostsController) DetailById() {

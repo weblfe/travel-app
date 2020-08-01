@@ -106,10 +106,10 @@ func init() {
             Filters: nil,
             Params: nil})
 
-    beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:IndexController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:IndexController"],
+    beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:CaptchaController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:CaptchaController"],
         beego.ControllerComments{
-            Method: "Index",
-            Router: `/`,
+            Method: "Lists",
+            Router: `/comment/list`,
             AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
             Filters: nil,
@@ -119,25 +119,7 @@ func init() {
         beego.ControllerComments{
             Method: "Index",
             Router: `/`,
-            AllowHTTPMethods: []string{"post"},
-            MethodParams: param.Make(),
-            Filters: nil,
-            Params: nil})
-
-    beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:IndexController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:IndexController"],
-        beego.ControllerComments{
-            Method: "Index",
-            Router: `/`,
-            AllowHTTPMethods: []string{"delete"},
-            MethodParams: param.Make(),
-            Filters: nil,
-            Params: nil})
-
-    beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:IndexController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:IndexController"],
-        beego.ControllerComments{
-            Method: "Index",
-            Router: `/`,
-            AllowHTTPMethods: []string{"put"},
+            AllowHTTPMethods: []string{"*"},
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})

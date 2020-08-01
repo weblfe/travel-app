@@ -350,5 +350,5 @@ func (this *PostsModel) Incr(id string, typ string, num ...int) error {
 		if len(num) == 0 {
 				num = append(num, 1)
 		}
-		return this.IncrBy(bson.M{"_id": bson.ObjectIdHex(id)}, beego.M{typ: int64(num[0])})
+		return this.IncrBy(bson.M{"_id": bson.ObjectIdHex(id)}, beego.M{typ: int64(num[0]), "updatedAt": time.Now().Local()})
 }

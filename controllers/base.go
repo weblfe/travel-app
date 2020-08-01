@@ -7,6 +7,7 @@ import (
 		"github.com/astaxie/beego/context"
 		"github.com/astaxie/beego/session"
 		"github.com/weblfe/travel-app/common"
+		"net/http"
 		"reflect"
 		"strconv"
 		"strings"
@@ -31,7 +32,7 @@ func (this *BaseController) GetInput() *context.BeegoInput {
 }
 
 func (this *BaseController) GetSession() session.Store {
-		return this.CruSession
+		return this.Ctx.Input.CruSession
 }
 
 func (this *BaseController) GetContentType() string {
@@ -110,21 +111,59 @@ func (this *BaseController) GetControllerAction() *common.RouterAction {
 		return data
 }
 
+func (this *BaseController) Cookie(key string, v ...interface{}) interface{} {
+		var argc = len(v)
+		if argc == 0 {
+				return this.Ctx.GetCookie(key)
+		}
+		var value = v[0]
+		// 删除
+		if value == nil {
+				this.Ctx.SetCookie(key, "")
+				return true
+		}
+		if data, ok := value.(string); ok {
+				if argc == 1 {
+						this.Ctx.SetCookie(key, data)
+						return true
+				}
+				if argc > 1 {
+						this.Ctx.SetCookie(key, data, v[1:]...)
+						return true
+				}
+		}
+
+		return false
+}
+
+func (this *BaseController) GetHeader() http.Header {
+		return this.Ctx.Request.Header
+}
+
+func (this *BaseController) SetHeader(key string, v string) {
+		this.Ctx.Output.Header(key, v)
+		return
+}
+
 func (this *BaseController) GetRequestContext() common.BaseRequestContext {
 		return this
 }
 
 func (this *BaseController) GetString(key string, def ...string) string {
 		var v = this.Controller.GetString(key, def...)
-		if v == "" {
-				data := this.getJsonRequest()
-				v, ok := data[key]
-				if !ok {
-						return def[0]
-				}
-				if str, ok := v.(string); ok {
-						return str
-				}
+		if v != "" {
+				return v
+		}
+		if len(def) == 0 {
+				def = append(def, "")
+		}
+		data := this.getJsonRequest()
+		it, ok := data[key]
+		if !ok {
+				return def[0]
+		}
+		if str, ok := it.(string); ok {
+				return str
 		}
 		return def[0]
 }

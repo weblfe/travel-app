@@ -142,6 +142,8 @@ func FilterWrapper(filters ...func(m beego.M) beego.M) func(m beego.M) beego.M {
 }
 
 // 字段过滤器
+// files []string 字段
+// exclude bool # true : 过滤对应字段, false: 保留对应字段
 func FieldsFilter(fields []string, exclude ...bool) func(m beego.M) beego.M {
 		if len(exclude) == 0 {
 				exclude = append(exclude, true)

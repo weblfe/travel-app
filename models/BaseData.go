@@ -455,6 +455,10 @@ func (this *dataClassImpl) SetNumIntN(num *int64, v interface{}) bool {
 						return true
 				}
 				return false
+		case time.Time:
+				var t = v.(time.Time)
+				*num = t.Unix()
+				return true
 		default:
 				return false
 		}
@@ -565,6 +569,18 @@ func (this *dataClassImpl) InitDefault() {
 		}
 		this.defaultProvider()
 		return
+}
+
+func (this *dataClassImpl) SetStringArr(arr *[]string, v interface{}) bool {
+		if str, ok := v.(string); ok && str != "" {
+				*arr = strings.SplitN(str, ",", -1)
+				return true
+		}
+		if it, ok := v.([]string); ok && len(it) > 0 {
+				*arr = it
+				return true
+		}
+		return false
 }
 
 func Merger(m beego.M, m2 beego.M) beego.M {
