@@ -67,7 +67,10 @@ func (this *postRepositoryImpl) Create() common.ResponseJson {
 		data.UserId = userId
 		// 自动过滤敏感词
 		data.Content = models.GetDfaInstance().ChangeSensitiveWords(data.Content)
-		data.Status = models.StatusAuditPass
+		// 仅内容时 自动通过
+		if data.Type == models.ContentType {
+				data.Status = models.StatusAuditPass
+		}
 		err = this.service.Create(data.Defaults())
 		if err != nil {
 				return common.NewErrorResp(common.NewErrors(common.ServiceFailed, err), "发布失败")
