@@ -10,15 +10,15 @@ import (
 
 // 用户关注
 type UserFocus struct {
-		Id            bson.ObjectId `json:"id" bson:"_id"`                            // ID
-		Status        int           `json:"status" bson:"status"`                     // 状态
-		UserId        bson.ObjectId `json:"userId" bson:"userId"`                     // 用户ID
-		PostId        bson.ObjectId `json:"postId,omitempty" json:"postId,omitempty"` // 文章ID
-		FocusUserId   bson.ObjectId `json:"focusUserId" bson:"focusUserId"`           // 被关注的用户ID
-		Extras        beego.M       `json:"extras" bson:"extras"`                     // 扩展数据
-		CreatedAt     time.Time     `json:"createdAt" bson:"createdAt"`               // 创建时间
-		UpdatedAt     time.Time     `json:"updatedAt" bson:"updatedAt"`               // 更新时间
-		dataClassImpl `json:",omitempty" bson:",omitempty"`
+		Id            bson.ObjectId `json:"id" bson:"_id"`                                // ID
+		Status        int           `json:"status" bson:"status"`                         // 状态
+		UserId        bson.ObjectId `json:"userId" bson:"userId"`                         // 用户ID
+		TargetId      bson.ObjectId `json:"targetId,omitempty" bson:"targetId,omitempty"` // 引发关注的作品ID
+		FocusUserId   bson.ObjectId `json:"focusUserId" bson:"focusUserId"`               // 被关注的用户ID
+		Extras        beego.M       `json:"extras" bson:"extras"`                         // 扩展数据
+		CreatedAt     time.Time     `json:"createdAt" bson:"createdAt"`                   // 创建时间
+		UpdatedAt     time.Time     `json:"updatedAt" bson:"updatedAt"`                   // 更新时间
+		dataClassImpl `json:",omitempty" bson:",omitempty"`                               // 工具类
 }
 
 // 用户关注数据模型
@@ -56,7 +56,7 @@ func (this *UserFocus) data() beego.M {
 				"id":          this.Id.Hex(),
 				"status":      this.Status,
 				"userId":      this.UserId.Hex(),
-				"postId":      this.PostId.Hex(),
+				"postId":      this.TargetId.Hex(),
 				"extras":      this.Extras,
 				"focusUserId": this.FocusUserId.Hex(),
 				"createdAt":   this.CreatedAt.Unix(),
@@ -124,7 +124,7 @@ func (this *UserFocus) Set(key string, v interface{}) *UserFocus {
 		case "userId":
 				this.SetObjectId(&this.UserId, v)
 		case "postId":
-				this.SetObjectId(&this.PostId, v)
+				this.SetObjectId(&this.TargetId, v)
 		case "extras":
 				this.SetMapper(&this.Extras, v)
 		case "focusUserId":
@@ -150,18 +150,32 @@ func (this *UserFocusModel) CreateIndex() {
 				Sparse: false,
 		})
 		_ = this.Collection().EnsureIndexKey("status")
-		_ = this.Collection().EnsureIndexKey("postId")
+		_ = this.Collection().EnsureIndexKey("targetId")
 }
 
 func (this *UserFocusModel) GetByUnique(m beego.M) *UserFocus {
 		var (
 				err   error
-				query = bson.M{
-						"userId":      this.id(m["userId"]),
-						"focusUserId": this.id(m["focusUserId"]),
-				}
-				data = NewUserFocus()
+				data  = NewUserFocus()
+				query = bson.M{"userId": "", "focusUserId": ""}
 		)
+		for key, _ := range query {
+				v, ok := m[key]
+				if !ok {
+						return nil
+				}
+				str, ok := v.(string)
+				if ok && str != "" {
+						query[key] = this.id(str)
+						continue
+				}
+				id, ok := v.(bson.ObjectId)
+				if ok && id != "" {
+						query[key] = id
+						continue
+				}
+				return nil
+		}
 		err = this.NewQuery(query).One(data)
 		if err == nil {
 				return data
@@ -172,7 +186,7 @@ func (this *UserFocusModel) GetByUnique(m beego.M) *UserFocus {
 // 是否用户互关注
 func (this *UserFocusModel) GetFocusTwo(userId, userId2 string) bool {
 		var query = bson.M{
-				"$or": []beego.M{
+				"$and": []beego.M{
 						{"userId": this.id(userId), "focusUserId": this.id(userId2), "status": 1},
 						{"userId": this.id(userId2), "focusUserId": this.id(userId), "status": 1},
 				},

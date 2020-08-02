@@ -17,8 +17,6 @@ type UserInfoRepository interface {
 		ResetPassword() common.ResponseJson
 		GetUserFriends() common.ResponseJson
 		UpdateUserInfo() common.ResponseJson
-		FocusOff() common.ResponseJson
-		FocusOn() common.ResponseJson
 }
 
 type UserInfoRepositoryImpl struct {
@@ -37,11 +35,7 @@ func (this *UserInfoRepositoryImpl) init() {
 		this.userService = services.UserServiceOf()
 }
 
-func (this *UserInfoRepositoryImpl) FocusOn() common.ResponseJson {
-
-		return nil
-}
-
+// 获取 全部用户信息 [个人]
 func (this *UserInfoRepositoryImpl) GetUserInfo() common.ResponseJson {
 		var (
 				id string
@@ -205,6 +199,3 @@ func (this *UserInfoRepositoryImpl) UpdateUserInfo() common.ResponseJson {
 		return common.NewFailedResp(common.ServiceFailed, err, "更新失败")
 }
 
-func (this *UserInfoRepositoryImpl) FocusOff() common.ResponseJson {
-		return common.NewInDevResp(this.ctx.GetActionId())
-}

@@ -38,6 +38,8 @@ func (this *UserController) Register() {
 		this.Send(res)
 }
 
+// 用户注销登陆接口
+// @router /logout  [delete]
 func (this *UserController)Logout()  {
 		this.Send(repositories.NewLoginRepository(this).Logout())
 }
@@ -67,15 +69,15 @@ func (this *UserController) GetUserFriends() {
 }
 
 // 关注用户接口
-// @router /focus/on/:userId [post]
+// @router /focus/:userId [post]
 func (this *UserController) FocusOn() {
-		this.Send(repositories.NewUserInfoRepository(this).FocusOn())
+		this.Send(repositories.NewBehaviorRepository(this).FocusOn())
 }
 
 // 取消关注接口
-// @router /focus/off/:userId [delete]
+// @router /focus/:userId [delete]
 func (this *UserController) FocusOff() {
-		this.Send(repositories.NewUserInfoRepository(this).FocusOff())
+		this.Send(repositories.NewBehaviorRepository(this).FocusOff())
 }
 
 

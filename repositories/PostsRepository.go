@@ -99,10 +99,10 @@ func (this *postRepositoryImpl) Lists(typ ...string) common.ResponseJson {
 				meta     *models.Meta
 				ctx      = this.ctx.GetParent()
 				items    []*models.TravelNotes
+				ty       = ctx.GetString("type")
 				page, _  = ctx.GetInt("page", 1)
 				count, _ = ctx.GetInt("count", 20)
 				limit    = models.NewListParam(page, count)
-				ty       = ctx.GetString("type")
 		)
 		if ty == "" && len(typ) != 0 {
 				ty = typ[0]

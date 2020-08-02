@@ -32,6 +32,10 @@ func (this *commentRepository) init() {
 		this.service = services.CommentServiceOf()
 }
 
+func (this *commentRepository) GetDto() *DtoRepository {
+		return GetDtoRepository()
+}
+
 func (this *commentRepository) Create() common.ResponseJson {
 		var (
 				err     error
@@ -90,19 +94,28 @@ func (this *commentRepository) Lists() common.ResponseJson {
 
 // 评论转换
 func (this *commentRepository) each(items []*models.Comment) []beego.M {
-		var lists []beego.M
+		var (
+				lists []beego.M
+				trans = this.getTransports()
+		)
 		for _, it := range items {
-				data := it.M(this.getTransports())
-				data["reviews"] = []*models.Comment{}
-				if it.ReviewNum > 0 {
-						reviews, count := this.service.GetReviews(it.Id.Hex())
-						if count > 0 {
-								data["review"] = this.each(reviews)
-						}
-				}
+				data := it.M(trans)
+				this.addReviews(&data, it)
 				lists = append(lists, data)
 		}
 		return lists
+}
+
+// 添加回复
+func (this *commentRepository) addReviews(data *beego.M, it *models.Comment) {
+		(*data)["reviews"] = []*models.Comment{}
+		if it.ReviewNum <= 0 {
+				return
+		}
+		var reviews, count = this.service.GetReviews(it.Id.Hex())
+		if count > 0 {
+				(*data)["reviews"] = this.each(reviews)
+		}
 }
 
 func (this *commentRepository) getTransports() func(m beego.M) beego.M {
@@ -112,10 +125,6 @@ func (this *commentRepository) getTransports() func(m beego.M) beego.M {
 				m = this.appendUser(m, dto)
 				return m
 		}
-}
-
-func (this *commentRepository) GetDto() *DtoRepository {
-		return GetDtoRepository()
 }
 
 func (this *commentRepository) appendUser(m beego.M, dto *DtoRepository) beego.M {

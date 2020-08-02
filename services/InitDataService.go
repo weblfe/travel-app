@@ -3,6 +3,7 @@ package services
 import (
 		"encoding/json"
 		"fmt"
+		"github.com/astaxie/beego/logs"
 		"github.com/weblfe/travel-app/libs"
 		"github.com/weblfe/travel-app/models"
 		"io"
@@ -12,6 +13,11 @@ import (
 		"strings"
 		"sync"
 )
+
+type group struct {
+		Type string
+		App  string
+}
 
 type InitDataService interface {
 		Load(file string, loader ...string) error
@@ -252,8 +258,9 @@ func init() {
 		instance.SetLoader("tags", tagsDataLoader)
 		instance.SetLoader("app_info", appInfoDataLoader)
 		instance.SetLoader("roles", userRoleConfigDataLoader)
-		instance.SetLoader("init",initLoader)
-		instance.SetLoader("configs",configsLoader)
+		instance.SetLoader("init", initLoader)
+		instance.SetLoader("configs", configsLoader)
+		instance.SetLoader("sensitives", sensitivesLoader)
 }
 
 // 短信数据数据模版加载器
@@ -316,6 +323,59 @@ func userRoleConfigDataLoader(data []byte, filename string) bool {
 		return true
 }
 
+// 敏感词加载
+func sensitivesLoader(data []byte, filename string) bool {
+		if !strings.Contains(filename, "sensitives") {
+				return false
+		}
+		var jsonArr = loaderJsons(data)
+		if jsonArr == nil {
+				return false
+		}
+		var items = getSensitivesByGroups(jsonArr)
+		for g, words := range items {
+				err := models.SensitiveWordsModelOf().Adds(words, g.Type, g.App)
+				if err == nil {
+						continue
+				} else {
+						logs.Error(err)
+				}
+		}
+		return true
+}
+
+func getSensitivesByGroups(items []map[string]interface{}) map[group][]string {
+		var (
+				data    = make(map[group][]string)
+				appName = models.NewAppInfo().GetAppName()
+		)
+		for _, it := range items {
+				word, ok1 := it["word"]
+				if !ok1 || word == nil || word == "" {
+						continue
+				}
+				typ, ok2 := it["type"]
+				if !ok2 || typ == nil || typ == "" {
+						typ = models.SensitiveWordsTypeGlobal
+				}
+				app, ok3 := it["app"]
+				if !ok3 || app == nil || app == "" {
+						app = appName
+				}
+				groupKey := group{
+						Type: typ.(string),
+						App:  app.(string),
+				}
+				arr, ok := data[groupKey]
+				if !ok {
+						arr = []string{}
+				}
+				arr = append(arr, word.(string))
+				data[groupKey] = arr
+		}
+		return data
+}
+
 // 加载json数据
 func loaderJsons(data []byte) []map[string]interface{} {
 		var arr []map[string]interface{}
@@ -327,7 +387,7 @@ func loaderJsons(data []byte) []map[string]interface{} {
 }
 
 // 加载系统初始数据
-func initLoader(data []byte, filename string) bool  {
+func initLoader(data []byte, filename string) bool {
 		if !strings.Contains(filename, "init") {
 				return false
 		}
@@ -335,17 +395,17 @@ func initLoader(data []byte, filename string) bool  {
 		if jsonArr == nil {
 				return false
 		}
-		for _,item:=range jsonArr {
+		for _, item := range jsonArr {
 				switch item["system"] {
 				case "code":
-					newAppService().InitCode()
+						newAppService().InitCode()
 				}
 		}
 		return true
 }
 
 // 配置信息载入初始化
-func configsLoader(data []byte,filename string) bool  {
+func configsLoader(data []byte, filename string) bool {
 		if !strings.Contains(filename, "configs") {
 				return false
 		}
@@ -353,7 +413,7 @@ func configsLoader(data []byte,filename string) bool  {
 		if jsonArr == nil {
 				return false
 		}
-		if err:=ConfigServiceOf().Adds(jsonArr);err==nil {
+		if err := ConfigServiceOf().Adds(jsonArr); err == nil {
 				return true
 		}
 		return false
