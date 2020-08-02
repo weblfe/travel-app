@@ -1,6 +1,7 @@
 package services
 
 import (
+		"github.com/globalsign/mgo/bson"
 		"sync"
 )
 
@@ -111,4 +112,17 @@ func (this *BaseService) GetAttribute(key string, defaults ...interface{}) inter
 func (this *BaseService) SetAttribute(key string, value interface{}) Service {
 		this.Attributes[key] = value
 		return this
+}
+
+func (this *BaseService) id(v interface{}) bson.ObjectId {
+		if v == nil || v == "" {
+				return ""
+		}
+		if str, ok := v.(string); ok {
+				return bson.ObjectIdHex(str)
+		}
+		if id, ok := v.(bson.ObjectId); ok {
+				return id
+		}
+		return ""
 }

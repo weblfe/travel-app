@@ -12,6 +12,7 @@ import (
 
 type UserService interface {
 		RemoveByUid(uid string) bool
+		Exists(m beego.M) bool
 		Create(model *models.User) common.Errors
 		Add(user map[string]interface{}) common.Errors
 		Inserts(users []map[string]interface{}, txn ...func([]map[string]interface{}) bool) int
@@ -197,6 +198,10 @@ func (this *UserServiceImpl) Init() {
 		this.Constructor = func(args ...interface{}) interface{} {
 				return UserServiceOf()
 		}
+}
+
+func (this *UserServiceImpl)Exists(m beego.M) bool  {
+		return this.userModel.Exists(m)
 }
 
 // 字段对比过滤器

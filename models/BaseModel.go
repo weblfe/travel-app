@@ -3,6 +3,7 @@ package models
 import (
 		"errors"
 		"github.com/astaxie/beego"
+		"github.com/astaxie/beego/cache"
 		"github.com/astaxie/beego/logs"
 		"github.com/globalsign/mgo"
 		"github.com/globalsign/mgo/bson"
@@ -318,6 +319,9 @@ func (this *BaseModel) GetByKey(key string, v interface{}, result interface{}) e
 }
 
 func (this *BaseModel) GetById(id string, result interface{}, selects ...interface{}) error {
+		if id == "" {
+				return mgo.ErrNotFound
+		}
 		table := this.Collection()
 		defer this.destroy()
 		defer this.resetScopeQuery()
@@ -662,6 +666,67 @@ func (this *BaseModel) IsDuplicate(err error) bool {
 		return IsDuplicate(err)
 }
 
+// 获取锁
+func (this *BaseModel) getRedisLocker(name string, duration ...time.Duration) string {
+		var (
+				err      error
+				value    = time.Now().UnixNano()
+				cacheIns = this.getLocker()
+		)
+		if len(duration) == 0 {
+				duration = append(duration, time.Minute)
+		}
+		if cacheIns == nil {
+				cacheIns = cache.NewMemoryCache()
+		}
+		if locker, ok := cacheIns.(cache.Cache); ok {
+				// 检查
+				if locker.IsExist(name) {
+						return ""
+				}
+				// 上锁
+				err = locker.Put(name, value, duration[0])
+				if err == nil {
+						return name
+				}
+				// 检查
+				v := locker.Get(name)
+				if v == nil || v != value {
+						return ""
+				}
+				return name
+		}
+		return ""
+}
+
+// 解锁
+func (this *BaseModel) unLocker(name string) bool {
+		var err = this.getLocker().Delete(name)
+		if err == nil {
+				return true
+		}
+		return false
+}
+
+// 获取锁
+func (this *BaseModel) getLocker() cache.Cache {
+		var (
+				cacheIns = this.GetProfile("redisLocker")
+		)
+		if cacheIns == nil {
+				cacheIns = cache.NewMemoryCache()
+				this.SetProfile("redisLocker", cacheIns)
+		}
+		if locker, ok := cacheIns.(cache.Cache); ok {
+				return locker
+		}
+		return nil
+}
+
+func (this *BaseModel) wait() {
+		time.Sleep(100 * time.Millisecond)
+}
+
 func IsNotFound(err error) bool {
 		return mgo.ErrNotFound == err
 }
@@ -672,4 +737,9 @@ func IsErrCursor(err error) bool {
 
 func IsDuplicate(err error) bool {
 		return mgo.IsDup(err)
+}
+
+func GetDate() int64 {
+		year, m, day := time.Now().Date()
+		return int64(year + int(m) + day)
 }

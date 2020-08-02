@@ -15,6 +15,9 @@ type PostsRepository interface {
 		Create() common.ResponseJson
 		Update() common.ResponseJson
 		Audit() common.ResponseJson
+		GetLikes() common.ResponseJson
+		GetRanking() common.ResponseJson
+		GetFollows() common.ResponseJson
 		Lists(...string) common.ResponseJson
 		GetById(...string) common.ResponseJson
 		RemoveId(...string) common.ResponseJson
@@ -62,6 +65,9 @@ func (this *postRepositoryImpl) Create() common.ResponseJson {
 				return common.NewErrorResp(common.NewErrors(common.EmptyParamCode, "post create failed"), "参数不足")
 		}
 		data.UserId = userId
+		// 自动过滤敏感词
+		data.Content = models.GetDfaInstance().ChangeSensitiveWords(data.Content)
+		data.Status = models.StatusAuditPass
 		err = this.service.Create(data.Defaults())
 		if err != nil {
 				return common.NewErrorResp(common.NewErrors(common.ServiceFailed, err), "发布失败")
@@ -243,4 +249,82 @@ func (this *postRepositoryImpl) getPostTransform() func(m beego.M) beego.M {
 				}
 				return m
 		}
+}
+
+// 获取喜欢列表
+func (this *postRepositoryImpl) GetLikes() common.ResponseJson {
+		/*	var (
+					meta     *models.Meta
+					ctx      = this.ctx.GetParent()
+					items    []*models.TravelNotes
+					ty       = ctx.GetString("type")
+					page, _  = ctx.GetInt("page", 1)
+					count, _ = ctx.GetInt("count", 20)
+					limit    = models.NewListParam(page, count)
+			)
+			if ty == "" && len(typ) != 0 {
+					ty = typ[0]
+			}
+			var extras = beego.M{"privacy": models.PublicPrivacy, "status": models.StatusAuditPass}
+
+			if items != nil && len(items) > 0 && meta != nil {
+					var arr []beego.M
+					for _, item := range items {
+							arr = append(arr, item.M(this.getPostTransform()))
+					}
+					return common.NewSuccessResp(beego.M{"items": arr, "meta": meta}, "罗列成功")
+			}*/
+		return common.NewFailedResp(common.RecordNotFound, common.RecordNotFoundError)
+}
+
+// 获取排行榜列表
+func (this *postRepositoryImpl) GetRanking() common.ResponseJson {
+		/*var (
+				meta     *models.Meta
+				ctx      = this.ctx.GetParent()
+				items    []*models.TravelNotes
+				ty       = ctx.GetString("type")
+				page, _  = ctx.GetInt("page", 1)
+				count, _ = ctx.GetInt("count", 20)
+				limit    = models.NewListParam(page, count)
+		)
+		if ty == "" && len(typ) != 0 {
+				ty = typ[0]
+		}
+		var extras = beego.M{"privacy": models.PublicPrivacy, "status": models.StatusAuditPass}
+
+		if items != nil && len(items) > 0 && meta != nil {
+				var arr []beego.M
+				for _, item := range items {
+						arr = append(arr, item.M(this.getPostTransform()))
+				}
+				return common.NewSuccessResp(beego.M{"items": arr, "meta": meta}, "罗列成功")
+		}*/
+		return common.NewFailedResp(common.RecordNotFound, common.RecordNotFoundError)
+}
+
+// 获取关注列表
+func (this *postRepositoryImpl) GetFollows() common.ResponseJson {
+		/*var (
+				meta     *models.Meta
+				ctx      = this.ctx.GetParent()
+				items    []*models.TravelNotes
+				ty       = ctx.GetString("type")
+				page, _  = ctx.GetInt("page", 1)
+				count, _ = ctx.GetInt("count", 20)
+				limit    = models.NewListParam(page, count)
+		)
+		if ty == "" && len(typ) != 0 {
+				ty = typ[0]
+		}
+		var extras = beego.M{"privacy": models.PublicPrivacy, "status": models.StatusAuditPass}
+
+		if items != nil && len(items) > 0 && meta != nil {
+				var arr []beego.M
+				for _, item := range items {
+						arr = append(arr, item.M(this.getPostTransform()))
+				}
+				return common.NewSuccessResp(beego.M{"items": arr, "meta": meta}, "罗列成功")
+		}*/
+		return common.NewFailedResp(common.RecordNotFound, common.RecordNotFoundError)
 }

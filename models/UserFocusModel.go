@@ -159,7 +159,7 @@ func (this *UserFocusModel) GetByUnique(m beego.M) *UserFocus {
 				data  = NewUserFocus()
 				query = bson.M{"userId": "", "focusUserId": ""}
 		)
-		for key, _ := range query {
+		for key := range query {
 				v, ok := m[key]
 				if !ok {
 						return nil

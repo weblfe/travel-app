@@ -49,6 +49,9 @@ func (this *commentRepository) Create() common.ResponseJson {
 		if comment.Content != "" {
 				comment.UserId = getUserId(this.ctx)
 		}
+		// 自动过滤敏感词
+		comment.Content = models.GetDfaInstance().ChangeSensitiveWords(comment.Content)
+		comment.Status = models.StatusAuditPass
 		err = this.service.Commit(comment)
 		if err != nil {
 				return common.NewErrorResp(common.NewErrors(err, common.ServiceFailed), "发布评论失败")

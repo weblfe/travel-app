@@ -40,7 +40,7 @@ func (this *UserController) Register() {
 
 // 用户注销登陆接口
 // @router /logout  [delete]
-func (this *UserController)Logout()  {
+func (this *UserController) Logout() {
 		this.Send(repositories.NewLoginRepository(this).Logout())
 }
 
@@ -69,15 +69,45 @@ func (this *UserController) GetUserFriends() {
 }
 
 // 关注用户接口
-// @router /focus/:userId [post]
+// @router /follow/:userId [post]
 func (this *UserController) FocusOn() {
 		this.Send(repositories.NewBehaviorRepository(this).FocusOn())
 }
 
 // 取消关注接口
-// @router /focus/:userId [delete]
+// @router /follow/:userId [delete]
 func (this *UserController) FocusOff() {
 		this.Send(repositories.NewBehaviorRepository(this).FocusOff())
 }
 
+// 获取粉丝接口
+// @router /fans [get]
+func (this *UserController) GetFans() {
+		this.Send(repositories.NewBehaviorRepository(this).GetUserFans())
+}
 
+// 获取粉丝接口
+// @router /fans/:userId [get]
+func (this *UserController) GetUserFans() {
+		var userId, _ = this.GetParam(":userId", "0")
+		this.Send(repositories.NewBehaviorRepository(this).GetUserFans(userId.(string)))
+}
+
+// 获取其他用户关注接口
+// @router /follows/:userId [get]
+func (this *UserController) GetUserFollows() {
+		var userId, _ = this.GetParam(":userId", "0")
+		this.Send(repositories.NewBehaviorRepository(this).GetUserFollows(userId.(string)))
+}
+
+// 获取关注列表接口
+// @router /follows [get]
+func (this *UserController) GetFollows() {
+		this.Send(repositories.NewBehaviorRepository(this).GetUserFollows())
+}
+
+// 获取关注列表接口
+// @router /friends/:userId [get]
+func (this *UserController) GetFriends() {
+		this.Send(repositories.NewUserInfoRepository(this).GetUserFriends(this.GetString(":userId", "0")))
+}

@@ -2,6 +2,7 @@ package repositories
 
 import (
 		"github.com/astaxie/beego"
+		"github.com/globalsign/mgo/bson"
 		"github.com/weblfe/travel-app/common"
 		"github.com/weblfe/travel-app/libs"
 		"github.com/weblfe/travel-app/middlewares"
@@ -15,13 +16,14 @@ import (
 type UserInfoRepository interface {
 		GetUserInfo() common.ResponseJson
 		ResetPassword() common.ResponseJson
-		GetUserFriends() common.ResponseJson
+		GetUserFriends(ids ...string) common.ResponseJson
 		UpdateUserInfo() common.ResponseJson
 }
 
 type UserInfoRepositoryImpl struct {
-		ctx         common.BaseRequestContext
-		userService services.UserService
+		userService         services.UserService
+		ctx                 common.BaseRequestContext
+		userBehaviorService services.UserBehaviorService
 }
 
 func NewUserInfoRepository(ctx common.BaseRequestContext) UserInfoRepository {
@@ -33,6 +35,11 @@ func NewUserInfoRepository(ctx common.BaseRequestContext) UserInfoRepository {
 
 func (this *UserInfoRepositoryImpl) init() {
 		this.userService = services.UserServiceOf()
+		this.userBehaviorService = services.UserBehaviorServiceOf()
+}
+
+func (this *UserInfoRepositoryImpl) getDto() *DtoRepository {
+		return GetDtoRepository()
 }
 
 // 获取 全部用户信息 [个人]
@@ -166,8 +173,37 @@ func (this *UserInfoRepositoryImpl) resetPasswordByMobileSms(mobile string, code
 		return nil
 }
 
-func (this *UserInfoRepositoryImpl) GetUserFriends() common.ResponseJson {
-		return common.NewInDevResp(this.ctx.GetActionId())
+func (this *UserInfoRepositoryImpl) GetUserFriends(ids ...string) common.ResponseJson {
+		if len(ids) == 0 {
+				ids = append(ids, "0")
+		}
+		var (
+				users         = make([]*BaseUser, 2)
+				currentUserId = getUserId(this.ctx)
+				userId        = ids[0]
+				page, count   = this.ctx.GetInt("page", 1), this.ctx.GetInt("count", 20)
+				limit         = models.NewListParam(page, count)
+		)
+		if userId == "" {
+				userId = currentUserId
+		}
+		if userId == "0" {
+				return common.NewFailedResp(common.InvalidParametersCode, "用户ID缺失")
+		}
+		var userIds, meta = this.userBehaviorService.ListsByUserId(userId, limit)
+		if userIds == nil || meta == nil {
+				return common.NewFailedResp(common.RecordNotFound, "空")
+		}
+		users = users[:0]
+		var dto = this.getDto()
+		for _, user := range userIds {
+				it := dto.GetUserById(user.FocusUserId.Hex())
+				users = append(users, it)
+		}
+		if len(users) == 0 {
+				return common.NewFailedResp(common.RecordNotFound, "空")
+		}
+		return common.NewSuccessResp(bson.M{"items": users, "meta": meta}, "获取成功")
 }
 
 func (this *UserInfoRepositoryImpl) UpdateUserInfo() common.ResponseJson {
@@ -198,4 +234,3 @@ func (this *UserInfoRepositoryImpl) UpdateUserInfo() common.ResponseJson {
 		}
 		return common.NewFailedResp(common.ServiceFailed, err, "更新失败")
 }
-

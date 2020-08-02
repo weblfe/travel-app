@@ -1,6 +1,7 @@
 package models
 
 import (
+		"errors"
 		"github.com/astaxie/beego"
 		"github.com/globalsign/mgo"
 		"github.com/globalsign/mgo/bson"
@@ -31,6 +32,9 @@ type UserRelationModel struct {
 const (
 		UserRelationTable = "user_relations" // 表名
 		TargetTypeFriend  = "friend"         // 朋友关系
+		StatusOk          = 1                // 状态 正常
+		StatusUnKnown     = 0                // 状态 初始化
+		StatusCancel      = 2                // 状态 取消
 )
 
 func NewUserRelation() *UserRelation {
@@ -188,13 +192,14 @@ func (this *UserRelationModel) init() *UserRelationModel {
 		return this
 }
 
+// 唯一
 func (this *UserRelationModel) GetByUnique(m beego.M) *UserRelation {
 		var (
 				err   error
 				data  = NewUserRelation()
 				query = bson.M{"userId": "", "targetUserId": "", "targetType": ""}
 		)
-		for key, _ := range query {
+		for key := range query {
 				v, ok := m[key]
 				if !ok {
 						return nil
@@ -211,4 +216,87 @@ func (this *UserRelationModel) GetByUnique(m beego.M) *UserRelation {
 				return data
 		}
 		return nil
+}
+
+// 保存关系记录
+func (this *UserRelationModel) SaveInfo(userId string, targetUserId string, extras ...beego.M) error {
+		if userId == "" || targetUserId == "" {
+				return errors.New("userId or targetUserId empty")
+		}
+		if userId == targetUserId {
+				return errors.New("userId must not eq targetUserId")
+		}
+		if len(extras) == 0 {
+				extras = append(extras, beego.M{"status": 1})
+		}
+		var (
+				user   = NewUserRelation()
+				status = getStatus(extras[0])
+				typ    = getTargetType(extras[0])
+				query  = bson.M{"userId": userId, "targetUserId": targetUserId, "targetType": typ}
+				friend = this.GetByUnique(beego.M(query))
+		)
+		delete(extras[0],"status")
+		delete(extras[0],"targetType")
+		if friend == nil {
+				user.UserId = userId
+				user.TargetUserId = targetUserId
+				user.Status = status
+				user.Extras = beego.M{}
+				user.TargetType = typ
+				if len(extras) > 0 {
+						user.Extras = Merger(user.Extras, extras[0])
+				}
+				return user.Save()
+		}
+		if status != StatusOk {
+				return errors.New("error status")
+		}
+		friend.Status = 1
+		friend.Extras = beego.M{}
+		friend.TargetType = typ
+		if len(extras) > 0 {
+				friend.Extras = Merger(friend.Extras, extras[0])
+		}
+		friend.UpdatedAt = time.Now().Local()
+		return this.Update(bson.M{"_id": friend.Id}, friend)
+}
+
+// 统计数量
+func (this *UserFocusModel) Count(m beego.M) int64 {
+		var count, err = this.NewQuery(bson.M(m)).Count()
+		if err == nil {
+				return int64(count)
+		}
+		return 0
+}
+
+// 状态
+func getStatus(m beego.M, defaults ...int) int {
+		if len(defaults) == 0 {
+				defaults = append(defaults, StatusOk)
+		}
+		var value, ok = m["status"]
+		if !ok {
+				return defaults[0]
+		}
+		if v, ok := value.(int); ok {
+				return v
+		}
+		return defaults[0]
+}
+
+// 获取类型
+func getTargetType(m beego.M, defaults ...string) string {
+		if len(defaults) == 0 {
+				defaults = append(defaults, TargetTypeFriend)
+		}
+		var value, ok = m["targetType"]
+		if !ok {
+				return defaults[0]
+		}
+		if v, ok := value.(string); ok {
+				return v
+		}
+		return defaults[0]
 }

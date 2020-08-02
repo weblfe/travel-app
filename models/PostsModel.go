@@ -60,6 +60,11 @@ var (
 		StatusMap   = map[int]string{StatusAuditNotPass: "审核不通过", StatusWaitAudit: "待审核", StatusAuditOk: "审核通过", StatusAuditOff: "下架"}
 )
 
+func NewTravelNotes() *TravelNotes {
+		var post = new(TravelNotes)
+		return post
+}
+
 func (this *TravelNotes) Load(data bson.M) *TravelNotes {
 		for key, v := range data {
 				this.Set(key, v)
@@ -314,6 +319,7 @@ func (this *TravelNotes) Save() error {
 						return m
 				}))
 		}
+		this.Defaults()
 		return model.Add(this)
 }
 
@@ -350,5 +356,47 @@ func (this *PostsModel) Incr(id string, typ string, num ...int) error {
 		if len(num) == 0 {
 				num = append(num, 1)
 		}
-		return this.IncrBy(bson.M{"_id": bson.ObjectIdHex(id)}, beego.M{typ: int64(num[0]), "updatedAt": time.Now().Local()})
+		var err = this.IncrBy(bson.M{"_id": bson.ObjectIdHex(id)}, beego.M{typ: int64(num[0])})
+		if err == nil {
+				// 自动算分任务
+				go this.AutoScore(id)
+		}
+		return err
+}
+
+// 自动算分
+func (this *PostsModel) AutoScore(id string) bool {
+		var locker = this.getLocker(id)
+		defer this.unLocker(locker)
+		var (
+				post = NewTravelNotes()
+				err  = this.GetById(id, post)
+		)
+		if err != nil {
+				return false
+		}
+		var score = post.Score
+		// 算分
+		post.Score = this.calculate(post)
+		err = this.Update(beego.M{"_id": post.Id, "score": score}, bson.M{"score": post.Score})
+		if err != nil {
+				return false
+		}
+		return true
+}
+
+// 算分
+func (this *PostsModel) calculate(data *TravelNotes) int64 {
+		return data.ThumbsUpNum + data.CommentNum/3
+}
+
+// 获取锁
+func (this *PostsModel) getLocker(name string) string {
+		for {
+				id := this.getRedisLocker(name)
+				if id != "" {
+						return id
+				}
+				this.wait()
+		}
 }
