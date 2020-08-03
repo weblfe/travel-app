@@ -477,9 +477,10 @@ func (this *DtoRepository) lru(num ...int) {
 		if len(num) == 0 {
 				num = append(num, arr.Len()/2)
 		}
-		logs.Info("系统内部缓存GC,checking...")
+
 		// 定时Gc
 		if num[0] == -1 {
+				logs.Info("系统内部缓存GC,checking...")
 				this.expireGc(arr)
 				return
 		}
@@ -509,6 +510,7 @@ func (this *DtoRepository) gcBySize(table cacheTable, size int) {
 		if size > total {
 				size = total
 		}
+		logs.Info("系统内部缓存GC,checking...")
 		this._Table = table[:size]
 		this._Len = this._Table.Len()
 }

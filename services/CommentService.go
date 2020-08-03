@@ -47,11 +47,32 @@ func (this *commentServiceImpl) Commit(data *models.Comment) error {
 		if data.UserId == "" {
 				return errors.New("empty userId")
 		}
+		if data.TargetType =="" {
+				return errors.New("empty targetType")
+		}
+		// 检查是否自己给自己评论，回复
+		if err:=this.check(data);err!=nil {
+				return err
+		}
 		var err = this.model.Add(data)
 		if err == nil {
 				go this.addSuccessAfter(data)
 		}
 		return err
+}
+
+func (this *commentServiceImpl)check(data *models.Comment) error {
+		if PostServiceOf().Exists(bson.M{"userId":data.UserId,"_id":bson.ObjectIdHex(data.TargetId)}) {
+				return errors.New("comment limit for self")
+		}
+		if this.Exists(bson.M{"userId":data.UserId,"_id":bson.ObjectIdHex(data.TargetId)}) {
+				return errors.New("review limit for self")
+		}
+		return nil
+}
+
+func (this *commentServiceImpl)Exists(query bson.M) bool {
+		return this.model.Exists(query)
 }
 
 // 更新评论数

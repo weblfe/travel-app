@@ -37,11 +37,13 @@ func CommentModelOf() *CommentModel {
 }
 
 const (
-		CommentTable      = "comments"
-		StatusAuditPass   = 1
-		StatusAuditWait   = 0
-		StatusAuditUnPass = 2
-		StatusOff         = -1
+		CommentTable             = "comments"
+		StatusAuditPass          = 1
+		StatusAuditWait          = 0
+		StatusAuditUnPass        = 2
+		StatusOff                = -1
+		CommentTargetTypeComment = "post"
+		CommentTargetTypeReview  = "comment"
 )
 
 var (

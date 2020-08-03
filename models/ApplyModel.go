@@ -11,6 +11,7 @@ import (
 // 工单 （申请｜举报） 记录
 type ApplyInfo struct {
 		Id            bson.ObjectId `json:"id" bson:"_id"`              // 工单ID
+		Title         string        `json:"title" bson:"title"`         // 标题
 		UserId        string        `json:"userId" bson:"userId"`       // 申请｜举报人
 		Type          string        `json:"type" bson:"type"`           // 类型
 		Target        string        `json:"target" bson:"target"`       // 举报｜申请目标
@@ -51,6 +52,7 @@ func (this *ApplyInfo) data() beego.M {
 		return beego.M{
 				"id":        this.Id.Hex(),
 				"userId":    this.UserId,
+				"title":     this.Title,
 				"type":      this.Type,
 				"target":    this.Target,
 				"content":   this.Content,
@@ -68,6 +70,8 @@ func (this *ApplyInfo) Set(key string, value interface{}) *ApplyInfo {
 				this.SetObjectId(&this.Id, value)
 		case "userId":
 				this.SetString(&this.UserId, value)
+		case "title":
+				this.SetString(&this.Title, value)
 		case "type":
 				this.SetString(&this.Type, value)
 		case "target":
@@ -164,18 +168,27 @@ func (this *ApplyInfoModel) TableName() string {
 func (this *ApplyInfoModel) CreateIndex() {
 		// unique mobile
 		_ = this.Collection().EnsureIndex(mgo.Index{
-				Key:    []string{"userId", "target", "type", "date"},
+				Key:    []string{"userId", "target", "type", "title"},
 				Unique: true,
 				Sparse: false,
 		})
+		_ = this.Collection().EnsureIndexKey("date")
 		_ = this.Collection().EnsureIndexKey("status")
+}
+
+func (this *ApplyInfoModel) Count(query bson.M) int {
+		var count, err = this.NewQuery(query).Count()
+		if err == nil {
+				return count
+		}
+		return 0
 }
 
 func (this *ApplyInfoModel) GetByUnique(m beego.M) *ApplyInfo {
 		var (
 				err   error
 				data  = NewApplyInfo()
-				query = bson.M{"userId": "", "target": "", "type": "", "date": 0}
+				query = bson.M{"userId": "", "target": "", "type": "", "title": ""}
 		)
 		for key := range query {
 				v, ok := m[key]

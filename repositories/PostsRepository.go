@@ -21,6 +21,7 @@ type PostsRepository interface {
 		Lists(...string) common.ResponseJson
 		GetById(...string) common.ResponseJson
 		RemoveId(...string) common.ResponseJson
+		ListsByPostType(typ string) common.ResponseJson
 }
 
 type postRepositoryImpl struct {
@@ -116,6 +117,7 @@ func (this *postRepositoryImpl) Lists(typ ...string) common.ResponseJson {
 		if ty == "" && len(typ) != 0 {
 				ty = typ[0]
 		}
+
 		var extras = beego.M{"privacy": models.PublicPrivacy, "status": models.StatusAuditPass}
 		switch ty {
 		case "my":
@@ -282,27 +284,28 @@ func (this *postRepositoryImpl) GetLikes() common.ResponseJson {
 
 // 获取排行榜列表
 func (this *postRepositoryImpl) GetRanking() common.ResponseJson {
-		/*var (
+		var (
 				meta     *models.Meta
 				ctx      = this.ctx.GetParent()
 				items    []*models.TravelNotes
-				ty       = ctx.GetString("type")
+				ty, _    = ctx.GetInt("type", 0)
 				page, _  = ctx.GetInt("page", 1)
 				count, _ = ctx.GetInt("count", 20)
 				limit    = models.NewListParam(page, count)
 		)
-		if ty == "" && len(typ) != 0 {
-				ty = typ[0]
+		var extras = bson.M{"privacy": models.PublicPrivacy, "status": models.StatusAuditPass}
+		if ty == models.ImageType || ty == models.VideoType || ty == models.ContentType {
+				extras["type"] = ty
 		}
-		var extras = beego.M{"privacy": models.PublicPrivacy, "status": models.StatusAuditPass}
-
+		items, meta = this.service.GetRankingLists(extras, limit)
+		// 分页
 		if items != nil && len(items) > 0 && meta != nil {
 				var arr []beego.M
 				for _, item := range items {
 						arr = append(arr, item.M(this.getPostTransform()))
 				}
 				return common.NewSuccessResp(beego.M{"items": arr, "meta": meta}, "罗列成功")
-		}*/
+		}
 		return common.NewFailedResp(common.RecordNotFound, common.RecordNotFoundError)
 }
 
@@ -329,5 +332,39 @@ func (this *postRepositoryImpl) GetFollows() common.ResponseJson {
 				}
 				return common.NewSuccessResp(beego.M{"items": arr, "meta": meta}, "罗列成功")
 		}*/
+		return common.NewFailedResp(common.RecordNotFound, common.RecordNotFoundError)
+}
+
+// 通过作品类型获取列表
+func (this *postRepositoryImpl) ListsByPostType(typ string) common.ResponseJson {
+		var (
+				ty       int
+				meta     *models.Meta
+				ctx      = this.ctx.GetParent()
+				items    []*models.TravelNotes
+				page, _  = ctx.GetInt("page", 1)
+				count, _ = ctx.GetInt("count", 20)
+				limit    = models.NewListParam(page, count)
+		)
+		switch typ {
+		case models.ImageTypeCode:
+				ty = models.ImageType
+		case models.VideoTypeCode:
+				ty = models.VideoType
+		case models.ContentTypeCode:
+				ty = models.ContentType
+		}
+		var extras = bson.M{"privacy": models.PublicPrivacy, "status": models.StatusAuditPass}
+		if ty != 0 {
+				extras["type"] = ty
+		}
+		items, meta = this.service.GetRecommendLists(extras, limit)
+		if items != nil && len(items) > 0 && meta != nil {
+				var arr []beego.M
+				for _, item := range items {
+						arr = append(arr, item.M(this.getPostTransform()))
+				}
+				return common.NewSuccessResp(beego.M{"items": arr, "meta": meta}, "罗列成功")
+		}
 		return common.NewFailedResp(common.RecordNotFound, common.RecordNotFoundError)
 }

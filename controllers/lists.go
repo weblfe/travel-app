@@ -1,6 +1,8 @@
 package controllers
 
-import "github.com/weblfe/travel-app/repositories"
+import (
+		"github.com/weblfe/travel-app/repositories"
+)
 
 // 搜索
 // @router /posts/search  [get]
@@ -24,4 +26,10 @@ func (this *PostsController) Follows() {
 // @router /posts/likes  [get]
 func (this *PostsController) Likes() {
 		this.Send(repositories.NewPostsRepository(this).GetLikes())
+}
+
+// 获取推荐列表
+// @router /posts/recommends  [get]
+func (this *PostsController) Recommends() {
+		this.Send(repositories.NewPostsRepository(this).ListsByPostType(this.GetString("type", "")))
 }

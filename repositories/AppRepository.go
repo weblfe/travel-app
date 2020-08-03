@@ -50,6 +50,7 @@ func (this *appRepository) Apply() common.ResponseJson {
 		data.UserId = userId
 		data.Date = models.GetDate()
 		data.Content = this.ctx.GetString("content")
+		data.Title = this.ctx.GetString("title")
 		data.Type = this.ctx.GetString("type", models.ApplyTypeReport)
 		data.Extras = this.ctx.GetJsonData()
 		err = this.appApplyService.Commit(data)

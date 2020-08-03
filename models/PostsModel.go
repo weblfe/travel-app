@@ -52,6 +52,9 @@ const (
 		StatusWaitAudit    = 0
 		StatusAuditOk      = 1
 		StatusAuditOff     = 2
+		ImageTypeCode      = "image"
+		VideoTypeCode      = "video"
+		ContentTypeCode    = "content"
 )
 
 var (

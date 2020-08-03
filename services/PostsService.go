@@ -9,11 +9,14 @@ import (
 )
 
 type PostService interface {
-		IncrComment(id string) error
 		Audit(...string) bool
+		IncrComment(id string) error
+		Exists(query bson.M) bool
 		Create(notes *models.TravelNotes) error
 		GetById(id string) *models.TravelNotes
 		IncrThumbsUp(id string, incr int) error
+		GetRankingLists(query bson.M, limit models.ListsParams) ([]*models.TravelNotes, *models.Meta)
+		GetRecommendLists(query bson.M, limit models.ListsParams) ([]*models.TravelNotes, *models.Meta)
 		Lists(userId string, page models.ListsParams, extras ...beego.M) ([]*models.TravelNotes, *models.Meta)
 		ListByTags(tags []string, page models.ListsParams, extras ...beego.M) ([]*models.TravelNotes, *models.Meta)
 		ListByAddress(address string, page models.ListsParams, extras ...beego.M) ([]*models.TravelNotes, *models.Meta)
@@ -81,7 +84,7 @@ func (this *TravelPostServiceImpl) ListByTags(tags []string, page models.ListsPa
 		}
 		query = libs.MapMerge(extras...)
 		meta.Page = page.Page()
-		meta.Size = len(lists)
+		meta.Size = page.Count()
 		meta.Count = page.Count()
 		this.postModel.UseSoftDelete()
 
@@ -105,12 +108,55 @@ func (this *TravelPostServiceImpl) ListByAddress(address string, page models.Lis
 				query = libs.MapMerge(extras...)
 		)
 		meta.Page = page.Page()
-		meta.Size = len(lists)
+		meta.Size = page.Count()
 		meta.Count = page.Count()
 		this.postModel.UseSoftDelete()
 		listQuery := this.postModel.ListsQuery(query, page)
 		// desc createdAt
 		err = listQuery.Sort("-createdAt").All(&lists)
+		if err == nil {
+				meta.Size = len(lists)
+				meta.Total, _ = this.postModel.ListsQuery(query, nil).Count()
+				return lists, meta
+		}
+		return nil, meta
+}
+
+func (this *TravelPostServiceImpl) GetRankingLists(query bson.M, limit models.ListsParams) ([]*models.TravelNotes, *models.Meta) {
+		var (
+				err   error
+				lists []*models.TravelNotes
+				meta  = models.NewMeta()
+		)
+		meta.Page = limit.Page()
+		meta.Size = limit.Count()
+		meta.Count = limit.Count()
+		this.postModel.UseSoftDelete()
+		listQuery := this.postModel.ListsQuery(query, limit)
+		// 排行版 点赞 ,评论 最多, 发布时间最新
+		err = listQuery.Sort("-thumbsUpNum", "-commentNum", "-createdAt").All(&lists)
+		if err == nil {
+				meta.Size = len(lists)
+				meta.Total, _ = this.postModel.ListsQuery(query, nil).Count()
+				return lists, meta
+		}
+		return nil, meta
+}
+
+// 获取推荐
+func (this *TravelPostServiceImpl) GetRecommendLists(query bson.M, limit models.ListsParams) ([]*models.TravelNotes, *models.Meta) {
+		var (
+				err   error
+				lists []*models.TravelNotes
+				meta  = models.NewMeta()
+		)
+		meta.Page = limit.Page()
+		meta.Size = limit.Count()
+		meta.Count = limit.Count()
+		this.postModel.UseSoftDelete()
+		listQuery := this.postModel.ListsQuery(query, limit)
+		// 打分最高 ,更新时间最新
+		err = listQuery.Sort("-score", "-createdAt").All(&lists)
 		if err == nil {
 				meta.Size = len(lists)
 				meta.Total, _ = this.postModel.ListsQuery(query, nil).Count()
@@ -226,4 +272,8 @@ func (this *TravelPostServiceImpl) Audit(id ...string) bool {
 				return true
 		}
 		return false
+}
+
+func (this *TravelPostServiceImpl) Exists(query bson.M) bool {
+		return this.postModel.Exists(query)
 }
