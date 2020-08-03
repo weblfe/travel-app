@@ -15,6 +15,7 @@ type UserBehaviorService interface {
 		Follow(userId string, targetUserId string, extras ...beego.M) error
 		GetFans(userId string, limit models.ListsParams) ([]bson.ObjectId, *models.Meta)
 		GetFollows(userId string, limit models.ListsParams) ([]bson.ObjectId, *models.Meta)
+		GetFollowPostsLists(query bson.M, limit models.ListsParams) ([]*models.TravelNotes, *models.Meta)
 		ListsByUserId(userId string, limit models.ListsParams, extras ...beego.M) ([]*models.UserFocus, *models.Meta)
 }
 
@@ -271,8 +272,8 @@ func (this *userBehaviorServiceImpl) GetFans(userId string, limit models.ListsPa
 		var (
 				err   error
 				query = bson.M{
-						"targetUserId": this.id(userId),
-						"status":       models.StatusOk,
+						"focusUserId": this.id(userId),
+						"status":      models.StatusOk,
 				}
 				results []bson.ObjectId
 				meta    = models.NewMeta()
@@ -322,6 +323,39 @@ func (this *userBehaviorServiceImpl) GetFollows(userId string, limit models.List
 				meta.Total, _ = model.NewQuery(query).Count()
 				meta.Boot()
 				return results, meta
+		}
+		return nil, meta
+}
+
+// 获取用户关注用户最新作品列表
+func (this *userBehaviorServiceImpl) GetFollowPostsLists(query bson.M, limit models.ListsParams) ([]*models.TravelNotes, *models.Meta) {
+		var (
+				err   error
+				ids   []string
+				meta  = models.NewMeta()
+				model = this.getUserFocusModel()
+				items = make([]*models.UserFocus, 2)
+		)
+		items = items[:0]
+		query["status"] = models.StatusOk
+		Query := model.NewQuery(query)
+		err = Query.Sort("-createdAt").All(&items)
+		// 获取用户喜欢列表
+		if err == nil {
+				for _, it := range items {
+						ids = append(ids, it.FocusUserId.Hex())
+				}
+				// 7 天内更新的作品
+				day, _ := time.ParseDuration("7day")
+				query = bson.M{
+						"userId":  bson.M{"$in": ids},
+						"privacy": models.PublicPrivacy,
+						"status":  models.StatusAuditPass,
+						"createdAt": beego.M{
+								"$lte": time.Now().Local(), "$gt": time.Now().Add(-day).Local(),
+						},
+				}
+				return PostServiceOf().ListsQuery(query, limit, "-createdAt")
 		}
 		return nil, meta
 }

@@ -10,6 +10,7 @@ type ThumbsUpService interface {
 		Count(string, string, ...string) int
 		Up(typ string, typeId string, userId string) int
 		Down(typ string, typeId string, userId string) int
+		GetUserLikeLists(query bson.M, limit models.ListsParams) ([]*models.TravelNotes, *models.Meta)
 }
 
 type thumbsUpServiceImpl struct {
@@ -117,6 +118,62 @@ func (this *thumbsUpServiceImpl) Count(typ string, typId string, userId ...strin
 				delete(data, "typeId")
 		}
 		return this.model.Sum(data, "count")
+}
+
+// 获取点赞列表
+func (this *thumbsUpServiceImpl) Lists(query bson.M, limit models.ListsParams) ([]*models.ThumbsUp, *models.Meta) {
+		var (
+				err   error
+				meta  = models.NewMeta()
+				items = make([]*models.ThumbsUp, 2)
+		)
+		items = items[:0]
+		Query := this.model.NewQuery(query)
+		err = Query.Limit(limit.Count()).Skip(limit.Skip()).All(&items)
+		if err == nil {
+				meta.Count = limit.Count()
+				meta.Size = len(items)
+				meta.Page = limit.Page()
+				meta.Total, _ = this.model.NewQuery(query).Count()
+				meta.Boot()
+				return items, meta
+		}
+		return nil, meta
+}
+
+// 获取点赞列表
+func (this *thumbsUpServiceImpl) GetUserLikeLists(query bson.M, limit models.ListsParams) ([]*models.TravelNotes, *models.Meta) {
+		var (
+				err     error
+				meta    = models.NewMeta()
+				ids     []bson.ObjectId
+				results []*models.TravelNotes
+				items   = make([]*models.ThumbsUp, 2)
+		)
+		items = items[:0]
+		query["type"] = models.ThumbsTypePost
+		query["status"] = models.StatusOk
+		Query := this.model.NewQuery(query)
+		err = Query.Limit(limit.Count()).Skip(limit.Skip()).Sort("-createdAt").All(&items)
+		// 获取用户喜欢列表
+		if err == nil {
+				for _, it := range items {
+						ids = append(ids, bson.ObjectIdHex(it.TypeId))
+				}
+				results, meta = PostServiceOf().ListsQuery(bson.M{"_id": bson.M{"$in": ids}}, limit)
+				// 排序
+				if results != nil {
+						for i, id := range ids {
+								for j, it := range results {
+										if id == it.Id && i != j {
+												results[i], results[j] = results[j], results[i]
+										}
+								}
+						}
+				}
+				return results, meta
+		}
+		return nil, meta
 }
 
 // 点赞之后 [log,updateNum]

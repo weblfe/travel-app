@@ -258,27 +258,23 @@ func (this *postRepositoryImpl) getPostTransform() func(m beego.M) beego.M {
 
 // 获取喜欢列表
 func (this *postRepositoryImpl) GetLikes() common.ResponseJson {
-		/*	var (
-					meta     *models.Meta
-					ctx      = this.ctx.GetParent()
-					items    []*models.TravelNotes
-					ty       = ctx.GetString("type")
-					page, _  = ctx.GetInt("page", 1)
-					count, _ = ctx.GetInt("count", 20)
-					limit    = models.NewListParam(page, count)
-			)
-			if ty == "" && len(typ) != 0 {
-					ty = typ[0]
-			}
-			var extras = beego.M{"privacy": models.PublicPrivacy, "status": models.StatusAuditPass}
-
-			if items != nil && len(items) > 0 && meta != nil {
-					var arr []beego.M
-					for _, item := range items {
-							arr = append(arr, item.M(this.getPostTransform()))
-					}
-					return common.NewSuccessResp(beego.M{"items": arr, "meta": meta}, "罗列成功")
-			}*/
+		var (
+				meta     *models.Meta
+				ctx      = this.ctx.GetParent()
+				items    []*models.TravelNotes
+				page, _  = ctx.GetInt("page", 1)
+				count, _ = ctx.GetInt("count", 20)
+				limit    = models.NewListParam(page, count)
+		)
+		var query = bson.M{"userId": getUserId(this.ctx)}
+		items, meta = services.ThumbsUpServiceOf().GetUserLikeLists(query, limit)
+		if items != nil && len(items) > 0 && meta != nil {
+				var arr []beego.M
+				for _, item := range items {
+						arr = append(arr, item.M(this.getPostTransform()))
+				}
+				return common.NewSuccessResp(beego.M{"items": arr, "meta": meta}, "罗列成功")
+		}
 		return common.NewFailedResp(common.RecordNotFound, common.RecordNotFoundError)
 }
 
@@ -311,27 +307,27 @@ func (this *postRepositoryImpl) GetRanking() common.ResponseJson {
 
 // 获取关注列表
 func (this *postRepositoryImpl) GetFollows() common.ResponseJson {
-		/*var (
+		var (
 				meta     *models.Meta
 				ctx      = this.ctx.GetParent()
 				items    []*models.TravelNotes
-				ty       = ctx.GetString("type")
+				userId   = getUserId(this.ctx)
 				page, _  = ctx.GetInt("page", 1)
 				count, _ = ctx.GetInt("count", 20)
 				limit    = models.NewListParam(page, count)
 		)
-		if ty == "" && len(typ) != 0 {
-				ty = typ[0]
+		if userId == "" {
+				return common.NewUnLoginResp("please login!")
 		}
-		var extras = beego.M{"privacy": models.PublicPrivacy, "status": models.StatusAuditPass}
-
+		var query = bson.M{"userId": userId}
+		items, meta = services.UserBehaviorServiceOf().GetFollowPostsLists(query, limit)
 		if items != nil && len(items) > 0 && meta != nil {
 				var arr []beego.M
 				for _, item := range items {
 						arr = append(arr, item.M(this.getPostTransform()))
 				}
 				return common.NewSuccessResp(beego.M{"items": arr, "meta": meta}, "罗列成功")
-		}*/
+		}
 		return common.NewFailedResp(common.RecordNotFound, common.RecordNotFoundError)
 }
 

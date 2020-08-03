@@ -77,15 +77,19 @@ func (this *userBehaviorRepositoryImpl) FocusOn() common.ResponseJson {
 				query            = beego.M{"_id": bson.ObjectIdHex(targetUserId.(string)), "deletedAt": 0}
 		)
 		if !ok {
-				return common.NewUnLoginResp("targetUser empty!")
+				return common.NewFailedResp(common.ServiceFailed, "follow targetUser required!")
 		}
 		if userId == "" {
 				return common.NewUnLoginResp("please login!")
 		}
 		if !this.userService.Exists(query) {
-				return common.NewUnLoginResp("targetUser not exists!")
+				return common.NewFailedResp(common.ServiceFailed, "targetUser not exists!")
 		}
-		err = this.behaviorService.Follow(userId, targetUserId.(string), extras.(beego.M))
+		var targetId = targetUserId.(string)
+		if userId == targetId {
+				return common.NewFailedResp(common.ServiceFailed, "follower error!")
+		}
+		err = this.behaviorService.Follow(userId, targetId, extras.(beego.M))
 		if err == nil {
 				return common.NewSuccessResp(bson.M{"timestamp": time.Now().Unix()}, "关注成功")
 		}
@@ -95,7 +99,7 @@ func (this *userBehaviorRepositoryImpl) FocusOn() common.ResponseJson {
 // 用户粉丝列表
 func (this *userBehaviorRepositoryImpl) GetUserFans(ids ...string) common.ResponseJson {
 		if len(ids) == 0 {
-				ids = append(ids, "0")
+				ids = append(ids, "")
 		}
 		var (
 				userId        = ids[0]
@@ -128,6 +132,9 @@ func (this *userBehaviorRepositoryImpl) GetUserFans(ids ...string) common.Respon
 
 // 用户关注列表
 func (this *userBehaviorRepositoryImpl) GetUserFollows(ids ...string) common.ResponseJson {
+		if len(ids) == 0 {
+				ids = append(ids, "")
+		}
 		var (
 				userId        = ids[0]
 				users         = make([]*BaseUser, 2)

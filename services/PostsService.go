@@ -15,6 +15,7 @@ type PostService interface {
 		Create(notes *models.TravelNotes) error
 		GetById(id string) *models.TravelNotes
 		IncrThumbsUp(id string, incr int) error
+		ListsQuery(query bson.M, limit models.ListsParams,sort...string) ([]*models.TravelNotes, *models.Meta)
 		GetRankingLists(query bson.M, limit models.ListsParams) ([]*models.TravelNotes, *models.Meta)
 		GetRecommendLists(query bson.M, limit models.ListsParams) ([]*models.TravelNotes, *models.Meta)
 		Lists(userId string, page models.ListsParams, extras ...beego.M) ([]*models.TravelNotes, *models.Meta)
@@ -157,6 +158,30 @@ func (this *TravelPostServiceImpl) GetRecommendLists(query bson.M, limit models.
 		listQuery := this.postModel.ListsQuery(query, limit)
 		// 打分最高 ,更新时间最新
 		err = listQuery.Sort("-score", "-createdAt").All(&lists)
+		if err == nil {
+				meta.Size = len(lists)
+				meta.Total, _ = this.postModel.ListsQuery(query, nil).Count()
+				return lists, meta
+		}
+		return nil, meta
+}
+
+func (this *TravelPostServiceImpl) ListsQuery(query bson.M, limit models.ListsParams, sort ...string) ([]*models.TravelNotes, *models.Meta) {
+		var (
+				err   error
+				lists []*models.TravelNotes
+				meta  = models.NewMeta()
+		)
+		meta.Page = limit.Page()
+		meta.Size = limit.Count()
+		meta.Count = limit.Count()
+		this.postModel.UseSoftDelete()
+		listQuery := this.postModel.ListsQuery(query, limit)
+		if len(sort) != 0 {
+				listQuery = listQuery.Sort(sort...)
+		}
+		// 打分最高 ,更新时间最新
+		err = listQuery.All(&lists)
 		if err == nil {
 				meta.Size = len(lists)
 				meta.Total, _ = this.postModel.ListsQuery(query, nil).Count()
