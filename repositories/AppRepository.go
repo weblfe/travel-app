@@ -50,6 +50,7 @@ func (this *appRepository) Apply() common.ResponseJson {
 		data.UserId = userId
 		data.Date = models.GetDate()
 		data.Content = this.ctx.GetString("content")
+		data.Target = this.ctx.GetString("target")
 		data.Title = this.ctx.GetString("title")
 		data.Type = this.ctx.GetString("type", models.ApplyTypeReport)
 		data.Extras = this.ctx.GetJsonData()
@@ -57,5 +58,5 @@ func (this *appRepository) Apply() common.ResponseJson {
 		if err == nil {
 				return common.NewSuccessResp(beego.M{"timestamp": time.Now().Unix()}, "提交成功")
 		}
-		return common.NewFailedResp(common.ServiceFailed, "今日反馈到底上限")
+		return common.NewFailedResp(common.ServiceFailed, "今日反馈到达上限")
 }
