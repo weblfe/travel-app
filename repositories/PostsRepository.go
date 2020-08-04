@@ -4,6 +4,7 @@ import (
 		"github.com/astaxie/beego"
 		"github.com/globalsign/mgo/bson"
 		"github.com/weblfe/travel-app/common"
+		"github.com/weblfe/travel-app/libs"
 		"github.com/weblfe/travel-app/middlewares"
 		"github.com/weblfe/travel-app/models"
 		"github.com/weblfe/travel-app/services"
@@ -149,7 +150,7 @@ func (this *postRepositoryImpl) Lists(typ ...string) common.ResponseJson {
 				userId := typ[1]
 				items, meta = this.service.Lists(userId, limit, extras)
 		case "search":
-				items, meta = this.service.Search(beego.M{}, limit)
+				items, meta = this.service.Search(this.parseSearchQuery(this.ctx.GetString("query")), limit)
 		}
 		if items != nil && len(items) > 0 && meta != nil {
 				var arr []beego.M
@@ -159,6 +160,52 @@ func (this *postRepositoryImpl) Lists(typ ...string) common.ResponseJson {
 				return common.NewSuccessResp(beego.M{"items": arr, "meta": meta}, "罗列成功")
 		}
 		return common.NewFailedResp(common.RecordNotFound, common.RecordNotFoundError)
+}
+
+// 查询解析
+func (this *postRepositoryImpl) parseSearchQuery(query string) beego.M {
+		if query == "" {
+				return beego.M{}
+		}
+		var (
+				queryMapper = beego.M{}
+				supportKeys = []string{"address", "content"}
+				// "startAt", "endAt", "nickname",
+		)
+		if !strings.Contains(query, ":") {
+				var or = make([]bson.M, 1)
+				or = or[:0]
+				for _, key := range supportKeys {
+						or = append(or, bson.M{key: bson.RegEx{Pattern: query, Options: "i"}})
+				}
+				queryMapper["$or"] = or
+				return queryMapper
+		}
+		if strings.Contains(query, "&") {
+				items := strings.SplitN(query, "&", -1)
+				for _, value := range items {
+						values := strings.SplitN(value, ":", 2)
+						if len(values) < 2 {
+								continue
+						}
+						if !libs.InArray(values[0], supportKeys) {
+								continue
+						}
+						queryMapper[values[0]] = values[1]
+				}
+				return queryMapper
+		}
+		if strings.Contains(query, ":") {
+				values := strings.SplitN(query, ":", 2)
+				if len(values) < 2 {
+						return beego.M{}
+				}
+				if !libs.InArray(values[0], supportKeys) {
+						return beego.M{}
+				}
+				return beego.M{values[0]: values[1]}
+		}
+		return beego.M{}
 }
 
 func (this *postRepositoryImpl) GetById(id ...string) common.ResponseJson {
