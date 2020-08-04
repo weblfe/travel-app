@@ -281,6 +281,11 @@ func (this *TravelPostServiceImpl) IncrThumbsUp(id string, incr int) error {
 		if id == "" {
 				return errors.New("thumbsUp post id empty")
 		}
+	    var post = this.GetById(id)
+	    if post == nil {
+			return errors.New("thumbsUp post id empty")
+		}
+		defer this.AfterIncr(post.UserId,incr)
 		return this.postModel.Incr(id, "thumbsUpNum", incr)
 }
 
@@ -301,4 +306,15 @@ func (this *TravelPostServiceImpl) Audit(id ...string) bool {
 
 func (this *TravelPostServiceImpl) Exists(query bson.M) bool {
 		return this.postModel.Exists(query)
+}
+
+func (this *TravelPostServiceImpl)AfterIncr(userId string, incr int)  {
+		var (
+			service = UserServiceOf()
+			user = service.GetById(userId)
+		)
+		if user == nil {
+			return
+		}
+		_ = service.IncrBy(bson.M{"_id":bson.ObjectIdHex(userId)},"thumbsUpTotal",incr)
 }
