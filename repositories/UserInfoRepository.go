@@ -175,7 +175,7 @@ func (this *UserInfoRepositoryImpl) resetPasswordByMobileSms(mobile string, code
 
 func (this *UserInfoRepositoryImpl) GetUserFriends(ids ...string) common.ResponseJson {
 		if len(ids) == 0 {
-				ids = append(ids, "0")
+				ids = append(ids, "")
 		}
 		var (
 				users         = make([]*BaseUser, 2)
