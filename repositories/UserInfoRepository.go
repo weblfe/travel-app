@@ -36,6 +36,8 @@ type UserNumbersObject struct {
 type UserPublicInfo struct {
 	UserNumbersObject
 	BaseUser
+	Intro              string `json:"intro"`              // 简介
+	BackgroundCoverUrl string `json:"backgroundCoverUrl"` // 背景图
 }
 
 func NewUserInfoRepository(ctx common.BaseRequestContext) UserInfoRepository {
@@ -266,15 +268,16 @@ func (this *UserInfoRepositoryImpl) GetUserPublic(userId string) *UserPublicInfo
 		return info
 	}
 	var (
+		dto  = GetDtoRepository()
 		nums = this.GetUserNumbers(userId)
-		base = GetDtoRepository().GetUserById(userId)
+		user = this.userService.GetById(userId)
 	)
-	info.FansNum = nums.FansNum
-	info.FollowNum = nums.FollowNum
-	info.ThumbsUpNum = nums.ThumbsUpNum
-	info.AvatarInfo = base.AvatarInfo
-	info.UserId = base.UserId
-	info.Nickname = base.Nickname
+	info.UserNumbersObject = *nums
+	info.UserId = userId
+	info.Intro = user.Intro
+	info.Nickname = user.NickName
+	info.AvatarInfo = dto.GetAvatar(user.AvatarId, user.Gender)
+	info.BackgroundCoverUrl = dto.GetUrlByAttachId(user.BackgroundCoverId)
 	return info
 }
 

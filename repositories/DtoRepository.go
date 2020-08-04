@@ -192,6 +192,11 @@ func (this *DtoRepository) getUserAvatarService() services.AvatarService {
 		return services.AvatarServerOf()
 }
 
+func (this *DtoRepository)GetUrlByAttachId(id string) string  {
+	var attach = services.AttachmentServiceOf().Get(id)
+	return services.UrlTicketServiceOf().GetTicketUrlByAttach(attach)
+}
+
 func (this *DtoRepository) GetSimpleUserDetail(data interface{}) *SimpleUser {
 		var user = new(SimpleUser)
 		switch data.(type) {
