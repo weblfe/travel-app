@@ -70,6 +70,7 @@ func getBaseUserInfoTransform() func(m beego.M) beego.M {
 // 追加用户关注关系
 func appendFollowedLogic(userId string) func(m beego.M) beego.M {
 		return func(m beego.M) beego.M {
+				m["isFollowed"] = false
 				if userId == "" {
 						return m
 				}
@@ -81,7 +82,6 @@ func appendFollowedLogic(userId string) func(m beego.M) beego.M {
 				if !ok {
 						return m
 				}
-				m["isFollowed"] = false
 				if strId == userId {
 						m["isSelf"] = true
 						return m
