@@ -304,5 +304,9 @@ func (this *UserInfoRepositoryImpl) Search(query string) common.ResponseJson {
 	if items == nil || meta == nil {
 		return common.NewFailedResp(common.NotFound, "空")
 	}
+	var result []beego.M
+	for _,it:=range items {
+		result =append(result,it.M(getBaseUserInfoTransform()))
+	}
 	return common.NewSuccessResp(bson.M{"items": items, "meta": meta}, "获取成功")
 }
