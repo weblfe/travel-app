@@ -333,6 +333,7 @@ func (this *UserInfoRepositoryImpl) removes(m beego.M) beego.M {
 				"birthday", "lastLoginAt", "inviteCode",
 				"status", "lastLoginLocation",
 				"username", "userNumId", "mobile",
+				"backgroundCoverId",
 		}
 		for _, key := range keys {
 				delete(m, key)
