@@ -289,7 +289,7 @@ func (this *UserInfoRepositoryImpl) GetUserPublic(userId string) *UserPublicInfo
 		info.RoleDesc = user.GetRoleDesc(user.Role)
 		info.GenderDesc = models.GenderText(user.Gender)
 		info.AvatarInfo = dto.GetAvatar(user.AvatarId, user.Gender)
-		info.IsFollowed = this.userBehaviorService.IsFollowed(getUserId(this.ctx),info.UserId)
+		info.IsFollowed = this.userBehaviorService.IsFollowed(getUserId(this.ctx), info.UserId)
 		info.BackgroundCoverUrl = dto.GetUrlByAttachId(user.BackgroundCoverId)
 		return info
 }
@@ -322,7 +322,20 @@ func (this *UserInfoRepositoryImpl) Search(query string) common.ResponseJson {
 				transforms = getUserTransform(getUserId(this.ctx))
 		)
 		for _, it := range items {
-				result = append(result, it.M(transforms))
+				result = append(result, it.M(transforms,this.removes))
 		}
 		return common.NewSuccessResp(bson.M{"items": result, "meta": meta}, "获取成功")
+}
+
+func (this *UserInfoRepositoryImpl) removes(m beego.M) beego.M {
+		var keys = []string{
+				"resetPasswordTimes", "createdAt", "email",
+				"birthday", "lastLoginAt", "inviteCode",
+				"status", "lastLoginLocation",
+				"username", "userNumId", "mobile",
+		}
+		for _, key := range keys {
+				delete(m, key)
+		}
+		return m
 }
