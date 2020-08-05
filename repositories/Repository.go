@@ -67,6 +67,7 @@ func getBaseUserInfoTransform() func(m beego.M) beego.M {
 		return transforms.FilterWrapper(transforms.FilterUserBase, FilterUserAvatarUrl, FilterBackgroundUrl, transformUser)
 }
 
+
 // 用户数据组装
 func transformUser(m beego.M) beego.M {
 		if _, ok := m["avatar"]; ok {

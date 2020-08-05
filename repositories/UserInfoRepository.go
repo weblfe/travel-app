@@ -39,6 +39,11 @@ type UserPublicInfo struct {
 	BaseUser
 	Intro              string `json:"intro"`              // 简介
 	BackgroundCoverUrl string `json:"backgroundCoverUrl"` // 背景图
+	Role               int    `json:"role"`               // 账号类型Id
+	RoleDesc           string `json:"roleDesc"`           // 账号类型描述
+	Gender             int    `json:"gender"`             // 性别
+	GenderDesc         string `json:"genderDesc"`         // 性别描述
+	Address            string `json:"address"`            // 地址
 }
 
 func NewUserInfoRepository(ctx common.BaseRequestContext) UserInfoRepository {
@@ -270,6 +275,7 @@ func (this *UserInfoRepositoryImpl) GetUserPublic(userId string) *UserPublicInfo
 	}
 	var (
 		dto  = GetDtoRepository()
+		currentUid = getUser(this.ctx)
 		nums = this.GetUserNumbers(userId)
 		user = this.userService.GetById(userId)
 	)
@@ -277,6 +283,11 @@ func (this *UserInfoRepositoryImpl) GetUserPublic(userId string) *UserPublicInfo
 	info.UserId = userId
 	info.Intro = user.Intro
 	info.Nickname = user.NickName
+	info.Gender = user.Gender
+	info.Address = user.Address
+	info.Role = user.Role
+	info.RoleDesc = user.GetRoleDesc(user.Role)
+	info.GenderDesc = models.GenderText(user.Gender)
 	info.AvatarInfo = dto.GetAvatar(user.AvatarId, user.Gender)
 	info.BackgroundCoverUrl = dto.GetUrlByAttachId(user.BackgroundCoverId)
 	return info
@@ -305,8 +316,8 @@ func (this *UserInfoRepositoryImpl) Search(query string) common.ResponseJson {
 		return common.NewFailedResp(common.NotFound, "空")
 	}
 	var result []beego.M
-	for _,it:=range items {
-		result =append(result,it.M(getBaseUserInfoTransform()))
+	for _, it := range items {
+		result = append(result, it.M(getBaseUserInfoTransform()))
 	}
 	return common.NewSuccessResp(bson.M{"items": result, "meta": meta}, "获取成功")
 }
