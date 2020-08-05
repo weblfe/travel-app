@@ -308,5 +308,5 @@ func (this *UserInfoRepositoryImpl) Search(query string) common.ResponseJson {
 	for _,it:=range items {
 		result =append(result,it.M(getBaseUserInfoTransform()))
 	}
-	return common.NewSuccessResp(bson.M{"items": items, "meta": meta}, "获取成功")
+	return common.NewSuccessResp(bson.M{"items": result, "meta": meta}, "获取成功")
 }
