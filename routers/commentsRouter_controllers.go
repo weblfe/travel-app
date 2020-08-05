@@ -378,18 +378,18 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:UserController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:UserController"],
         beego.ControllerComments{
-            Method: "FocusOff",
+            Method: "FocusOn",
             Router: `/follow/:userId`,
-            AllowHTTPMethods: []string{"delete"},
+            AllowHTTPMethods: []string{"post"},
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})
 
     beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:UserController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:UserController"],
         beego.ControllerComments{
-            Method: "FocusOn",
+            Method: "FocusOff",
             Router: `/follow/:userId`,
-            AllowHTTPMethods: []string{"post"},
+            AllowHTTPMethods: []string{"delete"},
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})
