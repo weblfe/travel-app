@@ -18,6 +18,7 @@ type UserService interface {
 	Inserts(users []map[string]interface{}, txn ...func([]map[string]interface{}) bool) int
 	UpdateByUid(uid string, data map[string]interface{}) error
 	Lists(page int, size int, args ...interface{}) (items []*models.User, total int, more bool)
+	SearchUserByNickName(nickname string, limit models.ListsParams) ([]*models.User, *models.Meta)
 	GetByMobile(mobile string) *models.User
 	GetByEmail(email string) *models.User
 	GetById(id string) *models.User
@@ -224,6 +225,28 @@ func (this *UserServiceImpl) GetUserThumbsUpCount(id string) int64 {
 
 func (this *UserServiceImpl) IncrBy(query bson.M, key string, incr int) error {
 	return this.userModel.IncrBy(query, bson.M{key: bson.M{key: incr}})
+}
+
+func (this *UserServiceImpl) SearchUserByNickName(nickname string, limit models.ListsParams) ([]*models.User, *models.Meta) {
+	var (
+		err   error
+		items = make([]*models.User, 2)
+		meta  = models.NewMeta()
+		query = bson.M{"nickname": bson.RegEx{Pattern: nickname, Options: "i"}}
+	)
+	items = items[:0]
+	Query := this.userModel.NewQuery(query)
+	err = Query.Limit(limit.Count()).Skip(limit.Skip()).Sort("-createdAt").All(&items)
+	// 获取用户列表
+	if err == nil {
+		meta.Size = len(items)
+		meta.Count = limit.Count()
+		meta.Total, _ = this.userModel.NewQuery(query).Count()
+		meta.Boot()
+		// 排序
+		return items, meta
+	}
+	return nil, meta
 }
 
 // 字段对比过滤器

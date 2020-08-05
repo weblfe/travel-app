@@ -118,3 +118,9 @@ func (this *UserController) GetFollows() {
 func (this *UserController) GetFriends() {
 	this.Send(repositories.NewUserInfoRepository(this).GetUserFriends(this.GetString(":userId", "0")))
 }
+
+// 用户搜索
+// @router /user/search  [get]
+func (this *UserController) Search() {
+	this.Send(repositories.NewUserInfoRepository(this).Search(this.GetString("query")))
+}

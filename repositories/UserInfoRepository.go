@@ -18,6 +18,7 @@ type UserInfoRepository interface {
 	ResetPassword() common.ResponseJson
 	GetUserFriends(ids ...string) common.ResponseJson
 	UpdateUserInfo() common.ResponseJson
+	Search(string) common.ResponseJson
 	GetUserPublicInfo(string) common.ResponseJson
 }
 
@@ -287,4 +288,21 @@ func (this *UserInfoRepositoryImpl) GetUserPublicInfo(id string) common.Response
 		return common.NewFailedResp(common.NotFound, "用户不存在")
 	}
 	return common.NewSuccessResp(bson.M{"user": user}, "获取成功")
+}
+
+func (this *UserInfoRepositoryImpl) Search(query string) common.ResponseJson {
+	if query == "" {
+		return common.NewFailedResp(common.InvalidParametersCode, "搜索参数异常")
+	}
+	var (
+		ctx      = this.ctx.GetParent()
+		page, _  = ctx.GetInt("page", 1)
+		count, _ = ctx.GetInt("count", 20)
+		limit    = models.NewListParam(page, count)
+	)
+	var items, meta = this.userService.SearchUserByNickName(query, limit)
+	if items == nil || meta == nil {
+		return common.NewFailedResp(common.NotFound, "空")
+	}
+	return common.NewSuccessResp(bson.M{"items": items, "meta": meta}, "获取成功")
 }
