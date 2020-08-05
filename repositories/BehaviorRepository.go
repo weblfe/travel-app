@@ -11,8 +11,8 @@ import (
 
 // 用户相关行为
 type BehaviorRepository interface {
-		FocusOn() common.ResponseJson
-		FocusOff() common.ResponseJson
+		FocusOn(ids ...string) common.ResponseJson
+		FocusOff(ids ...string) common.ResponseJson
 		GetUserFollows(ids ...string) common.ResponseJson
 		GetUserFans(ids ...string) common.ResponseJson
 }
@@ -43,11 +43,14 @@ func (this *userBehaviorRepositoryImpl) init() {
 }
 
 // 取消关注
-func (this *userBehaviorRepositoryImpl) FocusOff() common.ResponseJson {
+func (this *userBehaviorRepositoryImpl) FocusOff(ids ...string) common.ResponseJson {
+		if len(ids) == 0 {
+				ids = append(ids, "")
+		}
 		var (
 				err              error
 				userId           = getUserId(this.ctx)
-				targetUserId, ok = this.ctx.GetParam(":userId", "")
+				targetUserId, ok = this.ctx.GetParam(":userId", this.ctx.GetString("userId", ids[0]))
 				extras, _        = this.ctx.GetParam("extras", beego.M{})
 				query            = beego.M{"_id": bson.ObjectIdHex(targetUserId.(string)), "deletedAt": 0}
 		)
@@ -68,12 +71,15 @@ func (this *userBehaviorRepositoryImpl) FocusOff() common.ResponseJson {
 }
 
 // 关注
-func (this *userBehaviorRepositoryImpl) FocusOn() common.ResponseJson {
+func (this *userBehaviorRepositoryImpl) FocusOn(ids ...string) common.ResponseJson {
+		if len(ids) == 0 {
+				ids = append(ids, "")
+		}
 		var (
 				err              error
 				userId           = getUserId(this.ctx)
 				extras, _        = this.ctx.GetParam("extras", beego.M{})
-				targetUserId, ok = this.ctx.GetParam(":userId", "")
+				targetUserId, ok = this.ctx.GetParam(":userId", this.ctx.GetString("userId", ids[0]))
 				query            = beego.M{"_id": bson.ObjectIdHex(targetUserId.(string)), "deletedAt": 0}
 		)
 		if !ok {
@@ -99,7 +105,7 @@ func (this *userBehaviorRepositoryImpl) FocusOn() common.ResponseJson {
 // 用户粉丝列表
 func (this *userBehaviorRepositoryImpl) GetUserFans(ids ...string) common.ResponseJson {
 		if len(ids) == 0 {
-				ids = append(ids, "")
+				ids = append(ids, this.ctx.GetString("id", ""))
 		}
 		var (
 				userId        = ids[0]

@@ -256,15 +256,20 @@ func (this *TravelPostServiceImpl) attachments(notes *models.TravelNotes) {
 func (this *TravelPostServiceImpl) Search(search beego.M, page models.ListsParams) ([]*models.TravelNotes, *models.Meta) {
 		var (
 				err   error
-				lists []*models.TravelNotes
+				lists = make([]*models.TravelNotes,2)
 				meta  = models.NewMeta()
 		)
+
+		lists = lists[:0]
 		meta.Page = page.Page()
-		meta.Size = len(lists)
 		meta.Count = page.Count()
-		meta.Total, err = this.postModel.Lists(search, lists, page)
+
+		search["status"] = models.StatusAuditPass
+		this.postModel.UseSoftDelete()
+		meta.Total, err = this.postModel.Lists(search, &lists, page)
 		if err == nil {
 				meta.Boot()
+				meta.Size = len(lists)
 				return lists, meta
 		}
 		return nil, meta

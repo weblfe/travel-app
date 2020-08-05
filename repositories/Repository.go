@@ -64,7 +64,39 @@ func FilterBackgroundUrl(m beego.M) beego.M {
 
 // 获取用户基础数据转换器
 func getBaseUserInfoTransform() func(m beego.M) beego.M {
-		return transforms.FilterWrapper(transforms.FilterUserBase, FilterUserAvatarUrl, FilterBackgroundUrl)
+		return transforms.FilterWrapper(transforms.FilterUserBase, FilterUserAvatarUrl, FilterBackgroundUrl, transformUser)
+}
+
+// 用户数据组装
+func transformUser(m beego.M) beego.M {
+		if _, ok := m["avatar"]; ok {
+				return m
+		}
+		if avatarId, ok := m["avatarId"]; ok {
+				if avatarUrl, ok1 := m["avatarUrl"]; ok1 {
+						var avatar = new(Avatar)
+						avatar.Id = avatarId.(string)
+						avatar.AvatarUrl = avatarUrl.(string)
+						m["avatar"] = avatar
+				}
+				delete(m, "avatarId")
+				delete(m, "avatarUrl")
+		}
+		var userId, ok2 = m["id"]
+		if !ok2 || userId == nil || userId == "" {
+				return m
+		}
+		var (
+				id      = userId.(string)
+				service = services.UserServiceOf()
+		)
+		if _, ok := m["fansNum"]; !ok {
+				m["fansNum"] = service.GetUserFansCount(id)
+		}
+		if _, ok := m["followNum"]; !ok {
+				m["followNum"] = service.GetUserFollowCount(id)
+		}
+		return m
 }
 
 // 获取media Transform
