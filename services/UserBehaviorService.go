@@ -10,7 +10,9 @@ import (
 
 type UserBehaviorService interface {
 		GetUserFansNumber(userId string) int64
+		IsFriend(userId, follower string) bool
 		GetUserFollowNumber(userId string) int64
+		IsFollowed(userId, follower string) bool
 		UnFollow(userId string, targetUserId string, extras ...beego.M) error
 		Follow(userId string, targetUserId string, extras ...beego.M) error
 		GetFans(userId string, limit models.ListsParams) ([]bson.ObjectId, *models.Meta)
@@ -358,4 +360,29 @@ func (this *userBehaviorServiceImpl) GetFollowPostsLists(query bson.M, limit mod
 				return PostServiceOf().ListsQuery(query, limit, "-createdAt")
 		}
 		return nil, meta
+}
+
+// 是否关注
+func (this *userBehaviorServiceImpl) IsFollowed(userId, follower string) bool {
+		if userId == follower || userId == "" || follower == "" {
+				return false
+		}
+		return models.UserFocusModelOf().Exists(bson.M{"userId": bson.ObjectIdHex(userId), "focusUserId": bson.ObjectIdHex(follower), "status": models.StatusOk})
+}
+
+// 是朋友
+func (this *userBehaviorServiceImpl) IsFriend(userId, userId2 string) bool {
+		if userId == userId2 || userId == "" || userId2 == "" {
+				return false
+		}
+		var n, _ = models.UserFocusModelOf().NewQuery(bson.M{
+				"$and": []bson.M{
+						{"userId": bson.ObjectIdHex(userId), "focusUserId": bson.ObjectIdHex(userId2), "status": models.StatusOk},
+						{"userId": bson.ObjectIdHex(userId2), "focusUserId": bson.ObjectIdHex(userId), "status": models.StatusOk},
+				},
+		}).Count()
+		if n == 2 {
+				return true
+		}
+		return false
 }

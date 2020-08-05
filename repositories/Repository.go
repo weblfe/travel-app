@@ -67,6 +67,37 @@ func getBaseUserInfoTransform() func(m beego.M) beego.M {
 		return transforms.FilterWrapper(transforms.FilterUserBase, FilterUserAvatarUrl, FilterBackgroundUrl, transformUser)
 }
 
+// 追加用户关注关系
+func appendFollowedLogic(userId string) func(m beego.M) beego.M {
+		return func(m beego.M) beego.M {
+				if userId == "" {
+						return m
+				}
+				id, ok := m["id"]
+				if !ok {
+						return m
+				}
+				strId, ok := id.(string)
+				if !ok {
+						return m
+				}
+				m["isFollowed"] = false
+				if strId == userId {
+						m["isSelf"] = true
+						return m
+				}
+				m["isFollowed"] = services.UserBehaviorServiceOf().IsFollowed(userId, strId)
+				return m
+		}
+}
+
+// 对应用户的数据转换器
+func getUserTransform(userId string) func(m beego.M) beego.M {
+		return transforms.FilterWrapper(transforms.FilterUserBase,
+				FilterUserAvatarUrl, FilterBackgroundUrl, transformUser,
+				appendFollowedLogic(userId),
+		)
+}
 
 // 用户数据组装
 func transformUser(m beego.M) beego.M {
