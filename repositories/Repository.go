@@ -1,12 +1,39 @@
 package repositories
 
 import (
+		"fmt"
 		"github.com/astaxie/beego"
 		"github.com/weblfe/travel-app/common"
 		"github.com/weblfe/travel-app/middlewares"
 		"github.com/weblfe/travel-app/models"
 		"github.com/weblfe/travel-app/services"
 		"github.com/weblfe/travel-app/transforms"
+		"math"
+		"strconv"
+		"strings"
+)
+
+const (
+		BigNumberK      = 1000
+		BigNumberKUnit  = "k"
+		BigNumberW      = BigNumberK * 10
+		BigNumberWUnit  = "w"
+		BigNumberKW     = BigNumberW * BigNumberK
+		BigNumberKWUnit = "kw"
+		BigNumberWW     = BigNumberKW * BigNumberK
+		BigNumberWWUnit = "ww"
+)
+
+var (
+		BigNumberMapper = []struct {
+				Limiter int64
+				Unit    string
+		}{
+				{BigNumberK, BigNumberKUnit},
+				{BigNumberW, BigNumberWUnit},
+				{BigNumberKW, BigNumberKWUnit},
+				{BigNumberWW, BigNumberWWUnit},
+		}
 )
 
 // 获取登录用户ID
@@ -91,12 +118,138 @@ func appendFollowedLogic(userId string) func(m beego.M) beego.M {
 		}
 }
 
+// 大数转换器
+func TransBigNumberToText(m beego.M, keys ...string) beego.M {
+		if len(keys) == 0 {
+				return m
+		}
+		for _, key := range keys {
+				numKey := key + "Text"
+				m[numKey] = "0"
+				if n, ok := m[key]; ok {
+						m[numKey] = DecorateNumberToText(n)
+				}
+		}
+		return m
+}
+
+// 大数字装饰器
+func DecorateNumberToText(v interface{}) string {
+		switch v.(type) {
+		case string:
+				return v.(string)
+		case int:
+				var num = v.(int)
+				return BigNumberStringer(int64(num))
+		case int64:
+				var num = v.(int64)
+				return BigNumberStringer(num)
+		case int32:
+				var num = v.(int32)
+				return BigNumberStringer(int64(num))
+		case int8:
+				var num = v.(int8)
+				return BigNumberStringer(int64(num))
+		case int16:
+				var num = v.(int16)
+				return BigNumberStringer(int64(num))
+		case float64:
+				var num = v.(float64)
+				return BigNumberStringer(int64(num))
+		case float32:
+				var num = v.(float32)
+				return BigNumberStringer(int64(num))
+		}
+		return "0"
+}
+
+// 大数字转换
+func BigNumberStringer(num int64) string {
+		var (
+				times      int64 = 0
+				before     int64 = BigNumberK
+				beforeUnit       = BigNumberKUnit
+				total            = len(BigNumberMapper)
+				n                = int64(math.Abs(float64(num)))
+		)
+		for i, mapper := range BigNumberMapper {
+				times = 0
+				if total > i+1 {
+						times = before / BigNumberMapper[i+1].Limiter
+				}
+				if times > 1 && n/times > 1 {
+						continue
+				}
+				if mapper.Limiter >= n && n/mapper.Limiter >= 1 {
+						before = mapper.Limiter
+						beforeUnit = mapper.Unit
+						break
+				}
+
+		}
+		if before == BigNumberK {
+				if BigNumberK/2 > num {
+						return fmt.Sprintf("%d", num)
+				}
+				if BigNumberK == num {
+						return fmt.Sprintf("%d%s", int(float64(num)/float64(before)), beforeUnit)
+				}
+				return fmt.Sprintf("%s%s", DecimalText(float64(num)/float64(before)), beforeUnit)
+		}
+		return fmt.Sprintf("%d%s", num/before, beforeUnit)
+}
+
+func Round2(f float64, n int) float64 {
+		floatStr := fmt.Sprintf("%."+strconv.Itoa(n)+"f", f)
+		inst, _ := strconv.ParseFloat(floatStr, 64)
+		return inst
+}
+
+// 保留
+func DecimalText(f float64, n ...int) string {
+		if len(n) == 0 {
+				n = append(n, 2)
+		}
+		if n[0] < 0 {
+				n[0] = 2
+		}
+		var (
+				str  = fmt.Sprintf("%v", Decimal(f*math.Pow10(n[0]), n...))
+				nums = strings.SplitN(str, ".", -1)
+		)
+		if len(nums) >= 1 {
+				inst, err := strconv.ParseFloat(nums[0], 64)
+				if err != nil {
+						return "0." + strings.Repeat("0", n[0])
+				}
+				inst = inst / math.Pow10(n[0])
+				return fmt.Sprintf("%v", inst)
+		}
+		return "0.000"
+}
+
+func Decimal(f float64, n ...int) float64 {
+		if len(n) == 0 {
+				n = append(n, 2)
+		}
+		if n[0] < 0 {
+				n[0] = 2
+		}
+		n10 := math.Pow10(n[0])
+		return math.Trunc((f+0.5/n10)*n10) / n10
+}
+
 // 对应用户的数据转换器
 func getUserTransform(userId string) func(m beego.M) beego.M {
 		return transforms.FilterWrapper(transforms.FilterUserBase,
 				FilterUserAvatarUrl, FilterBackgroundUrl, transformUser,
-				appendFollowedLogic(userId),
+				appendFollowedLogic(userId), transformUserNumber,
 		)
+}
+
+// 用户数字装饰器
+func transformUserNumber(m beego.M) beego.M {
+		return TransBigNumberToText(m, "thumbsUpNum", "followNum", "fansNum")
 }
 
 // 用户数据组装

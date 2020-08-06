@@ -90,7 +90,7 @@ func (this *commentRepository) Lists() common.ResponseJson {
 		}
 		comments, meta = this.service.Lists(typ, id, page)
 		if comments == nil || meta == nil {
-				return common.NewErrorResp(common.NewErrors(common.InvalidParametersError, common.InvalidParametersError), "获取列表失败")
+				return common.NewErrorResp(common.NewErrors(common.NotFound, common.RecordNotFoundError), "获取列表失败")
 		}
 		return common.NewSuccessResp(beego.M{"items": this.each(comments), "meta": meta}, "发布成功")
 }
