@@ -51,9 +51,9 @@ func (this *commentServiceImpl) Commit(data *models.Comment) error {
 				return errors.New("empty targetType")
 		}
 		// 检查是否自己给自己评论，回复
-		if err:=this.check(data);err!=nil {
+		/*if err:=this.check(data);err!=nil {
 				return err
-		}
+		}*/
 		var err = this.model.Add(data)
 		if err == nil {
 				go this.addSuccessAfter(data)
