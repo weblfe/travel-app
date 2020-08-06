@@ -16,7 +16,7 @@ type PostsRepository interface {
 	Create() common.ResponseJson
 	Update() common.ResponseJson
 	Audit() common.ResponseJson
-	GetLikes() common.ResponseJson
+	GetLikes(ids...string) common.ResponseJson
 	GetRanking() common.ResponseJson
 	GetFollows() common.ResponseJson
 	Lists(...string) common.ResponseJson
@@ -299,7 +299,10 @@ func (this *postRepositoryImpl) getPostTransform() func(m beego.M) beego.M {
 }
 
 // 获取喜欢列表
-func (this *postRepositoryImpl) GetLikes() common.ResponseJson {
+func (this *postRepositoryImpl) GetLikes(ids...string) common.ResponseJson {
+	if len(ids) == 0 {
+		ids = append(ids,getUserId(this.ctx))
+	}
 	var (
 		meta     *models.Meta
 		ctx      = this.ctx.GetParent()
@@ -308,7 +311,7 @@ func (this *postRepositoryImpl) GetLikes() common.ResponseJson {
 		count, _ = ctx.GetInt("count", 20)
 		limit    = models.NewListParam(page, count)
 	)
-	var query = bson.M{"userId": getUserId(this.ctx)}
+	var query = bson.M{"userId": ids[0]}
 	items, meta = services.ThumbsUpServiceOf().GetUserLikeLists(query, limit)
 	if items != nil && len(items) > 0 && meta != nil {
 		var arr []beego.M

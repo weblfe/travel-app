@@ -28,6 +28,12 @@ func (this *PostsController) Likes() {
 		this.Send(repositories.NewPostsRepository(this).GetLikes())
 }
 
+// 获取喜欢
+// @router /posts/user/likes  [get]
+func (this *PostsController) LikesQuery() {
+	this.Send(repositories.NewPostsRepository(this).GetLikes(this.GetString("userId")))
+}
+
 // 获取推荐列表
 // @router /posts/recommends  [get]
 func (this *PostsController) Recommends() {

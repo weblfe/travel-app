@@ -297,6 +297,15 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PostsController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PostsController"],
         beego.ControllerComments{
+            Method: "LikesQuery",
+            Router: `/posts/user/likes`,
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PostsController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PostsController"],
+        beego.ControllerComments{
             Method: "ListUserPosts",
             Router: `/posts/users/:userId`,
             AllowHTTPMethods: []string{"get"},
