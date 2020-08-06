@@ -165,7 +165,7 @@ func (this *thumbsUpServiceImpl) GetUserLikeLists(query bson.M, limit models.Lis
 				if results != nil {
 						for i, id := range ids {
 								for j, it := range results {
-										if id == it.Id && i != j {
+										if id == it.Id && i != j && i < meta.Size {
 												results[i], results[j] = results[j], results[i]
 										}
 								}
