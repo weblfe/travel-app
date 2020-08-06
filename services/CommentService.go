@@ -91,8 +91,8 @@ func (this *commentServiceImpl) IncrCommentForPost(comment *models.Comment) erro
 	}
 	// 作品评论数据统计
 	if comment.TargetType == "post" && comment.Status == models.StatusAuditPass {
-		if len(comment.RefersIds) > 0 {
-			_ = PostServiceOf().IncrComment(comment.RefersIds[0])
+		if comment.TargetId != "" {
+			_ = PostServiceOf().IncrComment(comment.TargetId)
 		}
 	}
 	return nil
