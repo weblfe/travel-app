@@ -86,7 +86,7 @@ func (this *commentServiceImpl) IncrCommentForPost(comment *models.Comment) erro
 		if len(comment.RefersIds) >= 2 && comment.Status == models.StatusAuditPass {
 				// 评论 的评论数统计
 				if comment.TargetType == "comment" {
-						_ = this.IncrCommentReviews(comment.RefersIds[1])
+						_ = this.IncrCommentReviews(comment.TargetId)
 				}
 		}
 		// 作品评论数据统计
