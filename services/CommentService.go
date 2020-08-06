@@ -83,7 +83,7 @@ func (this *commentServiceImpl) addSuccessAfter(comment *models.Comment) {
 
 // 评论数据增加更新
 func (this *commentServiceImpl) IncrCommentForPost(comment *models.Comment) error {
-		if len(comment.RefersIds) > 1 && comment.Status == models.StatusAuditPass {
+		if len(comment.RefersIds) >= 2 && comment.Status == models.StatusAuditPass {
 				// 评论 的评论数统计
 				if comment.TargetType == "comment" {
 						_ = this.IncrCommentReviews(comment.RefersIds[1])
@@ -91,7 +91,9 @@ func (this *commentServiceImpl) IncrCommentForPost(comment *models.Comment) erro
 		}
 		// 作品评论数据统计
 		if comment.TargetType == "post" && comment.Status == models.StatusAuditPass {
-				_ = PostServiceOf().IncrComment(comment.RefersIds[0])
+				if len(comment.RefersIds) >0 {
+					_ = PostServiceOf().IncrComment(comment.RefersIds[0])
+				}
 		}
 		return nil
 }
