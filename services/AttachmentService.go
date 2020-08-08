@@ -24,7 +24,7 @@ type AttachmentService interface {
 		GetUrl(string) string
 		GetById(id string) *models.Attachment
 		GetAccessUrl(string) string
-		AutoCoverForVideo(attachment *models.Attachment,posts...*models.TravelNotes) string
+		AutoCoverForVideo(attachment *models.Attachment, posts ...*models.TravelNotes) string
 		Save(reader io.ReadCloser, extras ...beego.M) *models.Attachment
 }
 
@@ -254,7 +254,7 @@ func (this *AttachmentServiceImpl) GetAccessUrl(mediaId string) string {
 		return UrlTicketServiceOf().GetTicketUrlByAttach(data)
 }
 
-func (this *AttachmentServiceImpl) AutoCoverForVideo(attachment *models.Attachment,posts...*models.TravelNotes) string {
+func (this *AttachmentServiceImpl) AutoCoverForVideo(attachment *models.Attachment, posts ...*models.TravelNotes) string {
 		if attachment == nil || attachment.FileType != AttachTypeVideo {
 				return ""
 		}
@@ -267,16 +267,16 @@ func (this *AttachmentServiceImpl) AutoCoverForVideo(attachment *models.Attachme
 		}
 		var (
 				ext     = filepath.Ext(fs)
-				name    =  fmt.Sprintf("%d.%s", time.Now().Unix(), "jpg")
-				storage = strings.Replace(fs, ext,name, 1)
+				name    = fmt.Sprintf("%d.%s", time.Now().Unix(), "jpg")
+				storage = strings.Replace(fs, ext, name, 1)
 		)
 		if plugins.ScreenShot(fs, storage) {
 				fd, _ := os.Open(storage)
 				defer this.closer(fd)
-				data :=beego.M{
-						"userId": attachment.UserId,
+				data := beego.M{
+						"userId":  attachment.UserId,
 						"referId": attachment.Id.Hex(), "fileType": AttachTypeImage,
-						"filename" : filepath.Base(fd.Name()),
+						"filename": filepath.Base(fd.Name()),
 				}
 				image := this.Save(fd, data)
 				if image == nil {
@@ -286,8 +286,8 @@ func (this *AttachmentServiceImpl) AutoCoverForVideo(attachment *models.Attachme
 				if err != nil {
 						logs.Error(err)
 				}
-				if len(posts)>0 {
-						posts[0].Images = append(posts[0].Images,image.Id.Hex())
+				if len(posts) > 0 {
+						posts[0].Images = append(posts[0].Images, image.Id.Hex())
 						return image.Id.Hex()
 				}
 				if attachment.ReferId != "" && attachment.ReferName == models.TravelNotesTable {
@@ -295,6 +295,7 @@ func (this *AttachmentServiceImpl) AutoCoverForVideo(attachment *models.Attachme
 				}
 				return image.Id.Hex()
 		}
+		logs.Info("ScreenShot failed", fs)
 		return ""
 }
 

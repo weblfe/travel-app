@@ -267,11 +267,14 @@ func (this *TravelPostServiceImpl) attachVideo(post *models.TravelNotes) bool {
 		images = images[:0]
 		for _, id := range post.Videos {
 				attach := service.GetById(id)
-				if attach != nil {
-						imageId := service.AutoCoverForVideo(attach, post)
-						if imageId != "" {
-								count++
-						}
+				if attach == nil {
+						logs.Info("attach id not exists :", id)
+						return false
+				}
+				imageId := service.AutoCoverForVideo(attach, post)
+				if imageId != "" {
+						logs.Info("AutoCoverForVideo :", imageId)
+						count++
 				}
 		}
 		if count == len(post.Images) && count > 0 {
