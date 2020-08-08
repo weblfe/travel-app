@@ -178,6 +178,17 @@ func (this *BaseController) GetStrings(key string, def ...[]string) []string {
 				if arr, ok := v.([]string); ok {
 						return arr
 				}
+				if arr, ok := v.([]interface{}); ok {
+						var strArr []string
+						for _, it := range arr {
+								v, ok := it.(string)
+								if !ok {
+										continue
+								}
+								strArr = append(strArr, v)
+						}
+						return strArr
+				}
 				if str, ok := v.(string); ok {
 						return strings.SplitN(str, ",", -1)
 				}
