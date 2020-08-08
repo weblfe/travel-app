@@ -282,7 +282,7 @@ func (this *AttachmentServiceImpl) AutoCoverForVideo(attachment *models.Attachme
 				if image == nil {
 						return ""
 				}
-				err := this.UpdateById(attachment.Id.Hex(), beego.M{"coverId": image.Id.Hex()})
+				err := this.UpdateById(attachment.Id.Hex(), beego.M{"coverId": image.Id})
 				if err != nil {
 						logs.Error(err)
 				}
