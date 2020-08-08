@@ -104,7 +104,11 @@ func (this *ffmpeg) SaveScreenShot(file string, storage ...string) string {
 		)
 		var info, err = cmder.CombinedOutput()
 		if err != nil {
-				fmt.Println(string(info),err)
+				state, err := os.Stat(image)
+				if err == nil && state.Size() > 0 {
+						return image
+				}
+				fmt.Println(string(info), err)
 				return ""
 		}
 		if string(info) != "" {
