@@ -400,6 +400,6 @@ func (this *TravelPostServiceImpl) AutoVideoCoverImageTask(ids []string) int {
 						count++
 				}
 		}
-		logs.Info("auto video cover :", count)
+		logs.Info("auto video cover :", count,ids)
 		return count
 }
