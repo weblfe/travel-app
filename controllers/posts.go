@@ -74,3 +74,9 @@ func (this *PostsController) RemoveById() {
 func (this *PostsController)Audit() {
 		this.Send(repositories.NewPostsRepository(this).Audit())
 }
+
+// 删除文章
+// @router /posts/video/cover  [post]
+func (this *PostsController)AutoCover() {
+		this.Send(repositories.NewPostsRepository(this).AutoVideosCover())
+}

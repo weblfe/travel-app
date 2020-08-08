@@ -49,11 +49,7 @@ type NatsPlugin struct {
 
 func GetNatsPlugin() *NatsPlugin {
 		if _NatsPlugInstance == nil {
-				var lock = getLock(_NatsPluginName)
-				lock.Do(func() {
-						_NatsPlugInstance = newNatsPlugin()
-						_NatsPlugInstance.Init()
-				})
+				newNatsService()
 		}
 		return _NatsPlugInstance
 }
@@ -68,6 +64,16 @@ func getLock(name string) sync.Once {
 		_syncLocks[name] = lock
 		return lock
 }
+
+// 新建Nats 服务
+func newNatsService()  {
+		var lock = getLock(_NatsPluginName)
+		lock.Do(func() {
+				_NatsPlugInstance = newNatsPlugin()
+				_NatsPlugInstance.Init()
+		})
+}
+
 
 func newNatsPlugin() *NatsPlugin {
 		var plugin = new(NatsPlugin)

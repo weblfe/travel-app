@@ -3,19 +3,24 @@ package services
 import (
 		"errors"
 		"github.com/astaxie/beego"
+		"github.com/astaxie/beego/logs"
 		"github.com/globalsign/mgo/bson"
+		"github.com/weblfe/travel-app/common"
 		"github.com/weblfe/travel-app/libs"
 		"github.com/weblfe/travel-app/models"
+		"time"
 )
 
 type PostService interface {
-		Audit(...string) bool
+		Audit(string, ...string) bool
 		IncrComment(id string) error
 		Exists(query bson.M) bool
 		Create(notes *models.TravelNotes) error
 		GetById(id string) *models.TravelNotes
 		IncrThumbsUp(id string, incr int) error
-		ListsQuery(query bson.M, limit models.ListsParams,sort...string) ([]*models.TravelNotes, *models.Meta)
+		UpdateById(id string, data beego.M) error
+		AutoVideoCoverImageTask(ids []string) int
+		ListsQuery(query bson.M, limit models.ListsParams, sort ...string) ([]*models.TravelNotes, *models.Meta)
 		GetRankingLists(query bson.M, limit models.ListsParams) ([]*models.TravelNotes, *models.Meta)
 		GetRecommendLists(query bson.M, limit models.ListsParams) ([]*models.TravelNotes, *models.Meta)
 		Lists(userId string, page models.ListsParams, extras ...beego.M) ([]*models.TravelNotes, *models.Meta)
@@ -191,9 +196,8 @@ func (this *TravelPostServiceImpl) ListsQuery(query bson.M, limit models.ListsPa
 }
 
 func (this *TravelPostServiceImpl) Create(notes *models.TravelNotes) error {
-		var images []string
-		if notes.Images != nil && len(notes.Images) > 0 {
-				images = notes.Images[:]
+		if notes.Type == PostTypeImage && len(notes.Images) <= 0 {
+				return common.NewErrors(common.InvalidParametersCode, "图片不能为空")
 		}
 		// 矫正类型
 		if notes.Videos != nil && len(notes.Videos) > 0 {
@@ -202,7 +206,6 @@ func (this *TravelPostServiceImpl) Create(notes *models.TravelNotes) error {
 		var err = this.postModel.Add(notes)
 		if err == nil {
 				// 异步更新 附件归属
-				notes.Images = images
 				go this.attachments(notes)
 		}
 		return err
@@ -224,6 +227,7 @@ func (this *TravelPostServiceImpl) GetById(id string) *models.TravelNotes {
 }
 
 func (this *TravelPostServiceImpl) attachments(notes *models.TravelNotes) {
+
 		if notes.Videos != nil && len(notes.Videos) > 0 && notes.Type == PostTypeVideo {
 				var (
 						service = AttachmentServiceOf()
@@ -253,10 +257,38 @@ func (this *TravelPostServiceImpl) attachments(notes *models.TravelNotes) {
 		}
 }
 
+// 自动化获取封面
+func (this *TravelPostServiceImpl) attachVideo(post *models.TravelNotes) bool {
+		var (
+				count   = 0
+				service = AttachmentServiceOf()
+				images  []string
+		)
+		images = images[:0]
+		for _, id := range post.Videos {
+				attach := service.GetById(id)
+				if attach != nil {
+						imageId := service.AutoCoverForVideo(attach, post)
+						if imageId != "" {
+								count++
+						}
+				}
+		}
+		if count == len(post.Images) && count > 0 {
+				post.UpdatedAt = time.Now().Local()
+				err := this.postModel.Update(bson.M{"_id": post.Id}, post)
+				if err == nil {
+						return true
+				}
+				logs.Error(err)
+		}
+		return false
+}
+
 func (this *TravelPostServiceImpl) Search(search beego.M, page models.ListsParams) ([]*models.TravelNotes, *models.Meta) {
 		var (
 				err   error
-				lists = make([]*models.TravelNotes,2)
+				lists = make([]*models.TravelNotes, 2)
 				meta  = models.NewMeta()
 		)
 
@@ -286,23 +318,39 @@ func (this *TravelPostServiceImpl) IncrThumbsUp(id string, incr int) error {
 		if id == "" {
 				return errors.New("thumbsUp post id empty")
 		}
-	    var post = this.GetById(id)
-	    if post == nil {
-			return errors.New("thumbsUp post id empty")
+		var post = this.GetById(id)
+		if post == nil {
+				return errors.New("thumbsUp post id empty")
 		}
-		defer this.AfterIncr(post.UserId,incr)
+		defer this.AfterIncr(post.UserId, incr)
 		return this.postModel.Incr(id, "thumbsUpNum", incr)
 }
 
-func (this *TravelPostServiceImpl) Audit(id ...string) bool {
-		if len(id) == 0 {
+func (this *TravelPostServiceImpl) Audit(typ string, ids ...string) bool {
+		if len(ids) == 0 {
 				return false
 		}
-		var arr []bson.ObjectId
-		for _, v := range id {
+		var (
+				status int
+				arr    []bson.ObjectId
+		)
+		// 类型判断
+		switch typ {
+		case "1":
+				status = models.StatusAuditPass
+		case "2":
+				status = models.StatusAuditUnPass
+		case "-1":
+				status = models.StatusAuditNotPass
+		case "0":
+				status = models.StatusWaitAudit
+		default:
+				return false
+		}
+		for _, v := range ids {
 				arr = append(arr, bson.ObjectIdHex(v))
 		}
-		var err = this.postModel.Update(bson.M{"_id": bson.M{"$in": arr}}, bson.M{"status": models.StatusAuditPass})
+		var err = this.postModel.Update(bson.M{"_id": bson.M{"$in": arr}}, bson.M{"status": status})
 		if err == nil {
 				return true
 		}
@@ -313,13 +361,42 @@ func (this *TravelPostServiceImpl) Exists(query bson.M) bool {
 		return this.postModel.Exists(query)
 }
 
-func (this *TravelPostServiceImpl)AfterIncr(userId string, incr int)  {
+func (this *TravelPostServiceImpl) AfterIncr(userId string, incr int) {
 		var (
-			service = UserServiceOf()
-			user = service.GetById(userId)
+				service = UserServiceOf()
+				user    = service.GetById(userId)
 		)
 		if user == nil {
-			return
+				return
 		}
-		_ = service.IncrBy(bson.M{"_id":bson.ObjectIdHex(userId)},"thumbsUpTotal",incr)
+		_ = service.IncrBy(bson.M{"_id": bson.ObjectIdHex(userId)}, "thumbsUpTotal", incr)
+}
+
+func (this *TravelPostServiceImpl) UpdateById(id string, data beego.M) error {
+		if len(data) == 0 {
+				return common.NewErrors(common.EmptyParamCode, "空更新")
+		}
+		data["updatedAt"] = time.Now().Local()
+		return this.postModel.UpdateById(id, data)
+}
+
+func (this *TravelPostServiceImpl) AutoVideoCoverImageTask(ids []string) int {
+		var count = 0
+		for _, id := range ids {
+				post := this.GetById(id)
+				if post == nil {
+						continue
+				}
+				if post.Type != PostTypeVideo {
+						continue
+				}
+				if len(post.Videos) <= 0 {
+						continue
+				}
+				if this.attachVideo(post) {
+						count++
+				}
+		}
+		logs.Info("auto video cover :", count)
+		return count
 }

@@ -4,6 +4,7 @@ import (
 		"encoding/json"
 		"fmt"
 		"github.com/astaxie/beego"
+		"github.com/astaxie/beego/logs"
 		"github.com/weblfe/travel-app/libs"
 		"io"
 		"io/ioutil"
@@ -272,6 +273,7 @@ func (this *fileSystemServiceImpl) AddDisk(disk string, root string, fn ...func(
 
 func (this *fileSystemServiceImpl) SaveByReader(reader io.ReadCloser, extras beego.M) (beego.M, bool) {
 		var (
+				savePath string
 				filePath = extras["path"]
 		)
 		if filePath == "" || filePath == nil {
@@ -283,7 +285,11 @@ func (this *fileSystemServiceImpl) SaveByReader(reader io.ReadCloser, extras bee
 		}
 		root := filePath.(string)
 		name := filename.(string)
-		savePath := filepath.Join(root, name)
+		if strings.Contains(name, root) {
+				savePath = name
+		} else {
+				savePath = filepath.Join(root, name)
+		}
 		// 文件是否存在
 		if libs.IsExits(savePath) {
 				savePath = filepath.Join(root, fmt.Sprintf("%d", time.Now().Unix())+"_"+name)
@@ -293,6 +299,7 @@ func (this *fileSystemServiceImpl) SaveByReader(reader io.ReadCloser, extras bee
 				_ = fs.Close()
 		}()
 		if err != nil {
+				logs.Error(err)
 				return extras, false
 		}
 		n, err := io.Copy(fs, reader)

@@ -38,10 +38,10 @@ func CommentModelOf() *CommentModel {
 
 const (
 	CommentTable             = "comments"
+	StatusAuditUnPass        = -1
 	StatusAuditPass          = 1
 	StatusAuditWait          = 0
-	StatusAuditUnPass        = 2
-	StatusOff                = -1
+	StatusOff                = 2
 	CommentTargetTypeComment = "post"
 	CommentTargetTypeReview  = "comment"
 )
@@ -50,10 +50,22 @@ var (
 	CommentStatusMap = map[int]string{
 		StatusAuditWait: "待审核", StatusAuditPass: "审核通过", StatusAuditUnPass: "审核未通过", StatusOff: "下架",
 	}
+	CommentTypes = []string{
+			CommentTargetTypeReview,CommentTargetTypeComment,
+	}
 )
 
 func NewComment() *Comment {
 	return new(Comment)
+}
+
+func (this *Comment)CheckType() bool  {
+		for _,ty:=range CommentTypes{
+				if this.TargetType == ty {
+						return true
+				}
+		}
+		return false
 }
 
 func (this *Comment) Load(data map[string]interface{}) *Comment {

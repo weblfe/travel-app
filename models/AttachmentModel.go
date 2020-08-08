@@ -302,7 +302,8 @@ func (this *Attachment) Defaults() *Attachment {
 				this.FileType = libs.GetFileType(this.FileName)
 		}
 		if _, ok := this.ExtrasInfo["extension"]; !ok && this.FileName != "" {
-				this.ExtrasInfo["extension"] = filepath.Ext(this.FileName)[1:]
+				var ext = filepath.Ext(this.FileName)
+				this.ExtrasInfo["extension"] = ext[1:]
 		}
 		return this
 }

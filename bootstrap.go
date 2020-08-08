@@ -152,6 +152,9 @@ func initMiddleware() {
 		manger.Router(middlewares.AuthMiddlewareName, "/comment/create", beego.BeforeRouter)
 		manger.Router(middlewares.AuthMiddlewareName, "/user/friends", beego.BeforeRouter)
 		manger.Router(middlewares.AuthMiddlewareName, "/follow/*", beego.BeforeRouter)
+		manger.Router(middlewares.AuthMiddlewareName, "/posts/audit", beego.BeforeRouter)
+
+		manger.Router(middlewares.RoleMiddleware, "/posts/audit", beego.BeforeRouter)
 
 		// 启用中间
 		manger.Boot()

@@ -26,6 +26,7 @@ type UserRoleType struct {
 }
 
 const (
+		UserRootRole = 7
 		UserRoleTypeTableName = "user_roles_config"
 )
 

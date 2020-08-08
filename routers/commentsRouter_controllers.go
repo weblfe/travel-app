@@ -313,6 +313,15 @@ func init() {
             Filters: nil,
             Params: nil})
 
+    beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PostsController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PostsController"],
+        beego.ControllerComments{
+            Method: "AutoCover",
+            Router: `/posts/video/cover`,
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
     beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:TagsController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:TagsController"],
         beego.ControllerComments{
             Method: "Lists",
