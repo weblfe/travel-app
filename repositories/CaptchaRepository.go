@@ -35,7 +35,7 @@ func (this *CaptchaRepositoryImpl) SendMobileCaptcha() common.ResponseJson {
 				request = new(transports.MobileRequest)
 		)
 		request.Load(this.ctx.GetParent().Ctx.Input)
-		request.Dump()
+		// request.Dump()
 		typ = request.Type
 		mobile = request.Mobile
 		if mobile == "" || typ == "" {
