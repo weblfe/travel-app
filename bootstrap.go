@@ -17,6 +17,7 @@ import (
 		"strings"
 )
 
+// 载入引导逻辑
 func init() {
 		bootstrap()
 }
@@ -37,7 +38,8 @@ func bootstrap() {
 		initMiddleware()
 		// 注册插件
 		registerPlugins()
-
+		// 注册全局服务
+		registerServices()
 }
 
 // 配置 session
@@ -77,7 +79,7 @@ func initMongodb(data map[string]string) {
 		}
 }
 
-// 数据结构注册
+// 注册环境变量
 func initRegisterEnv() {
 		pwd, _ := os.Getwd()
 		envFile := env.Get("ENV_FILE", path.Join(pwd, "/.env"))
@@ -86,7 +88,6 @@ func initRegisterEnv() {
 		}
 		var arr []string
 		envs := strings.SplitN(envFile, ",", -1)
-
 		for _, fs := range envs {
 				state, err := os.Stat(fs)
 				if err != nil {
@@ -176,4 +177,10 @@ func registerGob() {
 // 注册插件
 func registerPlugins() {
 		plugins.GetNatsPlugin().Register()
+}
+
+// 注册全局服务
+func registerServices()  {
+		// 注册
+		services.RegisterUrlService()
 }

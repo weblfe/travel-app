@@ -75,8 +75,45 @@ type Video struct {
 		CoverId      string        `json:"coverId" bson:"coverId"`           // 封面ID
 }
 
+type UrlAccessService interface {
+		GetTicketUrlByAttach(*Attachment) string
+}
+
 const (
-		AttachmentTable = "attachments"
+		AttachmentTable       = "attachments"
+		AttachTypeImage       = "image"
+		AttachTypeImageAvatar = "avatar"
+		AttachTypeDoc         = "doc"
+		AttachTypeText        = "txt"
+		AttachTypeVideo       = "video"
+		AttachTypeAudio       = "audio"
+		UrlTicketParam        = "ticket"
+		UrlServerFaced        = "UrlAccessService"
+		DefaultAliveTime      = int64(30 * time.Minute)
+)
+
+// 字符串数组
+type StrArray []string
+
+var (
+		// 类型列表
+		AttachmentTypes = []string{
+				AttachTypeImage,
+				AttachTypeImageAvatar,
+				AttachTypeDoc,
+				AttachTypeText,
+				AttachTypeVideo,
+				AttachTypeAudio,
+		}
+		// 类型匹配器
+		AttachmentTypesMatcher = []*StrArrayEntry{
+				{AttachTypeImage, StrArray{".png", ".jpg", ".gif", ".bmp", ".webp", ".svg"}},
+				{AttachTypeImageAvatar, StrArray{".png", ".jpg"}},
+				{AttachTypeDoc, StrArray{".doc", ".docx", ".pdf", ".ppt", ".pptx", ".xsl", ".xslx", ".mmap", ".xmind"}},
+				{AttachTypeText, StrArray{".txt", ".ini", ".yml", ".yaml", ".toml", ".xml", ".json", ".conf", ".env", ".sh", ".cmd", ".ps1", ".gitignore"}},
+				{AttachTypeVideo, StrArray{".mp4"}},
+				{AttachTypeAudio, StrArray{".mp3"}},
+		}
 )
 
 func NewAttachment() *Attachment {
@@ -392,6 +429,41 @@ func (this *Attachment) Video() *Video {
 		return video
 }
 
+func (this *Attachment) CheckType() bool {
+		if this.FileType == "" {
+				this.AutoType()
+				if this.FileType == "" {
+						return false
+				}
+		}
+		return StrArray(AttachmentTypes).Included(this.FileType)
+}
+
+func (this *Attachment) AutoType() *Attachment {
+		if this.FileName == "" {
+				return this
+		}
+		var matched = -1
+		for _, arr := range AttachmentTypesMatcher {
+				arr.Foreach(func(i int, value string) bool {
+						if strings.Contains(this.FileName, value) {
+								matched = i
+								return false
+						}
+						return true
+				})
+				if matched != -1 {
+						this.FileType = arr.Key
+						break
+				}
+		}
+		return this
+}
+
+func (this *Attachment) GetLocal() string {
+		return filepath.Join(this.Path, this.FileName)
+}
+
 func (this *Attachment) GetCoverInfo(id bson.ObjectId) *Attachment {
 		if id == "" {
 				return nil
@@ -468,6 +540,88 @@ func (this *AttachmentModel) GetByMediaId(id string) (*Attachment, error) {
 		return nil, err
 }
 
-func (this *Attachment) GetLocal() string {
-		return filepath.Join(this.Path, this.FileName)
+// 获取图片
+func (this *AttachmentModel) GetImageById(id string) *Image {
+		var attach = NewAttachment()
+		if err := this.GetById(id, attach); err != nil || attach == nil {
+				return nil
+		}
+		if attach.FileType != AttachTypeImage {
+				return nil
+		}
+		var (
+				image   = attach.Image()
+				service = this.getUrlService()
+		)
+		if service == nil {
+				image.Url = this.getTicketUrl(image.Url)
+		} else {
+				image.Url = service.GetTicketUrlByAttach(attach)
+		}
+		return image
+}
+
+func (this *AttachmentModel) getTicketUrl(url string) string {
+		if url == "" {
+				return url
+		}
+		return url + "?" + UrlTicketParam + "=" + libs.Encrypt(this.getExpire())
+}
+
+func (this *AttachmentModel) getExpire() string {
+		return fmt.Sprintf("%v", this.getExpiredAt())
+}
+
+func (this *AttachmentModel) getExpiredAt() int64 {
+		return time.Now().Unix() + DefaultAliveTime
+}
+
+// 获取视频对象
+func (this *AttachmentModel) GetVideoById(id string) *Video {
+		var attach = NewAttachment()
+		if err := this.GetById(id, attach); err != nil || attach == nil {
+				return nil
+		}
+		if attach.FileType != AttachTypeVideo {
+				return nil
+		}
+		var (
+				video   = attach.Video()
+				service = this.getUrlService()
+		)
+		if service == nil {
+				video.Url = this.getTicketUrl(video.Url)
+		} else {
+				video.Url = service.GetTicketUrlByAttach(attach)
+		}
+		return video
+}
+
+func (this *AttachmentModel) getUrlService() UrlAccessService {
+		var service = libs.Container().Get(UrlServerFaced)
+		if service == nil || libs.IsIocNotFound(service) {
+				return nil
+		}
+		if provider, ok := service.(UrlAccessService); ok {
+				return provider
+		}
+		return nil
+}
+
+// 图片是否可用
+func (this *AttachmentModel) ImageOk(id string) bool {
+		return this.Exists(bson.M{"_id": bson.ObjectIdHex(id), "status": StatusOk, "fileType": AttachTypeImage})
+}
+
+// 视频是否可用
+func (this *AttachmentModel) VideoOk(id string) bool {
+		return this.Exists(bson.M{"_id": bson.ObjectIdHex(id), "status": StatusOk, "fileType": AttachTypeVideo})
+}
+
+// 类型文件是存在
+func (this *AttachmentModel) TypeMediaOk(id string, ty string) bool {
+		if !StrArray(AttachmentTypes).Included(ty) {
+				return false
+		}
+		return this.Exists(bson.M{"_id": bson.ObjectIdHex(id), "status": StatusOk, "fileType": ty})
 }

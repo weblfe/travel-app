@@ -34,11 +34,11 @@ type AttachmentServiceImpl struct {
 }
 
 const (
-		AttachTypeImage       = "image"
-		AttachTypeImageAvatar = "avatar"
-		AttachTypeDoc         = "doc"
-		AttachTypeText        = "txt"
-		AttachTypeVideo       = "video"
+		AttachTypeDoc         = models.AttachTypeDoc
+		AttachTypeText        = models.AttachTypeText
+		AttachTypeVideo       = models.AttachTypeVideo
+		AttachTypeImage       = models.AttachTypeImage
+		AttachTypeImageAvatar = models.AttachTypeImageAvatar
 )
 
 func AttachmentServiceOf() AttachmentService {

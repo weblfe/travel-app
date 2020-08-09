@@ -46,6 +46,7 @@ func (this *appRepository) Apply() common.ResponseJson {
 				err    error
 				userId = getUserId(this.ctx)
 				data   = models.NewApplyInfo()
+				extras =  this.ctx.GetJsonData()
 		)
 		data.UserId = userId
 		data.Date = models.GetDate()
@@ -53,10 +54,49 @@ func (this *appRepository) Apply() common.ResponseJson {
 		data.Target = this.ctx.GetString("target")
 		data.Title = this.ctx.GetString("title")
 		data.Type = this.ctx.GetString("type", models.ApplyTypeReport)
-		data.Extras = this.ctx.GetJsonData()
+		data.Images = getImages(extras)
+		if len(extras) > 0 {
+				data.Extras = getExtras(extras)
+		}
 		err = this.appApplyService.Commit(data)
 		if err == nil {
 				return common.NewSuccessResp(beego.M{"timestamp": time.Now().Unix()}, "提交成功")
 		}
 		return common.NewFailedResp(common.ServiceFailed, "今日反馈到达上限")
+}
+
+// 获取扩展数据
+func getExtras(m beego.M) beego.M {
+		var extras, ok = m["extras"]
+		if !ok {
+				return beego.M{}
+		}
+		if v, ok := extras.(beego.M); ok {
+				return v
+		}
+		if v, ok := extras.(*beego.M); ok {
+				return *v
+		}
+		return beego.M{}
+}
+
+// 获取图片参数
+func getImages(m beego.M) []string {
+		var images, ok = m["images"]
+		if !ok {
+				return []string{}
+		}
+		// 图片
+		if v, ok := images.([]string); ok {
+				return v
+		}
+		// 获取images
+		if v, ok := images.([]*string); ok {
+				var arr []string
+				for _, str := range v {
+						arr = append(arr, *str)
+				}
+				return arr
+		}
+		return []string{}
 }

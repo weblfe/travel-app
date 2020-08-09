@@ -8,10 +8,28 @@ import (
 		"github.com/weblfe/travel-app/libs"
 		"github.com/weblfe/travel-app/models"
 		"github.com/weblfe/travel-app/transforms"
+		"github.com/weblfe/travel-app/transports"
 		"reflect"
 		"testing"
 		"time"
 )
+
+func TestJson(t *testing.T) {
+		var mapper = beego.M{
+				"username":"beego",
+				"timestamp":time.Now().Unix(),
+		}
+		var info = libs.JsonEncode(transports.NewSearchInstance())
+		fmt.Println(string(info),libs.GetLastJsonErr())
+		Convey("Test json", t, func() {
+				 var by = libs.JsonEncode(mapper)
+				 fmt.Println(string(by))
+				 So(len(by)>0,ShouldBeTrue)
+				 So(libs.GetLastJsonErr() == nil,ShouldBeTrue)
+				 var d = libs.JsonDecode(by)
+				 So(d!=nil,ShouldBeTrue)
+		})
+}
 
 func TestIsEmail(t *testing.T) {
 		var emails = getEmails()
@@ -19,6 +37,19 @@ func TestIsEmail(t *testing.T) {
 				for _, it := range emails {
 						So(libs.IsEmail(it.Key), ShouldEqual, it.Value)
 				}
+		})
+}
+
+func TestEncrypt(t *testing.T) {
+		var txt = fmt.Sprintf("%v", time.Now().Unix())
+		Convey("Test Encrypt ", t, func() {
+				var (
+						encode = libs.Encrypt(txt)
+						decode = libs.Decrypt(encode)
+				)
+				fmt.Println(encode)
+				fmt.Println(decode)
+				So(decode == txt, ShouldBeTrue)
 		})
 }
 
@@ -88,7 +119,7 @@ func TestFilter(t *testing.T) {
 				return m
 		})
 
-		m:= mapper.M(transforms.FilterWrapper(filters...))
+		m := mapper.M(transforms.FilterWrapper(filters...))
 		fmt.Printf("%v\n", mapper)
 		fmt.Printf("%v\n", m)
 }

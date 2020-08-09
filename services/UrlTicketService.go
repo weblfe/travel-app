@@ -17,7 +17,8 @@ type UrlTicketService interface {
 }
 
 const (
-		_IncrPrefix = "incr_"
+		_IncrPrefix          = "incr_"
+		UrlTicketServerClass = "UrlAccessService"
 )
 
 type urlTicketServiceImpl struct {
@@ -25,14 +26,47 @@ type urlTicketServiceImpl struct {
 		attachmentService AttachmentService
 }
 
+type SimpleUrlAttach struct {
+		Url     string `json:"url"`
+		MediaId string `json:"mediaId"`
+		Path    string `json:"path"`
+}
+
 func UrlTicketServiceOf() UrlTicketService {
 		return newUrlTicketService()
+}
+
+// 注册url 服务
+func RegisterUrlService()  {
+		newUrlTicketService().register()
 }
 
 func newUrlTicketService() *urlTicketServiceImpl {
 		var service = new(urlTicketServiceImpl)
 		service.Init()
 		return service
+}
+
+func NewSimpleUrlAttach(data ...map[string]interface{}) *SimpleUrlAttach {
+		var attach = new(SimpleUrlAttach)
+		attach.Load(data[0])
+		return attach
+}
+
+func (this *urlTicketServiceImpl) Init() {
+		this.ticketServiceImpl.Init()
+		this.Constructor = func(args ...interface{}) interface{} {
+				return UrlTicketServiceOf()
+		}
+}
+
+func (this *urlTicketServiceImpl) Class() string {
+		return UrlTicketServerClass
+}
+
+// 注册服务
+func (this *urlTicketServiceImpl) register() {
+		libs.Container().Register(this.Class(), this.Invoker())
 }
 
 // 通过 ticket 获取 url
@@ -57,8 +91,8 @@ func (this *urlTicketServiceImpl) Incr(ticket string) int {
 }
 
 // 统计访问次数key
-func (this *urlTicketServiceImpl)IncrKey(key string) string  {
-		if strings.Contains(key,_IncrPrefix) {
+func (this *urlTicketServiceImpl) IncrKey(key string) string {
+		if strings.Contains(key, _IncrPrefix) {
 				return key
 		}
 		return _IncrPrefix + key
@@ -148,18 +182,6 @@ func (this *urlTicketServiceImpl) GetTicketInfoToSimple(ticket string) *SimpleUr
 				return nil
 		}
 		return NewSimpleUrlAttach(data)
-}
-
-type SimpleUrlAttach struct {
-		Url     string `json:"url"`
-		MediaId string `json:"mediaId"`
-		Path    string `json:"path"`
-}
-
-func NewSimpleUrlAttach(data ...map[string]interface{}) *SimpleUrlAttach {
-		var attach = new(SimpleUrlAttach)
-		attach.Load(data[0])
-		return attach
 }
 
 func (this *SimpleUrlAttach) Load(data map[string]interface{}) *SimpleUrlAttach {
