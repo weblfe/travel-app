@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-		"fmt"
 		"github.com/astaxie/beego"
 		"github.com/astaxie/beego/context"
 		"github.com/astaxie/beego/logs"
@@ -47,10 +46,9 @@ func (this *roleMiddleware) filter(ctx *context.Context) {
 				unLogin    = common.NewUnLoginResp(common.NewErrors(common.UnLoginCode, "请先登录!"))
 				permission = common.NewErrorResp(common.NewErrors(common.PermissionCode, common.PermissionError), "权限不足")
 		)
-		fmt.Println(ctx.Request.RequestURI)
-		fmt.Println(ctx.Request.URL)
+		logs.Info("role middleware target api :",ctx.Request.URL)
 		// 未登陆
-		if value == "" {
+		if value == "" || value==nil {
 				err := ctx.Output.JSON(unLogin, hasIndex, true)
 				if err != nil {
 						logs.Error(err)
