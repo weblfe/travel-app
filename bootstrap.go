@@ -153,6 +153,7 @@ func initMiddleware() {
 		manger.Router(middlewares.AuthMiddlewareName, "/comment/create", beego.BeforeRouter)
 		manger.Router(middlewares.AuthMiddlewareName, "/user/friends", beego.BeforeRouter)
 		manger.Router(middlewares.AuthMiddlewareName, "/follow/*", beego.BeforeRouter)
+		manger.Router(middlewares.AuthMiddlewareName, "/follow", beego.BeforeRouter)
 		manger.Router(middlewares.AuthMiddlewareName, "/posts/audit", beego.BeforeRouter)
 		manger.Router(middlewares.AuthMiddlewareName, "/posts/video/cover", beego.BeforeRouter)
 

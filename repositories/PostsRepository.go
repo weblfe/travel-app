@@ -245,21 +245,26 @@ func (this *postRepositoryImpl) RemoveId(id ...string) common.ResponseJson {
 
 func (this *postRepositoryImpl) Audit() common.ResponseJson {
 		var (
-				ids = this.ctx.GetStrings("ids")
-				typ = fmt.Sprintf("%v", this.ctx.GetInt("type", 1))
+				userId  = getUserId(this.ctx)
+				ids     = this.ctx.GetStrings("ids")
+				typ     = fmt.Sprintf("%v", this.ctx.GetInt("type", 1))
+				comment = this.ctx.GetString("comment")
 		)
 		if len(ids) == 0 {
 				var data = struct {
-						Ids  []string `json:"ids"`
-						Type string   `json:"type"`
+						Ids     []string `json:"ids"`
+						Type    string   `json:"type"`
+						Comment string   `json:"comment"`
 				}{}
 				_ = this.ctx.JsonDecode(&data)
 				if len(data.Ids) > 0 && this.service.Audit(data.Type, data.Ids...) {
+						this.service.AddAuditLog(userId,typ,comment,ids)
 						return common.NewSuccessResp(bson.M{"timestamp": time.Now().Unix()}, "审核成功")
 				}
 				return common.NewFailedResp(common.ServiceFailed, "审核失败")
 		}
 		if this.service.Audit(typ, ids...) {
+				this.service.AddAuditLog(userId,typ,comment,ids)
 				return common.NewSuccessResp(bson.M{"timestamp": time.Now().Unix()}, "审核成功")
 		}
 		return common.NewFailedResp(common.ServiceFailed, "审核失败")
@@ -427,8 +432,8 @@ func (this *postRepositoryImpl) ListsByPostType(typ string) common.ResponseJson 
 		return common.NewFailedResp(common.RecordNotFound, common.RecordNotFoundError)
 }
 
-func (this *postRepositoryImpl)AutoVideosCover() common.ResponseJson  {
+func (this *postRepositoryImpl) AutoVideosCover() common.ResponseJson {
 		var ids = this.ctx.GetStrings("ids")
 		defer this.service.AutoVideoCoverImageTask(ids)
-		return common.NewSuccessResp(bson.M{"count":len(ids),"timestamp":time.Now().Unix()},"自动截图任务已经下放成功")
+		return common.NewSuccessResp(bson.M{"count": len(ids), "timestamp": time.Now().Unix()}, "自动截图任务已经下放成功")
 }

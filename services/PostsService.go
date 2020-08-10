@@ -20,6 +20,7 @@ type PostService interface {
 		IncrThumbsUp(id string, incr int) error
 		UpdateById(id string, data beego.M) error
 		AutoVideoCoverImageTask(ids []string) int
+		AddAuditLog(userId,typ,comment string,ids []string) bool
 		ListsQuery(query bson.M, limit models.ListsParams, sort ...string) ([]*models.TravelNotes, *models.Meta)
 		GetRankingLists(query bson.M, limit models.ListsParams) ([]*models.TravelNotes, *models.Meta)
 		GetRecommendLists(query bson.M, limit models.ListsParams) ([]*models.TravelNotes, *models.Meta)
@@ -402,4 +403,9 @@ func (this *TravelPostServiceImpl) AutoVideoCoverImageTask(ids []string) int {
 		}
 		logs.Info("auto video cover :", count,ids)
 		return count
+}
+
+func (this *TravelPostServiceImpl)AddAuditLog(userId,typ,comment string,ids []string) bool  {
+
+		return false
 }
