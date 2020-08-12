@@ -1,5 +1,7 @@
 package controllers
 
+import "github.com/weblfe/travel-app/repositories"
+
 type PopularizationController struct {
 		BaseController
 }
@@ -10,16 +12,19 @@ func PopularizationControllerOf() *PopularizationController {
 }
 
 // 服务 渠道信息
-func (this *PopularizationController)GetChannelInfo()  {
-
+// @router /popularization/info [get]
+func (this *PopularizationController) GetChannelInfo() {
+		this.Send(repositories.NewPopularizationRepository(this).GetChannelInfo())
 }
 
-// 获取 推广
-func (this *PopularizationController)GetChannelQrCode()  {
-
+// 获取 推广 二维码
+// @router /popularization/qrcode [get]
+func (this *PopularizationController) GetChannelQrCode() {
+		this.Send(repositories.NewPopularizationRepository(this).GetChannelQrcode())
 }
 
 // 获取 推广码
-func (this *PopularizationController)GetChannelCode()  {
-
+// @router /popularization/channel [get]
+func (this *PopularizationController) PublishChannelCode() {
+   this.Send(repositories.NewPopularizationRepository(this).GetChannel())
 }

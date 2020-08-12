@@ -39,3 +39,10 @@ func (this *PostsController) LikesQuery() {
 func (this *PostsController) Recommends() {
 		this.Send(repositories.NewPostsRepository(this).ListsByPostType(this.GetString("type", "")))
 }
+
+
+// 获取喜欢
+// @router /posts/all  [get]
+func (this *PostsController) All() {
+		this.Send(repositories.NewPostsRepository(this).GetAll())
+}

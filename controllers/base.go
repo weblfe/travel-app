@@ -150,12 +150,12 @@ func (this *BaseController) GetRequestContext() common.BaseRequestContext {
 }
 
 func (this *BaseController) GetString(key string, def ...string) string {
+		if len(def) == 0 {
+				def = append(def, "")
+		}
 		var v = this.Controller.GetString(key, def...)
 		if v != "" {
 				return v
-		}
-		if len(def) == 0 {
-				def = append(def, "")
 		}
 		data := this.getJsonRequest()
 		it, ok := data[key]
@@ -169,8 +169,14 @@ func (this *BaseController) GetString(key string, def ...string) string {
 }
 
 func (this *BaseController) GetStrings(key string, def ...[]string) []string {
+		if len(def) == 0 {
+				def = append(def, []string{})
+		}
 		if this.IsJsonStream() {
 				data := this.getJsonRequest()
+				if len(data) == 0 {
+						return def[0]
+				}
 				v, ok := data[key]
 				if !ok {
 						return def[0]
@@ -197,6 +203,9 @@ func (this *BaseController) GetStrings(key string, def ...[]string) []string {
 }
 
 func (this *BaseController) GetInt(key string, def ...int) int {
+		if len(def) == 0 {
+				def = append(def,0)
+		}
 		var v, err = this.Controller.GetInt(key, def...)
 		if err == nil {
 				return v

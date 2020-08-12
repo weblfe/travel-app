@@ -19,6 +19,7 @@ require (
 	github.com/nats-io/nkeys v0.1.4
 	github.com/qiniu/api.v7/v7 v7.4.1
 	github.com/shiena/ansicolor v0.0.0-20151119151921-a422bbe96644 // indirect
+	github.com/siddontang/go v0.0.0-20180604090527-bdc77568d726
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/smartystreets/goconvey v1.6.4
 	github.com/tuotoo/qrcode v0.0.0-20190222102259-ac9c44189bf2

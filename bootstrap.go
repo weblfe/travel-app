@@ -156,8 +156,10 @@ func initMiddleware() {
 		manger.Router(middlewares.AuthMiddlewareName, "/follow", beego.BeforeRouter)
 		manger.Router(middlewares.AuthMiddlewareName, "/posts/audit", beego.BeforeRouter)
 		manger.Router(middlewares.AuthMiddlewareName, "/posts/video/cover", beego.BeforeRouter)
+		manger.Router(middlewares.AuthMiddlewareName, "/posts/all", beego.BeforeRouter)
 
 		manger.Router(middlewares.RoleMiddleware, "/posts/audit", beego.BeforeRouter)
+		manger.Router(middlewares.RoleMiddleware, "/posts/all", beego.BeforeRouter)
 		manger.Router(middlewares.RoleMiddleware, "/posts/video/cover", beego.BeforeRouter)
 
 		// 启用中间

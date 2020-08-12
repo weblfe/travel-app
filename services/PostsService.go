@@ -20,7 +20,8 @@ type PostService interface {
 		IncrThumbsUp(id string, incr int) error
 		UpdateById(id string, data beego.M) error
 		AutoVideoCoverImageTask(ids []string) int
-		AddAuditLog(userId,typ,comment string,ids []string) bool
+		AddAuditLog(userId, typ, comment string, ids []string) bool
+		All(query beego.M, limit models.ListsParams, sorts ...string) ([]*models.TravelNotes, *models.Meta)
 		ListsQuery(query bson.M, limit models.ListsParams, sort ...string) ([]*models.TravelNotes, *models.Meta)
 		GetRankingLists(query bson.M, limit models.ListsParams) ([]*models.TravelNotes, *models.Meta)
 		GetRecommendLists(query bson.M, limit models.ListsParams) ([]*models.TravelNotes, *models.Meta)
@@ -101,6 +102,7 @@ func (this *TravelPostServiceImpl) ListByTags(tags []string, page models.ListsPa
 		if err == nil {
 				meta.Size = len(lists)
 				meta.Total, _ = this.postModel.ListsQuery(query, nil).Count()
+				meta.Boot()
 				return lists, meta
 		}
 		return nil, meta
@@ -124,6 +126,7 @@ func (this *TravelPostServiceImpl) ListByAddress(address string, page models.Lis
 		if err == nil {
 				meta.Size = len(lists)
 				meta.Total, _ = this.postModel.ListsQuery(query, nil).Count()
+				meta.Boot()
 				return lists, meta
 		}
 		return nil, meta
@@ -145,6 +148,7 @@ func (this *TravelPostServiceImpl) GetRankingLists(query bson.M, limit models.Li
 		if err == nil {
 				meta.Size = len(lists)
 				meta.Total, _ = this.postModel.ListsQuery(query, nil).Count()
+				meta.Boot()
 				return lists, meta
 		}
 		return nil, meta
@@ -167,6 +171,7 @@ func (this *TravelPostServiceImpl) GetRecommendLists(query bson.M, limit models.
 		if err == nil {
 				meta.Size = len(lists)
 				meta.Total, _ = this.postModel.ListsQuery(query, nil).Count()
+				meta.Boot()
 				return lists, meta
 		}
 		return nil, meta
@@ -191,6 +196,7 @@ func (this *TravelPostServiceImpl) ListsQuery(query bson.M, limit models.ListsPa
 		if err == nil {
 				meta.Size = len(lists)
 				meta.Total, _ = this.postModel.ListsQuery(query, nil).Count()
+				meta.Boot()
 				return lists, meta
 		}
 		return nil, meta
@@ -342,10 +348,19 @@ func (this *TravelPostServiceImpl) Audit(typ string, ids ...string) bool {
 		switch typ {
 		case "1":
 				status = models.StatusAuditPass
+		case "ok":
+				status = models.StatusAuditPass
+		case "pass":
+				status = models.StatusAuditPass
 		case "2":
+				status = models.StatusAuditUnPass
+		case "reject":
 				status = models.StatusAuditUnPass
 		case "-1":
 				status = models.StatusAuditNotPass
+		case "down":
+				status = models.StatusAuditNotPass
+		case "":
 		case "0":
 				status = models.StatusWaitAudit
 		default:
@@ -401,11 +416,36 @@ func (this *TravelPostServiceImpl) AutoVideoCoverImageTask(ids []string) int {
 						count++
 				}
 		}
-		logs.Info("auto video cover :", count,ids)
+		logs.Info("auto video cover :", count, ids)
 		return count
 }
 
-func (this *TravelPostServiceImpl)AddAuditLog(userId,typ,comment string,ids []string) bool  {
+func (this *TravelPostServiceImpl) AddAuditLog(userId, typ, comment string, ids []string) bool {
+		var err = AuditLogServiceOf().Adds(userId, typ, comment, ids)
+		return err == nil
+}
 
-		return false
+func (this *TravelPostServiceImpl) All(query beego.M, limit models.ListsParams, sorts ...string) ([]*models.TravelNotes, *models.Meta) {
+		var (
+				err   error
+				lists []*models.TravelNotes
+				meta  = models.NewMeta()
+		)
+		meta.Page = limit.Page()
+		meta.Size = limit.Count()
+		meta.Count = limit.Count()
+		this.postModel.UseSoftDelete()
+		listQuery := this.postModel.ListsQuery(query, limit)
+		if len(sorts) != 0 {
+				listQuery = listQuery.Sort(sorts...)
+		}
+		// 打分最高 ,更新时间最新
+		err = listQuery.All(&lists)
+		if err == nil {
+				meta.Size = len(lists)
+				meta.Total, _ = this.postModel.ListsQuery(query, nil).Count()
+				meta.Boot()
+				return lists, meta
+		}
+		return nil, meta
 }

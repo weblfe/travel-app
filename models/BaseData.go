@@ -108,6 +108,11 @@ func (this *dataClassImpl) getData() beego.M {
 		return nil
 }
 
+func (this *dataClassImpl) reset() {
+		this.data = nil
+		return
+}
+
 // 过滤输出数据
 func (this *dataClassImpl) M(filter ...func(m beego.M) beego.M) beego.M {
 		var (

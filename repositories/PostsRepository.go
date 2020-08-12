@@ -9,6 +9,7 @@ import (
 		"github.com/weblfe/travel-app/middlewares"
 		"github.com/weblfe/travel-app/models"
 		"github.com/weblfe/travel-app/services"
+		"strconv"
 		"strings"
 		"time"
 )
@@ -24,6 +25,7 @@ type PostsRepository interface {
 		GetById(...string) common.ResponseJson
 		RemoveId(...string) common.ResponseJson
 		AutoVideosCover() common.ResponseJson
+		GetAll() common.ResponseJson
 		ListsByPostType(typ string) common.ResponseJson
 }
 
@@ -247,8 +249,8 @@ func (this *postRepositoryImpl) Audit() common.ResponseJson {
 		var (
 				userId  = getUserId(this.ctx)
 				ids     = this.ctx.GetStrings("ids")
-				typ     = fmt.Sprintf("%v", this.ctx.GetInt("type", 1))
 				comment = this.ctx.GetString("comment")
+				typ     = this.ctx.GetString("type",fmt.Sprintf("%v",this.ctx.GetInt("type")))
 		)
 		if len(ids) == 0 {
 				var data = struct {
@@ -258,13 +260,13 @@ func (this *postRepositoryImpl) Audit() common.ResponseJson {
 				}{}
 				_ = this.ctx.JsonDecode(&data)
 				if len(data.Ids) > 0 && this.service.Audit(data.Type, data.Ids...) {
-						this.service.AddAuditLog(userId,typ,comment,ids)
+						this.service.AddAuditLog(userId, typ, comment, ids)
 						return common.NewSuccessResp(bson.M{"timestamp": time.Now().Unix()}, "审核成功")
 				}
 				return common.NewFailedResp(common.ServiceFailed, "审核失败")
 		}
 		if this.service.Audit(typ, ids...) {
-				this.service.AddAuditLog(userId,typ,comment,ids)
+				this.service.AddAuditLog(userId, typ, comment, ids)
 				return common.NewSuccessResp(bson.M{"timestamp": time.Now().Unix()}, "审核成功")
 		}
 		return common.NewFailedResp(common.ServiceFailed, "审核失败")
@@ -436,4 +438,58 @@ func (this *postRepositoryImpl) AutoVideosCover() common.ResponseJson {
 		var ids = this.ctx.GetStrings("ids")
 		defer this.service.AutoVideoCoverImageTask(ids)
 		return common.NewSuccessResp(bson.M{"count": len(ids), "timestamp": time.Now().Unix()}, "自动截图任务已经下放成功")
+}
+
+// 获取所有
+func (this *postRepositoryImpl) GetAll() common.ResponseJson {
+		var (
+				user     = getUser(this.ctx)
+				ctx      = this.ctx.GetParent()
+				page, _  = ctx.GetInt("page", 1)
+				count, _ = ctx.GetInt("count", 20)
+				limit    = models.NewListParam(page, count)
+				typ      = this.ctx.GetInt("type", 0)
+				status   = this.ctx.GetString("status")
+		)
+		if user == nil {
+				return common.NewFailedResp(common.RecordNotFound, common.RecordNotFoundError)
+		}
+		if !user.IsRootRole() {
+				return common.NewFailedResp(common.PermissionCode, common.PermissionError)
+		}
+		//
+		var query = beego.M{
+				"status": beego.M{"$nin": []int{models.StatusAuditNotPass, models.StatusAuditPass}},
+		}
+		// 自定义状态查询
+		if status != "" {
+				var statusArr []int
+				arr := strings.SplitN(status, ",", -1)
+				for _, it := range arr {
+						n, err := strconv.Atoi(it)
+						if err == nil {
+								continue
+						}
+						statusArr = append(statusArr, n)
+				}
+				if len(statusArr) > 0 {
+						query["status"] = beego.M{
+								"$in": statusArr,
+						}
+				}
+		}
+		// 作品类型
+		if typ != 0 {
+				query["type"] = typ
+		}
+		// 查看自己的作品
+		items, meta := this.service.All(query, limit, "-createdAt", "-updatedAt")
+		if items != nil && len(items) > 0 && meta != nil {
+				var arr []beego.M
+				for _, item := range items {
+						arr = append(arr, item.M(this.getPostTransform()))
+				}
+				return common.NewSuccessResp(beego.M{"items": arr, "meta": meta}, "罗列成功")
+		}
+		return common.NewFailedResp(common.RecordNotFound, common.RecordNotFoundError)
 }

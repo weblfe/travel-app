@@ -158,6 +158,7 @@ func (this *AppInfo) Set(key string, v interface{}) *AppInfo {
 }
 
 func (this *AppInfo) setDefaults() {
+
 		if this.CreatedAt.IsZero() {
 				this.CreatedAt = time.Now().Local()
 		}

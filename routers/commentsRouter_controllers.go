@@ -178,11 +178,29 @@ func init() {
             Filters: nil,
             Params: nil})
 
-    beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PostsController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PostsController"],
+    beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PopularizationController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PopularizationController"],
         beego.ControllerComments{
-            Method: "RemoveById",
-            Router: `/posts/:id`,
-            AllowHTTPMethods: []string{"delete"},
+            Method: "PublishChannelCode",
+            Router: `/popularization/channel`,
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PopularizationController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PopularizationController"],
+        beego.ControllerComments{
+            Method: "GetChannelInfo",
+            Router: `/popularization/info`,
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PopularizationController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PopularizationController"],
+        beego.ControllerComments{
+            Method: "GetChannelQrCode",
+            Router: `/popularization/qrcode`,
+            AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})
@@ -198,8 +216,26 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PostsController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PostsController"],
         beego.ControllerComments{
+            Method: "RemoveById",
+            Router: `/posts/:id`,
+            AllowHTTPMethods: []string{"delete"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PostsController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PostsController"],
+        beego.ControllerComments{
             Method: "ListByAddress",
             Router: `/posts/address/:address`,
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PostsController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PostsController"],
+        beego.ControllerComments{
+            Method: "All",
+            Router: `/posts/all`,
             AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
             Filters: nil,

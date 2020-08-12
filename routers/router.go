@@ -34,4 +34,6 @@ func init() {
 		beego.Include(controllers.AppControllerOf())
 		// 评论
 		beego.Include(controllers.CommentControllerOf())
+		// 推广接口
+		beego.Include(controllers.PopularizationControllerOf())
 }

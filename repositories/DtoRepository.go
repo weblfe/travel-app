@@ -105,6 +105,21 @@ func newDto() *DtoRepository {
 		return dto
 }
 
+func (this *BaseUser) M(filters ...func(m beego.M) beego.M) beego.M {
+		var data = beego.M{
+				"userId":     this.UserId,
+				"nickname":   this.Nickname,
+				"avatarInfo": this.AvatarInfo,
+		}
+		if len(filters) == 0 {
+				return data
+		}
+		for _, filter := range filters {
+				data = filter(data)
+		}
+		return data
+}
+
 // 修改最大缓存
 func (this *DtoRepository) setMaxCache(max int) *DtoRepository {
 		this._MaxCacheItemNum = max
@@ -192,9 +207,9 @@ func (this *DtoRepository) getUserAvatarService() services.AvatarService {
 		return services.AvatarServerOf()
 }
 
-func (this *DtoRepository)GetUrlByAttachId(id string) string  {
-	var attach = services.AttachmentServiceOf().Get(id)
-	return services.UrlTicketServiceOf().GetTicketUrlByAttach(attach)
+func (this *DtoRepository) GetUrlByAttachId(id string) string {
+		var attach = services.AttachmentServiceOf().Get(id)
+		return services.UrlTicketServiceOf().GetTicketUrlByAttach(attach)
 }
 
 func (this *DtoRepository) GetSimpleUserDetail(data interface{}) *SimpleUser {
@@ -467,7 +482,7 @@ func (this *DtoRepository) startGc() {
 }
 
 // 缓存数量
-func (this *DtoRepository)Len() int  {
+func (this *DtoRepository) Len() int {
 		return this._Len
 }
 
@@ -507,6 +522,22 @@ func (this *DtoRepository) expireGc(table cacheTable) {
 		if len(deleteKeys) > 0 {
 				this.GC(deleteKeys...)
 		}
+}
+
+// 添加关注状态
+func (this *DtoRepository) appendFollowStatus(userId string) func(m beego.M) beego.M {
+		return func(m beego.M) beego.M {
+				m["isFollowed"] = false
+				if id, ok := m["userId"]; ok {
+						m["isFollowed"] = this.IsFollowed(userId, id.(string))
+				}
+				return m
+		}
+}
+
+// 是否已关注
+func (this *DtoRepository) IsFollowed(userId, followerUserId string) bool {
+		return  services.UserBehaviorServiceOf().IsFollowed(userId,followerUserId)
 }
 
 // 手动回收
