@@ -3,7 +3,7 @@ package models
 import (
 		"github.com/astaxie/beego"
 		"github.com/globalsign/mgo"
-		"github.com/siddontang/go/bson"
+		"github.com/globalsign/mgo/bson"
 		"time"
 )
 
@@ -36,7 +36,7 @@ type PopularizationChannels struct {
 		InvitedRegisterNumber int64         `json:"invitedRegisterNumber" bson:"invitedRegisterNumber"` // 邀请注册人数
 		ValidNumber           int64         `json:"validNumber" bson:"validNumber"`                     // 有效邀请注册人数
 		Channel               string        `json:"channel" bson:"channel"`                             // 6-128 渠道码
-		Extras                bson.M        `json:"extras" bson:"extras"`                               // 备用信息
+		Extras                beego.M       `json:"extras" bson:"extras"`                               // 备用信息
 		Status                int           `json:"status" bson:"status"`                               // 状态 ： 0 ，1， 2
 		ParentId              bson.ObjectId `json:"parentId,omitempty" bson:"parentId,omitempty"`       // 父级推广渠道
 		Permissions           []*Permission `json:"permissions" bson:"permissions"`                     // 渠道权限
@@ -64,7 +64,43 @@ func (this *PopularizationChannels) Init() {
 }
 
 func (this *PopularizationChannels) Set(key string, v interface{}) *PopularizationChannels {
-
+		switch key {
+		case "id":
+				this.SetObjectId(&this.Id, v)
+		case "name":
+				this.SetString(&this.Name, v)
+		case "userId":
+				this.SetString(&this.UserId, v)
+		case "mobile":
+				this.SetString(&this.Mobile, v)
+		case "qrcodeUrl":
+				this.SetString(&this.QrcodeUrl, v)
+		case "email":
+				this.SetString(&this.Email, v)
+		case "wechat":
+				this.SetString(&this.WeChat, v)
+		case "awards":
+				if arr, ok := v.([]*AwardWay); ok {
+						this.Awards = arr
+				}
+		case "invitedRegisterNumber":
+				this.SetNumIntN(&this.InvitedRegisterNumber, v)
+		case "validNumber":
+				this.SetNumIntN(&this.ValidNumber, v)
+		case "channel":
+				this.SetString(&this.Channel, v)
+		case "extras":
+				this.SetMapper(&this.Extras, v)
+		case "parentId":
+				this.SetObjectId(&this.ParentId, v)
+		case "permissions":
+		case "comment":
+				this.SetString(&this.Comment, v)
+		case "createdAt":
+				this.SetTime(&this.CreatedAt, v)
+		case "updatedAt":
+				this.SetTime(&this.UpdatedAt, v)
+		}
 		return this
 }
 
@@ -120,7 +156,21 @@ func (this *PopularizationChannels) getWeChat() string {
 }
 
 func (this *PopularizationChannels) setAttributes(data beego.M, safe ...bool) {
-
+		if len(safe) == 0 {
+				safe = append(safe, false)
+		}
+		for k, v := range data {
+				if safe[0] {
+						// 排除键
+						if this.Excludes(k) {
+								continue
+						}
+						if this.IsEmpty(v) {
+								continue
+						}
+				}
+				this.Set(k, v)
+		}
 }
 
 func (this *PopularizationChannels) save() error {
@@ -203,5 +253,38 @@ func (this *PopularizationChannelsModel) CreateIndex() {
 }
 
 func (this *PopularizationChannelsModel) GetByUnique(m beego.M) *PopularizationChannels {
+		var (
+				err    error
+				query  beego.M
+				object *PopularizationChannels
+				keys   = [][]string{
+						{"channel"},
+						{"wechat"},
+						{"userId", "name"},
+						{"mobile", "name"},
+				}
+		)
+		if len(m) == 0 {
+				return nil
+		}
+		for _, arr := range keys {
+				query = make(beego.M)
+				for _, v := range arr {
+						value, ok := m[v]
+						if !ok {
+								query = nil
+								break
+						}
+						query[v] = value
+				}
+				if query == nil || len(query) == 0 {
+						continue
+				}
+				object = NewPopularizationChannel()
+				err = this.FindOne(query, object)
+				if err == nil && object != nil {
+						return object
+				}
+		}
 		return nil
 }

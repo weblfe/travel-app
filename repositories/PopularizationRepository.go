@@ -6,9 +6,9 @@ import (
 )
 
 type PopularizationRepository interface {
+		GetChannel() common.ResponseJson
 		GetChannelInfo() common.ResponseJson
 		GetChannelQrcode() common.ResponseJson
-		GetChannel() common.ResponseJson
 }
 
 // 推广渠道逻辑业务

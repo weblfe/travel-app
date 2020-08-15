@@ -1,7 +1,6 @@
 package repositories
 
 import (
-		"fmt"
 		"github.com/astaxie/beego"
 		"github.com/globalsign/mgo/bson"
 		"github.com/weblfe/travel-app/common"
@@ -250,7 +249,7 @@ func (this *postRepositoryImpl) Audit() common.ResponseJson {
 				userId  = getUserId(this.ctx)
 				ids     = this.ctx.GetStrings("ids")
 				comment = this.ctx.GetString("comment")
-				typ     = this.ctx.GetString("type",fmt.Sprintf("%v",this.ctx.GetInt("type")))
+				typ     = this.ctx.GetString("type")
 		)
 		if len(ids) == 0 {
 				var data = struct {
@@ -261,13 +260,13 @@ func (this *postRepositoryImpl) Audit() common.ResponseJson {
 				_ = this.ctx.JsonDecode(&data)
 				if len(data.Ids) > 0 && this.service.Audit(data.Type, data.Ids...) {
 						this.service.AddAuditLog(userId, typ, comment, ids)
-						return common.NewSuccessResp(bson.M{"timestamp": time.Now().Unix()}, "审核成功")
+						return common.NewSuccessResp(bson.M{"timestamp": time.Now().Unix()}, "审核完成")
 				}
 				return common.NewFailedResp(common.ServiceFailed, "审核失败")
 		}
 		if this.service.Audit(typ, ids...) {
 				this.service.AddAuditLog(userId, typ, comment, ids)
-				return common.NewSuccessResp(bson.M{"timestamp": time.Now().Unix()}, "审核成功")
+				return common.NewSuccessResp(bson.M{"timestamp": time.Now().Unix()}, "审核完成")
 		}
 		return common.NewFailedResp(common.ServiceFailed, "审核失败")
 }

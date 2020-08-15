@@ -359,6 +359,8 @@ func (this *TravelPostServiceImpl) Audit(typ string, ids ...string) bool {
 		case "-1":
 				status = models.StatusAuditNotPass
 		case "down":
+				fallthrough
+		case "fail":
 				status = models.StatusAuditNotPass
 		case "":
 		case "0":
