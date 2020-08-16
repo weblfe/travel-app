@@ -13,25 +13,25 @@
   },
   {
     "key": "appHelpUrl",
-    "value": "https://api.word-server.com/app/contactUs",
-    "title": "联系我们",
+    "value": "https://www.baidu.com",
+    "title": "帮助页",
     "root": "app"
   },
   {
     "key": "appAboutUs",
-    "value": "https://api.word-server.com/app/about",
+    "value": "https://www.baidu.com",
     "title": "关于我们",
     "root": "app"
   },
   {
     "key": "appUserAgreement",
-    "value": "https://api.word-server.com/app/agreement",
+    "value": "https://www.baidu.com",
     "title": "用户协议页",
     "root": "app"
   },
   {
     "key": "appPrivacy",
-    "value": "https://api.word-server.com/app/privacy",
+    "value": "https://www.baidu.com",
     "title": "隐私条款页",
     "root": "app"
   },

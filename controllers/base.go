@@ -23,6 +23,17 @@ func (this *BaseController) Send(json common.ResponseJson) {
 		this.ServeJSON()
 }
 
+func (this *BaseController)View(name string,data ...beego.M)  {
+		if len(data) > 0 {
+				for _,m:= range data{
+						for k,v:=range m {
+								this.Data[k] = v
+						}
+				}
+		}
+		this.TplName = name
+}
+
 func (this *BaseController) GetParent() *beego.Controller {
 		return &this.Controller
 }
