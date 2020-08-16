@@ -109,7 +109,7 @@ func (this *BaseUser) M(filters ...func(m beego.M) beego.M) beego.M {
 		var data = beego.M{
 				"userId":     this.UserId,
 				"nickname":   this.Nickname,
-				"avatarInfo": this.AvatarInfo,
+				"avatar": this.AvatarInfo,
 		}
 		if len(filters) == 0 {
 				return data
