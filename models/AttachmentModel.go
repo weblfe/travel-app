@@ -136,6 +136,10 @@ func (this *Attachment) Load(data map[string]interface{}) *Attachment {
 
 func (this *Attachment) set(key string, v interface{}) *Attachment {
 		switch key {
+		case "_id":
+				fallthrough
+		case "id":
+				this.Id = v.(bson.ObjectId)
 		case "Filename":
 				fallthrough
 		case "filename":

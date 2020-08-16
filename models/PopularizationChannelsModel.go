@@ -1,6 +1,7 @@
 package models
 
 import (
+		"errors"
 		"github.com/astaxie/beego"
 		"github.com/globalsign/mgo"
 		"github.com/globalsign/mgo/bson"
@@ -54,6 +55,37 @@ func NewPopularizationChannel() *PopularizationChannels {
 		var channelInfo = new(PopularizationChannels)
 		channelInfo.Init()
 		return channelInfo
+}
+
+func (this *PopularizationChannels) Verify() error {
+		if this.Channel == "" {
+				return errors.New("miss channel ")
+		}
+		if this.Name == "" {
+				return errors.New("miss name of channel")
+		}
+		if this.Mobile == "" && this.UserId == "" && this.WeChat == "" {
+				return errors.New("miss channel user")
+		}
+		if this.ParentId != "" && !PopularizationChannelsModelOf().Exists(bson.M{"_id": this.ParentId}) {
+				return errors.New("parent channel not exists")
+		}
+		return nil
+}
+
+func (this *PopularizationChannels) Incr(key string, incr ...int) bool {
+		if len(incr) == 0 {
+				incr = append(incr, 1)
+		}
+		if key == "validNumber" {
+				this.ValidNumber = this.ValidNumber + int64(incr[0])
+				return true
+		}
+		if key == "invitedRegisterNumber" {
+				this.InvitedRegisterNumber = this.InvitedRegisterNumber + int64(incr[0])
+				return true
+		}
+		return false
 }
 
 func (this *PopularizationChannels) Init() {
@@ -214,6 +246,13 @@ func (this *PopularizationChannels) defaults() {
 		if this.Status == 0 {
 				this.Status = 1
 		}
+}
+
+func (this *PopularizationChannels) IsOk() bool {
+		if this.Status == StatusOk {
+				return true
+		}
+		return false
 }
 
 func PopularizationChannelsModelOf() *PopularizationChannelsModel {

@@ -150,3 +150,17 @@ func (this *UserController) GetUserFans() {
 func (this *UserController) Search() {
 	this.Send(repositories.NewUserInfoRepository(this).Search(this.GetString("query")))
 }
+
+
+// 收藏文章
+// @router /user/collect/post  [post]
+func (this *UserController)AddCollect() {
+
+}
+
+// 移除收藏
+// @router /user/collect/post  [delete]
+func (this *UserController)RemoveCollects() {
+
+}
+

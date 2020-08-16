@@ -139,6 +139,7 @@ func SetConfGlobalScope(key string) string {
 func initMiddleware() {
 		manger := middlewares.GetMiddlewareManger()
 		// 注册路由中间件
+		manger.Router(middlewares.CorsMiddlewareName, "*", beego.BeforeExec)
 		// 登陆中间
 		manger.Router(middlewares.AuthMiddlewareName, "/user/info", beego.BeforeRouter)
 		manger.Router(middlewares.AuthMiddlewareName, "/attachment/*", beego.BeforeRouter)
@@ -175,6 +176,8 @@ func registerGob() {
 		gob.Register(models.AppInfo{})
 		gob.Register(models.Attachment{})
 		gob.Register(models.RequestLog{})
+		gob.Register(models.UserRelation{})
+		gob.Register(models.PopularizationChannels{})
 }
 
 // 注册插件
@@ -183,7 +186,7 @@ func registerPlugins() {
 }
 
 // 注册全局服务
-func registerServices()  {
+func registerServices() {
 		// 注册
 		services.RegisterUrlService()
 }

@@ -23,8 +23,20 @@ func (this *PopularizationController) GetChannelQrCode() {
 		this.Send(repositories.NewPopularizationRepository(this).GetChannelQrcode())
 }
 
-// 获取 推广码
-// @router /popularization/channel [get]
+// 创建 推广码
+// @router /popularization/channel [post]
 func (this *PopularizationController) PublishChannelCode() {
-   this.Send(repositories.NewPopularizationRepository(this).GetChannel())
+		this.Send(repositories.NewPopularizationRepository(this).GetChannel())
+}
+
+// 更新 邀请人
+// @router /popularization/invite [post]
+func (this *PopularizationController) UpdateInviter() {
+		this.Send(repositories.NewPopularizationRepository(this).GetChannel())
+}
+
+// 获取 邀请二维码
+// @router /popularization/invite/qrcode [get]
+func (this *PopularizationController) GetInviterQrcode() {
+		this.Send(repositories.NewPopularizationRepository(this).GetChannel())
 }

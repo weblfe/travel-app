@@ -182,7 +182,7 @@ func init() {
         beego.ControllerComments{
             Method: "PublishChannelCode",
             Router: `/popularization/channel`,
-            AllowHTTPMethods: []string{"get"},
+            AllowHTTPMethods: []string{"post"},
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})
@@ -191,6 +191,24 @@ func init() {
         beego.ControllerComments{
             Method: "GetChannelInfo",
             Router: `/popularization/info`,
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PopularizationController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PopularizationController"],
+        beego.ControllerComments{
+            Method: "UpdateInviter",
+            Router: `/popularization/invite`,
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PopularizationController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PopularizationController"],
+        beego.ControllerComments{
+            Method: "GetInviterQrcode",
+            Router: `/popularization/invite/qrcode`,
             AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
             Filters: nil,
@@ -531,8 +549,35 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:UserController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:UserController"],
         beego.ControllerComments{
+            Method: "AddCollect",
+            Router: `/user/collect/post`,
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:UserController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:UserController"],
+        beego.ControllerComments{
+            Method: "RemoveCollects",
+            Router: `/user/collect/post`,
+            AllowHTTPMethods: []string{"delete"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:UserController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:UserController"],
+        beego.ControllerComments{
             Method: "GetUserFriends",
             Router: `/user/friends`,
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:UserController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:UserController"],
+        beego.ControllerComments{
+            Method: "GetUserInfo",
+            Router: `/user/info`,
             AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
             Filters: nil,
@@ -543,15 +588,6 @@ func init() {
             Method: "UpdateUserInfo",
             Router: `/user/info`,
             AllowHTTPMethods: []string{"put"},
-            MethodParams: param.Make(),
-            Filters: nil,
-            Params: nil})
-
-    beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:UserController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:UserController"],
-        beego.ControllerComments{
-            Method: "GetUserInfo",
-            Router: `/user/info`,
-            AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})

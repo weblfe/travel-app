@@ -35,7 +35,7 @@ func (this *PostsController) ListMy() {
 // 罗列作品信息列表 by tags
 // @router /posts/lists [get]
 func (this *PostsController) ListBy() {
-		var typ = this.GetString("type","tags")
+		var typ = this.GetString("type", "tags")
 		this.Send(repositories.NewPostsRepository(this).Lists(typ))
 }
 
@@ -44,14 +44,14 @@ func (this *PostsController) ListBy() {
 func (this *PostsController) ListUserPosts() {
 		var data, ok = this.GetParam(":userId")
 		// 不正常的用户ID
-		if !ok || data == nil || data == "" {
-				this.Send(common.NewErrorResp(common.NewErrors(common.InvalidParametersCode, "异常ID"), common.InvalidParametersError))
+		if ok && data != nil && data != "" {
+				this.Send(repositories.NewPostsRepository(this).Lists("user", data.(string)))
 				return
 		}
-		this.Send(repositories.NewPostsRepository(this).Lists("user", data.(string)))
+		this.Send(common.NewErrorResp(common.NewErrors(common.InvalidParametersCode, "异常ID"), common.InvalidParametersError))
 }
 
-// 更新
+// 通过地址罗列
 // @router /posts/address/:address [get]
 func (this *PostsController) ListByAddress() {
 		this.Send(repositories.NewPostsRepository(this).Lists("address"))
@@ -69,14 +69,14 @@ func (this *PostsController) RemoveById() {
 		this.Send(repositories.NewPostsRepository(this).RemoveId())
 }
 
-// 删除文章
+// 审核文章
 // @router /posts/audit  [post]
-func (this *PostsController)Audit() {
+func (this *PostsController) Audit() {
 		this.Send(repositories.NewPostsRepository(this).Audit())
 }
 
-// 删除文章
+// 自动截图
 // @router /posts/video/cover  [post]
-func (this *PostsController)AutoCover() {
+func (this *PostsController) AutoCover() {
 		this.Send(repositories.NewPostsRepository(this).AutoVideosCover())
 }

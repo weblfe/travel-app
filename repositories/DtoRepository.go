@@ -37,7 +37,7 @@ type cache struct {
 
 // 基础用户信息
 type BaseUser struct {
-		UserId     string  `json:"id"`       // 用户ID
+		UserId     string  `json:"userId"`       // 用户ID
 		Nickname   string  `json:"nickname"` // 用户昵称
 		AvatarInfo *Avatar `json:"avatar"`   // 用户头像
 }
