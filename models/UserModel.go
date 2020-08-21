@@ -34,7 +34,7 @@ type User struct {
 		Gender             int           `json:"gender" bson:"gender"`                         // 用户性别 0:保密 1:男 2:女 3:😯
 		Birthday           int64         `json:"birthday,omitempty" bson:"birthday,omitempty"` // 用户生日
 		Address            string        `json:"address" bson:"address"`                       // 用户地址
-		ThumbsUpTotal      int64         `json:"thumbsUpTotal" bson:"thumbsUpTotal"`           // 点赞总数
+		ThumbsUpTotal      int64         `json:"thumbsUpNum" bson:"thumbsUpNum"`           // 点赞总数
 		InviteCode         string        `json:"inviteCode" bson:"inviteCode"`                 // 邀请码 6-64
 		CreatedAt          time.Time     `json:"createdAt" bson:"createdAt"`                   // 创建时间 注册时间
 		UpdatedAt          time.Time     `json:"updatedAt" bson:"updatedAt"`                   // 更新时间
@@ -144,7 +144,7 @@ func (this *User) Set(key string, v interface{}) *User {
 				this.SetTime(&this.UpdatedAt, v)
 		case "deletedAt":
 				this.SetNumIntN(&this.DeletedAt, v)
-		case "thumbsUpTotal":
+		case "thumbsUpNum":
 				this.SetNumIntN(&this.ThumbsUpTotal, v)
 		}
 		return this
@@ -280,7 +280,7 @@ func (this *User) M(filter ...func(m beego.M) beego.M) beego.M {
 				"createdAt":          this.CreatedAt.Unix(),
 				"address":            this.GetAddress(),
 				"inviteCode":         this.InviteCode,
-				"thumbsUpTotal":      this.ThumbsUpTotal,
+				"thumbsUpNum":      this.ThumbsUpTotal,
 				"lastLoginLocation":  this.LastLoginLocation,
 				"deletedAt":          this.DeletedAt,
 		}
