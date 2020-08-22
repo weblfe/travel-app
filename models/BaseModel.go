@@ -52,6 +52,10 @@ type TableNameAble interface {
 	TableName() string
 }
 
+var (
+	GlobalMgoSessionContainer = sync.Map{}
+)
+
 type BaseModel struct {
 	Err         error
 	Connections map[string]*mgo.Session
@@ -244,11 +248,14 @@ func (this *BaseModel) GetDatabaseName(conn ...string) string {
 }
 
 func (this *BaseModel) conn(name string) *mgo.Session {
-	this.lock.Lock()
-	defer this.lock.Unlock()
-	sess, err := mgo.DialWithInfo(this.getConnUrl(name))
+	conn, ok := GlobalMgoSessionContainer.Load(name)
+	if ok && conn != nil {
+		return conn.(*mgo.Session)
+	}
+	info := this.getConnUrl(name)
+	sess, err := mgo.DialWithInfo(info)
 	if err == nil {
-		this.Connections[name] = sess
+		GlobalMgoSessionContainer.Store(name, sess)
 		return sess
 	}
 	logs.Error(err)
