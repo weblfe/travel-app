@@ -8,3 +8,5 @@ routers/commentsRouter__*.go
 static/storage/*
 .env
 *.log
+*.pprof
+*.memprof

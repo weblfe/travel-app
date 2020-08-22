@@ -146,17 +146,19 @@ func (this *BaseModel) Init() {
 func (this *BaseModel) getConnUrl(name string) *mgo.DialInfo {
 	if name == "default" {
 		return &mgo.DialInfo{
-			Addrs:    []string{this.getString("db_host", "127.0.0.1:27017")},
-			Source:   this.getString("db_source", ""),
-			Username: this.getString("db_username"),
-			Password: this.getString("db_password"),
+			Addrs:     []string{this.getString("db_host", "127.0.0.1:27017")},
+			Source:    this.getString("db_source", ""),
+			Username:  this.getString("db_username"),
+			Password:  this.getString("db_password"),
+			PoolLimit: this.getInt("db_pool_limit"),
 		}
 	}
 	return &mgo.DialInfo{
-		Addrs:    []string{this.getString(name+".db_host", "127.0.0.1:27017")},
-		Source:   this.getString(name+".db_source", ""),
-		Username: this.getString(name + ".db_username"),
-		Password: this.getString(name + ".db_password"),
+		Addrs:     []string{this.getString(name+".db_host", "127.0.0.1:27017")},
+		Source:    this.getString(name+".db_source", ""),
+		Username:  this.getString(name + ".db_username"),
+		Password:  this.getString(name + ".db_password"),
+		PoolLimit: this.getInt(name + ".db_pool_limit"),
 	}
 }
 
@@ -167,6 +169,23 @@ func (this *BaseModel) getString(key string, defaults ...string) string {
 	if v, ok := this._Profiles[key]; ok {
 		if str, ok := v.(string); ok {
 			return str
+		}
+	}
+	return defaults[0]
+}
+
+func (this *BaseModel) getInt(key string, defaults ...int) int {
+	if len(defaults) == 0 {
+		defaults = append(defaults, 0)
+	}
+	if v, ok := this._Profiles[key]; ok {
+		if num, ok := v.(int); ok {
+			return num
+		}
+		if num, ok := v.(string); ok {
+			if n, err := strconv.Atoi(num); err == nil {
+				return n
+			}
 		}
 	}
 	return defaults[0]
