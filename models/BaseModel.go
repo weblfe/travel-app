@@ -246,10 +246,12 @@ func (this *BaseModel) GetDatabaseName(conn ...string) string {
 func (this *BaseModel) conn(name string) *mgo.Session {
 	this.lock.Lock()
 	defer this.lock.Unlock()
-	if sess, err := mgo.DialWithInfo(this.getConnUrl(name)); err == nil {
+	sess, err := mgo.DialWithInfo(this.getConnUrl(name))
+	if err == nil {
 		this.Connections[name] = sess
 		return sess
 	}
+	logs.Error(err)
 	return nil
 }
 
