@@ -218,7 +218,7 @@ func (this *BaseModel) Collection(conn ...string) *mgo.Collection {
 	}
 	var sess = this.GetConn(conn...)
 	if sess != nil {
-		ins := sess.Copy()
+
 		if table, ok := this.Self().(TableNameAble); ok {
 			name := table.TableName()
 			conn = append(conn, name)
@@ -226,11 +226,11 @@ func (this *BaseModel) Collection(conn ...string) *mgo.Collection {
 		if len(conn) < 2 {
 			conn = append(conn, "default")
 		}
-		coll := ins.DB(this.GetDatabaseName(conn[0])).C(conn[1])
+		coll := sess.DB(this.GetDatabaseName(conn[0])).C(conn[1])
 		// 添加到回收sess
-		if coll != nil {
+		/*if coll != nil {
 			this._Sess = append(this._Sess, ins)
-		}
+		}*/
 		return coll
 	}
 	return nil
@@ -309,12 +309,12 @@ func (this *BaseModel) destroy() {
 
 // 释放
 func (this *BaseModel) Release() {
-	for _, sess := range this._Sess {
+	/*for _, sess := range this._Sess {
 		if sess != nil {
 			sess.Refresh()
 		}
-	}
-	this._Sess = this._Sess[0:0]
+	}*/
+	// this._Sess = this._Sess[0:0]
 }
 
 func (this *BaseModel) Add(docs interface{}) error {
