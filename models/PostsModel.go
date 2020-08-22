@@ -2,7 +2,8 @@ package models
 
 import (
 		"github.com/astaxie/beego"
-		"github.com/globalsign/mgo"
+	"github.com/astaxie/beego/logs"
+	"github.com/globalsign/mgo"
 		"github.com/globalsign/mgo/bson"
 		"regexp"
 		"time"
@@ -339,19 +340,23 @@ func (this *PostsModel) TableName() string {
 
 func (this *PostsModel) CreateIndex() {
 		//	_ = this.Collection().EnsureIndexKey("title")
-		_ = this.Collection().EnsureIndexKey("type")
-		_ = this.Collection().EnsureIndexKey("userId")
-		_ = this.Collection().EnsureIndexKey("tags")
-		_ = this.Collection().EnsureIndexKey("group")
-		_ = this.Collection().EnsureIndexKey("address", "privacy")
+	    db := this.Collection()
+		_ = db.EnsureIndexKey("type")
+		_ = db.EnsureIndexKey("userId")
+		_ = db.EnsureIndexKey("tags")
+		_ = db.EnsureIndexKey("group")
+		_ = db.EnsureIndexKey("address", "privacy")
 
-		_ = this.Collection().EnsureIndexKey("thumbsUpNum", "commentNum", "score")
+		_ = db.EnsureIndexKey("thumbsUpNum", "commentNum", "score")
 		// null unique username
-		_ = this.Collection().EnsureIndex(mgo.Index{
+		err := db.EnsureIndex(mgo.Index{
 				Key:              []string{"$text:content"},
-				DefaultLanguage:  "chinese",
-				LanguageOverride: "language",
+				// DefaultLanguage:  "chinese",
+				// LanguageOverride: "language",
 		})
+		if err !=nil {
+			logs.Error(err)
+		}
 }
 
 // 增加

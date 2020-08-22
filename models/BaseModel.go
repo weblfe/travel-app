@@ -311,7 +311,7 @@ func (this *BaseModel) destroy() {
 func (this *BaseModel) Release() {
 	for _, sess := range this._Sess {
 		if sess != nil {
-			sess.Close()
+			sess.Refresh()
 		}
 	}
 	this._Sess = this._Sess[0:0]
