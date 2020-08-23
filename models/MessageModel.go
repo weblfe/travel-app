@@ -4,6 +4,7 @@ import (
 		"encoding/json"
 		"fmt"
 		"github.com/astaxie/beego"
+		"github.com/globalsign/mgo"
 		"github.com/globalsign/mgo/bson"
 		"strconv"
 		"time"
@@ -21,15 +22,15 @@ type MessageLog struct {
 		Extras         bson.M        `json:"extras,omitempty" bson:"extras,omitempty"`                 // 扩展信息
 		Content        string        `json:"content" bson:"content"`                                   // 消息内容
 		SenderUserId   string        `json:"senderUserIdAt,omitempty" bson:"senderUserIdAt,omitempty"` // 发送人
-		TargetUserId   string        `json:"targetUserId,omitempty" bson:"targetUserId,omitempty"` // 接受人
+		TargetUserId   string        `json:"targetUserId,omitempty" bson:"targetUserId,omitempty"`     // 接受人
 		Mobile         string        `json:"mobile,omitempty" bson:"mobile,omitempty"`                 // 手机消息手机号
 		Email          string        `json:"email,omitempty" bson:"email,omitempty"`                   // 邮箱信息邮箱号
 		State          int           `json:"state" bson:"state"`                                       // 消息状态 [-3:拒绝接收,-2:发送失败,-1:待处理,0:未知,1:已发送,2:已阅读]
 		Result         string        `json:"result,omitempty" bson:"result,omitempty"`                 // 第三方消息结果
-		SentTime       int64         `json:"sentTime" bson:"sentTime"`                               // 发送时间
-		ExpireTime     int64         `json:"expireTime,omitempty" bson:"expireTime,omitempty"`       // 消息过期时间
-		ReadTime       int64         `json:"readTime,omitempty" bson:"readTime,omitempty"`           // 消息阅读时间
-		CreatedAt      time.Time     `json:"createdAt" bson:"createdAt"`                             // 记录创建时间
+		SentTime       int64         `json:"sentTime" bson:"sentTime"`                                 // 发送时间
+		ExpireTime     int64         `json:"expireTime,omitempty" bson:"expireTime,omitempty"`         // 消息过期时间
+		ReadTime       int64         `json:"readTime,omitempty" bson:"readTime,omitempty"`             // 消息阅读时间
+		CreatedAt      time.Time     `json:"createdAt" bson:"createdAt"`                               // 记录创建时间
 }
 
 const (
@@ -43,7 +44,7 @@ func NewMessageLog() *MessageLog {
 
 func MessageModelOf() *MessageModel {
 		var model = new(MessageModel)
-		model._Self = model
+		model._Binder = model
 		model.Init()
 		return model
 }
@@ -127,17 +128,23 @@ func (this *MessageLog) Set(key string, v interface{}) *MessageLog {
 		return this
 }
 
-func (this *MessageModel) CreateIndex() {
-		_ = this.Collection().EnsureIndexKey("state")
-		_ = this.Collection().EnsureIndexKey("mobile")
-		_ = this.Collection().EnsureIndexKey("type")
-		_ = this.Collection().EnsureIndexKey("provider")
-		_ = this.Collection().EnsureIndexKey("email")
-		_ = this.Collection().EnsureIndexKey("sentTime")
-		_ = this.Collection().EnsureIndexKey("expireTime")
-		_ = this.Collection().EnsureIndexKey("createdAt")
-		_ = this.Collection().EnsureIndexKey("senderUserIdAt", "targetUserId")
-		_ = this.Collection().EnsureIndexKey("extras")
+func (this *MessageModel) CreateIndex(force ...bool) {
+		this.createIndex(this.getCreateIndexHandle(), force...)
+}
+
+func (this *MessageModel) getCreateIndexHandle() func(*mgo.Collection) {
+		return func(doc *mgo.Collection) {
+				this.logs(doc.EnsureIndexKey("state"))
+				this.logs(doc.EnsureIndexKey("mobile"))
+				this.logs(doc.EnsureIndexKey("type"))
+				this.logs(doc.EnsureIndexKey("provider"))
+				this.logs(doc.EnsureIndexKey("email"))
+				this.logs(doc.EnsureIndexKey("sentTime"))
+				this.logs(doc.EnsureIndexKey("expireTime"))
+				this.logs(doc.EnsureIndexKey("createdAt"))
+				this.logs(doc.EnsureIndexKey("senderUserIdAt", "targetUserId"))
+				this.logs(doc.EnsureIndexKey("extras"))
+		}
 }
 
 func (this *MessageModel) TableName() string {

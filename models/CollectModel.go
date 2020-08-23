@@ -149,17 +149,23 @@ func (this *CollectModel) TableName() string {
 		return CollectTable
 }
 
-func (this *CollectModel) CreateIndex() {
-		_ = this.Collection().EnsureIndex(mgo.Index{
-				Key:    []string{"userId", "targetId", "targetType"},
-				Unique: true,
-				Sparse: false,
-		})
-		_ = this.Collection().EnsureIndexKey("status")
+func (this *CollectModel) CreateIndex(force ...bool) {
+		this.createIndex(this.getCreateIndexHandler(), force...)
+}
+
+func (this *CollectModel) getCreateIndexHandler() func(*mgo.Collection) {
+		return func(doc *mgo.Collection) {
+				this.logs(doc.EnsureIndex(mgo.Index{
+						Key:    []string{"userId", "targetId", "targetType"},
+						Unique: true,
+						Sparse: false,
+				}))
+				this.logs(doc.EnsureIndexKey("status"))
+		}
 }
 
 func (this *CollectModel) init() *CollectModel {
-		this._Self = this
+		this._Binder = this
 		this.Init()
 		return this
 }

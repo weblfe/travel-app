@@ -6,7 +6,7 @@ type AuthModel struct {
 
 func AuthModelOf() *AuthModel  {
 		var model = new(AuthModel)
-		model._Self = model
+		model._Binder = model
 		model.Init()
 		return model
 }

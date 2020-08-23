@@ -25,7 +25,7 @@ const (
 
 func UserLoginLogModelOf() *UserLoginLogModel {
 		var model = new(UserLoginLogModel)
-		model._Self = model
+		model._Binder = model
 		model.Init()
 		return model
 }

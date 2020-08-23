@@ -228,7 +228,7 @@ func (this *ApplyInfo) setAttributes(data map[string]interface{}, safe ...bool) 
 
 func ApplyInfoModelOf() *ApplyInfoModel {
 		var model = new(ApplyInfoModel)
-		model._Self = model
+		model._Binder = model
 		model.Init()
 		return model
 }
@@ -237,15 +237,21 @@ func (this *ApplyInfoModel) TableName() string {
 		return ApplyInfoTable
 }
 
-func (this *ApplyInfoModel) CreateIndex() {
-		// unique mobile
-		_ = this.Collection().EnsureIndex(mgo.Index{
-				Key:    []string{"userId", "target", "type", "title"},
-				Unique: true,
-				Sparse: false,
-		})
-		_ = this.Collection().EnsureIndexKey("date")
-		_ = this.Collection().EnsureIndexKey("status")
+func (this *ApplyInfoModel) CreateIndex(force ...bool) {
+		this.createIndex(this.getCreateIndexHandler(), force...)
+}
+
+func (this *ApplyInfoModel) getCreateIndexHandler() func(*mgo.Collection) {
+		return func(doc *mgo.Collection) {
+				// unique mobile
+				this.logs(doc.EnsureIndex(mgo.Index{
+						Key:    []string{"userId", "target", "type", "title"},
+						Unique: true,
+						Sparse: false,
+				}))
+				this.logs(doc.EnsureIndexKey("date"))
+				this.logs(doc.EnsureIndexKey("status"))
+		}
 }
 
 func (this *ApplyInfoModel) Count(query bson.M) int {

@@ -122,7 +122,7 @@ func NewAttachment() *Attachment {
 
 func AttachmentModelOf() *AttachmentModel {
 		var model = new(AttachmentModel)
-		model._Self = model
+		model._Binder = model
 		model.Init()
 		return model
 }
@@ -482,20 +482,26 @@ func (this *Attachment) GetCoverInfo(id bson.ObjectId) *Attachment {
 		return nil
 }
 
-func (this *AttachmentModel) CreateIndex() {
-		_ = this.Collection().EnsureIndexKey("appId")
-		_ = this.Collection().EnsureIndexKey("filename")
-		_ = this.Collection().EnsureIndexKey("referName", "referId")
-		_ = this.Collection().EnsureIndexKey("size")
-		_ = this.Collection().EnsureIndexKey("fileType")
-		_ = this.Collection().EnsureIndexKey("status")
-		_ = this.Collection().EnsureIndexKey("deletedAt")
-		// unique mobile
-		_ = this.Collection().EnsureIndex(mgo.Index{
-				Key:    []string{"access_count", "downloadTimes"},
-				Unique: false,
-				Sparse: true,
-		})
+func (this *AttachmentModel) CreateIndex(force ...bool) {
+		this.createIndex(this.getCreateIndexHandler(), force...)
+}
+
+func (this *AttachmentModel) getCreateIndexHandler() func(*mgo.Collection) {
+		return func(doc *mgo.Collection) {
+				this.logs(doc.EnsureIndexKey("appId"))
+				this.logs(doc.EnsureIndexKey("filename"))
+				this.logs(doc.EnsureIndexKey("referName", "referId"))
+				this.logs(doc.EnsureIndexKey("size"))
+				this.logs(doc.EnsureIndexKey("fileType"))
+				this.logs(doc.EnsureIndexKey("status"))
+				this.logs(doc.EnsureIndexKey("deletedAt"))
+				// unique mobile
+				this.logs(doc.EnsureIndex(mgo.Index{
+						Key:    []string{"access_count", "downloadTimes"},
+						Unique: false,
+						Sparse: true,
+				}))
+		}
 }
 
 func (this *AttachmentModel) TableName() string {

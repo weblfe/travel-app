@@ -2,8 +2,7 @@ package models
 
 import (
 		"github.com/astaxie/beego"
-	"github.com/astaxie/beego/logs"
-	"github.com/globalsign/mgo"
+		"github.com/globalsign/mgo"
 		"github.com/globalsign/mgo/bson"
 		"regexp"
 		"time"
@@ -15,7 +14,7 @@ type PostsModel struct {
 
 func PostsModelOf() *PostsModel {
 		var model = new(PostsModel)
-		model._Self = model
+		model._Binder = model
 		model.Init()
 		return model
 }
@@ -338,24 +337,25 @@ func (this *PostsModel) TableName() string {
 		return TravelNotesTable
 }
 
-func (this *PostsModel) CreateIndex() {
-		//	_ = this.Collection().EnsureIndexKey("title")
-	    db := this.Collection()
-		_ = db.EnsureIndexKey("type")
-		_ = db.EnsureIndexKey("userId")
-		_ = db.EnsureIndexKey("tags")
-		_ = db.EnsureIndexKey("group")
-		_ = db.EnsureIndexKey("address", "privacy")
+func (this *PostsModel) CreateIndex(force ...bool) {
+		this.createIndex(this.getCreateIndexHandler(), force...)
+}
 
-		_ = db.EnsureIndexKey("thumbsUpNum", "commentNum", "score")
-		// null unique username
-		err := db.EnsureIndex(mgo.Index{
-				Key:              []string{"$text:content"},
-				// DefaultLanguage:  "chinese",
-				// LanguageOverride: "language",
-		})
-		if err !=nil {
-			logs.Error(err)
+func (this *PostsModel) getCreateIndexHandler() func(*mgo.Collection) {
+		return func(doc *mgo.Collection) {
+				this.logs(doc.EnsureIndexKey("type"))
+				this.logs(doc.EnsureIndexKey("userId"))
+				this.logs(doc.EnsureIndexKey("tags"))
+				this.logs(doc.EnsureIndexKey("group"))
+				this.logs(doc.EnsureIndexKey("address", "privacy"))
+				this.logs(doc.EnsureIndexKey("thumbsUpNum", "commentNum", "score"))
+				// null unique username
+				/*this.logs(doc.EnsureIndex(mgo.Index{
+						Key: []string{"$text:content"},
+						// DefaultLanguage:  "chinese",
+						// LanguageOverride: "language",
+				}))*/
+
 		}
 }
 

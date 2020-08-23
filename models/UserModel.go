@@ -34,7 +34,7 @@ type User struct {
 		Gender             int           `json:"gender" bson:"gender"`                         // 用户性别 0:保密 1:男 2:女 3:😯
 		Birthday           int64         `json:"birthday,omitempty" bson:"birthday,omitempty"` // 用户生日
 		Address            string        `json:"address" bson:"address"`                       // 用户地址
-		ThumbsUpTotal      int64         `json:"thumbsUpNum" bson:"thumbsUpNum"`           // 点赞总数
+		ThumbsUpTotal      int64         `json:"thumbsUpNum" bson:"thumbsUpNum"`               // 点赞总数
 		InviteCode         string        `json:"inviteCode" bson:"inviteCode"`                 // 邀请码 6-64
 		CreatedAt          time.Time     `json:"createdAt" bson:"createdAt"`                   // 创建时间 注册时间
 		UpdatedAt          time.Time     `json:"updatedAt" bson:"updatedAt"`                   // 更新时间
@@ -71,7 +71,7 @@ var (
 
 func UserModelOf() *UserModel {
 		var model = new(UserModel)
-		model._Self = model
+		model._Binder = model
 		model.Init()
 		return model
 }
@@ -280,7 +280,7 @@ func (this *User) M(filter ...func(m beego.M) beego.M) beego.M {
 				"createdAt":          this.CreatedAt.Unix(),
 				"address":            this.GetAddress(),
 				"inviteCode":         this.InviteCode,
-				"thumbsUpNum":      this.ThumbsUpTotal,
+				"thumbsUpNum":        this.ThumbsUpTotal,
 				"lastLoginLocation":  this.LastLoginLocation,
 				"deletedAt":          this.DeletedAt,
 		}
@@ -315,32 +315,38 @@ func (this *User) GetRoleDesc(role int) string {
 		return UserRolesConfigModelOf().GetRoleName(role)
 }
 
-func (this *UserModel) CreateIndex() {
-		// unique mobile
-		_ = this.Collection().EnsureIndex(mgo.Index{
-				Key:    []string{"mobile"},
-				Unique: true,
-				Sparse: true,
-		})
-		// null unique email
-		_ = this.Collection().EnsureIndex(mgo.Index{
-				Key:    []string{"email"},
-				Unique: true,
-				Sparse: true,
-		})
-		// null unique username
-		_ = this.Collection().EnsureIndex(mgo.Index{
-				Key:    []string{"username"},
-				Unique: true,
-				Sparse: true,
-		})
-		_ = this.Collection().EnsureIndexKey("state")
-		_ = this.Collection().EnsureIndexKey("gender")
-		_ = this.Collection().EnsureIndexKey("address")
-		_ = this.Collection().EnsureIndexKey("nickname")
-		_ = this.Collection().EnsureIndexKey("userNumId")
-		_ = this.Collection().EnsureIndexKey("avatarId")
-		_ = this.Collection().EnsureIndexKey("lastLoginLocation", "lastLoginAt")
+func (this *UserModel) CreateIndex(force ...bool) {
+		this.createIndex(this.getCreateIndexHandler(), force...)
+}
+
+func (this *UserModel) getCreateIndexHandler() func(*mgo.Collection) {
+		return func(doc *mgo.Collection) {
+				// unique mobile
+				this.logs(doc.EnsureIndex(mgo.Index{
+						Key:    []string{"mobile"},
+						Unique: true,
+						Sparse: true,
+				}))
+				// null unique email
+				this.logs(doc.EnsureIndex(mgo.Index{
+						Key:    []string{"email"},
+						Unique: true,
+						Sparse: true,
+				}))
+				// null unique username
+				this.logs(doc.EnsureIndex(mgo.Index{
+						Key:    []string{"username"},
+						Unique: true,
+						Sparse: true,
+				}))
+				this.logs(doc.EnsureIndexKey("state"))
+				this.logs(doc.EnsureIndexKey("gender"))
+				this.logs(doc.EnsureIndexKey("address"))
+				this.logs(doc.EnsureIndexKey("nickname"))
+				this.logs(doc.EnsureIndexKey("userNumId"))
+				this.logs(doc.EnsureIndexKey("avatarId"))
+				this.logs(doc.EnsureIndexKey("lastLoginLocation", "lastLoginAt"))
+		}
 }
 
 func (this *UserModel) TableName() string {

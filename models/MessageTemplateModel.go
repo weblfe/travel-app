@@ -48,7 +48,7 @@ func NewMessageTemplate() *MessageTemplate {
 
 func MessageTemplateModelOf() *MessageTemplateModel {
 		var model = new(MessageTemplateModel)
-		model._Self = model
+		model._Binder = model
 		model.Init()
 		return model
 }
@@ -148,16 +148,22 @@ func (this *MessageTemplateModel) TableName() string {
 }
 
 // 创建索引
-func (this *MessageTemplateModel) CreateIndex() {
-		_ = this.Collection().EnsureIndex(mgo.Index{
-				Key:    []string{"type", "name"},
-				Unique: true,
-				Sparse: true,
-		})
-		_ = this.Collection().EnsureIndexKey("state")
-		_ = this.Collection().EnsureIndexKey("type")
-		_ = this.Collection().EnsureIndexKey("template")
-		_ = this.Collection().EnsureIndexKey("platform")
+func (this *MessageTemplateModel) CreateIndex(force ...bool) {
+		this.createIndex(this.getCreateIndexHandler(), force...)
+}
+
+func (this *MessageTemplateModel) getCreateIndexHandler() func(*mgo.Collection) {
+		return func(doc *mgo.Collection) {
+				this.logs(doc.EnsureIndex(mgo.Index{
+						Key:    []string{"type", "name"},
+						Unique: true,
+						Sparse: true,
+				}))
+				this.logs(doc.EnsureIndexKey("state"))
+				this.logs(doc.EnsureIndexKey("type"))
+				this.logs(doc.EnsureIndexKey("template"))
+				this.logs(doc.EnsureIndexKey("platform"))
+		}
 }
 
 // 批量添加

@@ -20,20 +20,20 @@ type AddressModel struct {
 
 // 中国行政区域
 type Address struct {
-		Id         bson.ObjectId `json:"id" bson:"_id"`                // ID
-		Level      int           `json:"level" bson:"level"`           // 行政层级
-		ParentCode int64         `json:"parentCode" bson:"parentCode"` // 父级行政代码
-		AreaCode   int64         `json:"areaCode" json:"areaCode"`     // 行政代码
-		ZipCode    string        `json:"zipCode" bson:"zipCode"`       // 邮政编码
-		CityCode   string        `json:"cityCode" bson:"cityCode"`     // 区号
-		Name       string        `json:"name" bson:"name"`             // 名称
-		ShortName  string        `json:"shortName" bson:"shortName"`   // 简称
-		MergerName string        `json:"mergerName" bson:"mergerName"` // 组合名
-		Pinyin     string        `json:"pinyin" bson:"pinyin"`         // 拼音
-		Lng        float64       `json:"lng" bson:"lng"`               // 经度
-		Lat        float64       `json:"lat" bson:"lat"`               // 纬度
-		CreatedAt  time.Time     `json:"createdAt"`                    // 创建时间
-		DeletedAt  int64         `json:"deletedAt" json:"deletedAt"`   // 删除时间 ｜ 废弃时间
+		Id            bson.ObjectId `json:"id" bson:"_id"`                // ID
+		Level         int           `json:"level" bson:"level"`           // 行政层级
+		ParentCode    int64         `json:"parentCode" bson:"parentCode"` // 父级行政代码
+		AreaCode      int64         `json:"areaCode" json:"areaCode"`     // 行政代码
+		ZipCode       string        `json:"zipCode" bson:"zipCode"`       // 邮政编码
+		CityCode      string        `json:"cityCode" bson:"cityCode"`     // 区号
+		Name          string        `json:"name" bson:"name"`             // 名称
+		ShortName     string        `json:"shortName" bson:"shortName"`   // 简称
+		MergerName    string        `json:"mergerName" bson:"mergerName"` // 组合名
+		Pinyin        string        `json:"pinyin" bson:"pinyin"`         // 拼音
+		Lng           float64       `json:"lng" bson:"lng"`               // 经度
+		Lat           float64       `json:"lat" bson:"lat"`               // 纬度
+		CreatedAt     time.Time     `json:"createdAt"`                    // 创建时间
+		DeletedAt     int64         `json:"deletedAt" json:"deletedAt"`   // 删除时间 ｜ 废弃时间
 		dataClassImpl `bson:",omitempty"  json:",omitempty"`
 }
 
@@ -83,7 +83,7 @@ func NewAddress() *Address {
 // 地址模型
 func AddressModelOf() *AddressModel {
 		var addr = new(AddressModel)
-		addr._Self = addr
+		addr._Binder = addr
 		addr.Init()
 		return addr
 }
@@ -94,18 +94,23 @@ func (this *AddressModel) TableName() string {
 }
 
 // 创建索引
-func (this *AddressModel) CreateIndex() {
-		// unique areaCode
-		_ = this.Collection().EnsureIndex(mgo.Index{
-				Key:    []string{"areaCode"},
-				Unique: true,
-				Sparse: false,
-		})
-		// index
-		_ = this.Collection().EnsureIndexKey("level", "deletedAt")
-		_ = this.Collection().EnsureIndexKey("name", "shortName", "pinyin")
-		_ = this.Collection().EnsureIndexKey("lng", "lat")
+func (this *AddressModel) CreateIndex(force ...bool) {
+		this.createIndex(this.getCreateIndexHandler(), force...)
+}
 
+func (this *AddressModel) getCreateIndexHandler() func(*mgo.Collection) {
+		return func(doc *mgo.Collection) {
+				// unique areaCode
+				this.logs(doc.EnsureIndex(mgo.Index{
+						Key:    []string{"areaCode"},
+						Unique: true,
+						Sparse: false,
+				}))
+				// index
+				this.logs(doc.EnsureIndexKey("level", "deletedAt"))
+				this.logs(doc.EnsureIndexKey("name", "shortName", "pinyin"))
+				this.logs(doc.EnsureIndexKey("lng", "lat"))
+		}
 }
 
 // 地址查询
@@ -115,7 +120,7 @@ func (this *AddressModel) GetAddress(query map[string]interface{}) *Address {
 		}
 		var addr = NewAddress()
 		table := this.Collection()
-		defer this.destroy()
+		defer this.destroy(table)
 		if err := table.Find(beego.M(query)).One(addr); err == nil {
 				return addr
 		}

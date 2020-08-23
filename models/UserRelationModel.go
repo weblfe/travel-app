@@ -177,17 +177,23 @@ func (this *UserRelationModel) TableName() string {
 		return CollectTable
 }
 
-func (this *UserRelationModel) CreateIndex() {
-		_ = this.Collection().EnsureIndex(mgo.Index{
-				Key:    []string{"userId", "targetUserId", "targetType"},
-				Unique: true,
-				Sparse: false,
-		})
-		_ = this.Collection().EnsureIndexKey("status")
+func (this *UserRelationModel) CreateIndex(force ...bool) {
+		this.createIndex(this.getCreateIndexHandler(), force...)
+}
+
+func (this *UserRelationModel) getCreateIndexHandler() func(*mgo.Collection) {
+		return func(doc *mgo.Collection) {
+				this.logs(doc.EnsureIndex(mgo.Index{
+						Key:    []string{"userId", "targetUserId", "targetType"},
+						Unique: true,
+						Sparse: false,
+				}))
+				this.logs(doc.EnsureIndexKey("status"))
+		}
 }
 
 func (this *UserRelationModel) init() *UserRelationModel {
-		this._Self = this
+		this._Binder = this
 		this.Init()
 		return this
 }
@@ -236,8 +242,8 @@ func (this *UserRelationModel) SaveInfo(userId string, targetUserId string, extr
 				query  = bson.M{"userId": userId, "targetUserId": targetUserId, "targetType": typ}
 				friend = this.GetByUnique(beego.M(query))
 		)
-		delete(extras[0],"status")
-		delete(extras[0],"targetType")
+		delete(extras[0], "status")
+		delete(extras[0], "targetType")
 		if friend == nil {
 				user.UserId = userId
 				user.TargetUserId = targetUserId

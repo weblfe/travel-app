@@ -34,7 +34,7 @@ func NewAuditLog() *AuditLog {
 
 func AuditLogModelOf() *AuditLogModel {
 		var model = new(AuditLogModel)
-		model._Self = model
+		model._Binder = model
 		model.init()
 		return model
 }
@@ -117,7 +117,7 @@ func (this *AuditLog) setAttributes(data map[string]interface{}, safe ...bool) {
 func (this *AuditLog) Set(key string, v interface{}) *AuditLog {
 		switch key {
 		case "id":
-				this.SetObjectId(&this.Id,v)
+				this.SetObjectId(&this.Id, v)
 		case "platform":
 				this.SetNumInt(&this.Platform, v)
 		case "comment":
@@ -127,7 +127,7 @@ func (this *AuditLog) Set(key string, v interface{}) *AuditLog {
 		case "userId":
 				this.SetString(&this.UserId, v)
 		case "auditType":
-			   this.SetString(&this.AuditType,v)
+				this.SetString(&this.AuditType, v)
 		case "createdAt":
 				this.SetTime(&this.CreatedAt, v)
 		case "updatedAt":
@@ -156,11 +156,17 @@ func (this *AuditLogModel) TableName() string {
 		return AuditLogTable
 }
 
-func (this *AuditLogModel) CreateIndex() {
-		// unique mobile
-		_ = this.Collection().EnsureIndex(mgo.Index{
-				Key:    []string{"userId", "postId","platform","auditType","createdAt"},
-				Unique: true,
-				Sparse: false,
-		})
+func (this *AuditLogModel) CreateIndex(force ...bool) {
+		this.createIndex(this.getCreateIndexHandler(), force...)
+}
+
+func (this *AuditLogModel) getCreateIndexHandler() func(*mgo.Collection) {
+		return func(doc *mgo.Collection) {
+				// unique mobile
+				this.logs(doc.EnsureIndex(mgo.Index{
+						Key:    []string{"userId", "postId", "platform", "auditType", "createdAt"},
+						Unique: true,
+						Sparse: false,
+				}))
+		}
 }

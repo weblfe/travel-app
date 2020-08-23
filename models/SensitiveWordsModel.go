@@ -175,18 +175,24 @@ func (this *SensitiveWordsModel) TableName() string {
 		return SensitiveWordsTable
 }
 
-func (this *SensitiveWordsModel) CreateIndex() {
-		_ = this.Collection().EnsureIndex(mgo.Index{
-				Key:    []string{"app", "hash"},
-				Unique: true,
-				Sparse: false,
-		})
-		_ = this.Collection().EnsureIndexKey("type", "status")
-		_ = this.Collection().EnsureIndexKey("word")
+func (this *SensitiveWordsModel) CreateIndex(force ...bool) {
+		this.createIndex(this.getCreateIndexHandler(), force...)
+}
+
+func (this *SensitiveWordsModel) getCreateIndexHandler() func(*mgo.Collection) {
+		return func(doc *mgo.Collection) {
+				this.logs(doc.EnsureIndex(mgo.Index{
+						Key:    []string{"app", "hash"},
+						Unique: true,
+						Sparse: false,
+				}))
+				this.logs(doc.EnsureIndexKey("word"))
+				this.logs(doc.EnsureIndexKey("type", "status"))
+		}
 }
 
 func (this *SensitiveWordsModel) init() *SensitiveWordsModel {
-		this._Self = this
+		this._Binder = this
 		this.Init()
 		return this
 }
@@ -285,8 +291,8 @@ func (this *SensitiveWordsModel) Adds(words []string, ty string, app ...string) 
 				items = append(items, data)
 		}
 		if len(updates) > 0 {
-				table := this.Collection()
-				defer this.destroy()
+				table := this.Document()
+				defer this.destroy(table)
 				info, err := table.UpdateAll(bson.M{}, updates)
 				if err != nil {
 						logs.Error(err)

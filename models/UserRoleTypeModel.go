@@ -26,7 +26,7 @@ type UserRoleType struct {
 }
 
 const (
-		UserRootRole = 7
+		UserRootRole          = 7
 		UserRoleTypeTableName = "user_roles_config"
 )
 
@@ -38,7 +38,7 @@ func NewUserRole() *UserRoleType {
 
 func UserRolesConfigModelOf() *UserRolesConfigModel {
 		var model = new(UserRolesConfigModel)
-		model._Self = model
+		model._Binder = model
 		model.Init()
 		return model
 }
@@ -166,14 +166,20 @@ func (this *UserRolesConfigModel) GetByUnique(data map[string]interface{}) *User
 		return nil
 }
 
-func (this *UserRolesConfigModel) CreateIndex() {
-		// null unique username
-		_ = this.Collection().EnsureIndex(mgo.Index{
-				Key:    []string{"role"},
-				Unique: true,
-				Sparse: false,
-		})
-		_ = this.Collection().EnsureIndexKey("name", "state","level")
+func (this *UserRolesConfigModel) CreateIndex(force ...bool) {
+		this.createIndex(this.getCreateIndexHandler(), force...)
+}
+
+func (this *UserRolesConfigModel) getCreateIndexHandler() func(*mgo.Collection) {
+		return func(doc *mgo.Collection) {
+				// null unique username
+				this.logs(doc.EnsureIndex(mgo.Index{
+						Key:    []string{"role"},
+						Unique: true,
+						Sparse: false,
+				}))
+				this.logs(doc.EnsureIndexKey("name", "state", "level"))
+		}
 }
 
 func (this *UserRolesConfigModel) GetRoleName(role int) string {

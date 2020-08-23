@@ -257,7 +257,7 @@ func (this *PopularizationChannels) IsOk() bool {
 
 func PopularizationChannelsModelOf() *PopularizationChannelsModel {
 		var model = new(PopularizationChannelsModel)
-		model._Self = model
+		model._Binder = model
 		model.Init()
 		return model
 }
@@ -266,29 +266,34 @@ func (this *PopularizationChannelsModel) TableName() string {
 		return PopularizationChannelsTable
 }
 
-func (this *PopularizationChannelsModel) CreateIndex() {
-		// unique mobile
-		_ = this.Collection().EnsureIndex(mgo.Index{
-				Key:    []string{"channel"},
-				Unique: true,
-				Sparse: false,
-		})
-		_ = this.Collection().EnsureIndex(mgo.Index{
-				Key:    []string{"wechat"},
-				Unique: true,
-				Sparse: false,
-		})
-		_ = this.Collection().EnsureIndex(mgo.Index{
-				Key:    []string{"userId", "name"},
-				Unique: true,
-				Sparse: false,
-		})
-		_ = this.Collection().EnsureIndex(mgo.Index{
-				Key:    []string{"mobile", "name"},
-				Unique: true,
-				Sparse: false,
-		})
-		_ = this.Collection().EnsureIndexKey("email")
+func (this *PopularizationChannelsModel) CreateIndex(force ...bool) {
+		this.createIndex(this.getCreateIndexHandler(), force...)
+}
+
+func (this *PopularizationChannelsModel) getCreateIndexHandler() func(*mgo.Collection) {
+		return func(doc *mgo.Collection) {
+				this.logs(doc.EnsureIndex(mgo.Index{
+						Key:    []string{"channel"},
+						Unique: true,
+						Sparse: false,
+				}))
+				this.logs(doc.EnsureIndex(mgo.Index{
+						Key:    []string{"wechat"},
+						Unique: true,
+						Sparse: false,
+				}))
+				this.logs(doc.EnsureIndex(mgo.Index{
+						Key:    []string{"userId", "name"},
+						Unique: true,
+						Sparse: false,
+				}))
+				this.logs(doc.EnsureIndex(mgo.Index{
+						Key:    []string{"mobile", "name"},
+						Unique: true,
+						Sparse: false,
+				}))
+				this.logs(doc.EnsureIndexKey("email"))
+		}
 }
 
 func (this *PopularizationChannelsModel) GetByUnique(m beego.M) *PopularizationChannels {

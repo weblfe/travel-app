@@ -19,7 +19,7 @@ const (
 
 func AppModelOf() *AppModel {
 		var model = new(AppModel)
-		model._Self = model
+		model._Binder = model
 		model.Init()
 		return model
 }
@@ -192,14 +192,22 @@ func (this *AppModel) TableName() string {
 }
 
 // 创建索引
-func (this *AppModel) CreateIndex() {
-		// unique mobile
-		_ = this.Collection().EnsureIndex(mgo.Index{
-				Key:    []string{"driver", "version"},
-				Unique: true,
-				Sparse: false,
-		})
-		_ = this.Collection().EnsureIndexKey("forcedUpdate")
+func (this *AppModel) CreateIndex(force ...bool) {
+		this.createIndex(this.getCreateIndexHandler(), force...)
+}
+
+
+func (this *AppModel) getCreateIndexHandler() func(*mgo.Collection) {
+		return func(doc *mgo.Collection) {
+
+				this.logs(this.Collection().EnsureIndex(mgo.Index{
+						Key:    []string{"driver", "version"},
+						Unique: true,
+						Sparse: false,
+				}))
+				this.logs(this.Collection().EnsureIndexKey("forcedUpdate"))
+
+		}
 }
 
 // 批量添加更新

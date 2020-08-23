@@ -121,7 +121,7 @@ func (this *ThumbsUp) Save() error {
 
 func ThumbsUpModelOf() *ThumbsUpModel {
 		var model = new(ThumbsUpModel)
-		model._Self = model
+		model._Binder = model
 		model.Init()
 		return model
 }
@@ -134,13 +134,19 @@ func (this *ThumbsUpModel) TableName() string {
 		return ThumbsUpTable
 }
 
-func (this *ThumbsUpModel) CreateIndex() {
-		_ = this.Collection().EnsureIndex(mgo.Index{
-				Key:    []string{"type", "typeId", "userId"},
-				Unique: true,
-				Sparse: true,
-		})
-		_ = this.Collection().EnsureIndexKey("state")
-		_ = this.Collection().EnsureIndexKey("gender")
-		_ = this.Collection().EnsureIndexKey("nickname")
+func (this *ThumbsUpModel) CreateIndex(force ...bool) {
+		this.createIndex(this.getCreateIndexHandler(), force...)
+}
+
+func (this *ThumbsUpModel) getCreateIndexHandler() func(*mgo.Collection) {
+		return func(doc *mgo.Collection) {
+				this.logs(doc.EnsureIndex(mgo.Index{
+						Key:    []string{"type", "typeId", "userId"},
+						Unique: true,
+						Sparse: true,
+				}))
+				this.logs(doc.EnsureIndexKey("state"))
+				this.logs(doc.EnsureIndexKey("gender"))
+				this.logs(doc.EnsureIndexKey("nickname"))
+		}
 }

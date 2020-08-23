@@ -6,7 +6,7 @@ type ClassifyModel struct {
 
 func ClassifyModelOf() *ClassifyModel  {
 		var model = new(ClassifyModel)
-		model._Self = model
+		model._Binder = model
 		model.Init()
 		return model
 }

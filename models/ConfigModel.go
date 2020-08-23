@@ -37,7 +37,7 @@ const (
 // 配置模型
 func ConfigModelOf() *ConfigModel {
 		var model = new(ConfigModel)
-		model._Self = model
+		model._Binder = model
 		model.Init()
 		return model
 }
@@ -155,14 +155,19 @@ func (this *ConfigModel) TableName() string {
 }
 
 // 创建索引
-func (this *ConfigModel) CreateIndex() {
-		// null unique username
-		_ = this.Collection().EnsureIndex(mgo.Index{
-				Key:    []string{"root", "key"},
-				Unique: true,
-				Sparse: false,
-		})
-		_ = this.Collection().EnsureIndexKey("state")
+func (this *ConfigModel) CreateIndex(force ...bool) {
+		this.createIndex(this.getCreateIndexHandler(), force...)
+}
+
+func (this *ConfigModel) getCreateIndexHandler() func(*mgo.Collection) {
+		return func(doc *mgo.Collection) {
+				this.logs(doc.EnsureIndex(mgo.Index{
+						Key:    []string{"root", "key"},
+						Unique: true,
+						Sparse: false,
+				}))
+				this.logs(doc.EnsureIndexKey("state"))
+		}
 }
 
 // 通过唯一条件查询

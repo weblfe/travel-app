@@ -1,6 +1,7 @@
 package models
 
 import (
+		"github.com/globalsign/mgo"
 		"github.com/globalsign/mgo/bson"
 		"time"
 )
@@ -11,17 +12,17 @@ type SmsLogModel struct {
 
 // 短信日志记录
 type SmsLog struct {
-		Id              bson.ObjectId `json:"id" bson:"id"`                               // 消息ID
-		Provider        string        `json:"provider" bson:"provider"`                   // 服务商
-		Mobile          string        `json:"mobile" bson:"mobile"`                       // 手机号
-		Content         string        `json:"content" bson:"content"`                     // 消息内容
-		Result          string        `json:"result" bson:"result"`                       // 请求结果
-		State           int           `json:"state" bson:"state"`                         // 消息状态
-		Type            string        `json:"type" bson:"type"`                           // 消息类型
-		Extras          string        `json:"extras" bson:"extras"`                       // 扩展信息
-		Error           string        `json:"error,omitempty" bson:"error,omitempty"`     // 异常
+		Id              bson.ObjectId `json:"id" bson:"id"`                           // 消息ID
+		Provider        string        `json:"provider" bson:"provider"`               // 服务商
+		Mobile          string        `json:"mobile" bson:"mobile"`                   // 手机号
+		Content         string        `json:"content" bson:"content"`                 // 消息内容
+		Result          string        `json:"result" bson:"result"`                   // 请求结果
+		State           int           `json:"state" bson:"state"`                     // 消息状态
+		Type            string        `json:"type" bson:"type"`                       // 消息类型
+		Extras          string        `json:"extras" bson:"extras"`                   // 扩展信息
+		Error           string        `json:"error,omitempty" bson:"error,omitempty"` // 异常
 		ExpireTimeStamp int64         `json:"expireTimeStamp" bson:"expireTimeStamp"` // 过期时间戳
-		CreatedAt       time.Time     `json:"createdAt" bson:"createdAt"`               // 创建时间
+		CreatedAt       time.Time     `json:"createdAt" bson:"createdAt"`             // 创建时间
 }
 
 const (
@@ -31,17 +32,23 @@ const (
 
 func SmsLogModelOf() *SmsLogModel {
 		var model = new(SmsLogModel)
-		model._Self = model
+		model._Binder = model
 		model.Init()
 		return model
 }
 
-func (this *SmsLogModel) CreateIndex() {
-		_ = this.Collection().EnsureIndexKey("state")
-		_ = this.Collection().EnsureIndexKey("type")
-		_ = this.Collection().EnsureIndexKey("mobile")
-		_ = this.Collection().EnsureIndexKey("provider")
-		_ = this.Collection().EnsureIndexKey("createdAt")
+func (this *SmsLogModel) CreateIndex(force ...bool) {
+		this.createIndex(this.getCreateIndexHandler(), force...)
+}
+
+func (this *SmsLogModel) getCreateIndexHandler() func(*mgo.Collection) {
+		return func(doc *mgo.Collection) {
+				this.logs(doc.EnsureIndexKey("state"))
+				this.logs(doc.EnsureIndexKey("type"))
+				this.logs(doc.EnsureIndexKey("mobile"))
+				this.logs(doc.EnsureIndexKey("provider"))
+				this.logs(doc.EnsureIndexKey("createdAt"))
+		}
 }
 
 func (this *SmsLogModel) TableName() string {

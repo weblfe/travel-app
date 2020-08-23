@@ -28,7 +28,7 @@ type UserFocusModel struct {
 
 func UserFocusModelOf() *UserFocusModel {
 		var model = new(UserFocusModel)
-		model._Self = model
+		model._Binder = model
 		model.Init()
 		return model
 }
@@ -143,14 +143,20 @@ func (this *UserFocusModel) TableName() string {
 }
 
 // 创建索引
-func (this *UserFocusModel) CreateIndex() {
-		_ = this.Collection().EnsureIndex(mgo.Index{
-				Key:    []string{"userId", "focusUserId"},
-				Unique: true,
-				Sparse: false,
-		})
-		_ = this.Collection().EnsureIndexKey("status")
-		_ = this.Collection().EnsureIndexKey("targetId")
+func (this *UserFocusModel) CreateIndex(force ...bool) {
+		this.createIndex(this.getCreateIndexHandler(), force...)
+}
+
+func (this *UserFocusModel) getCreateIndexHandler() func(*mgo.Collection) {
+		return func(doc *mgo.Collection) {
+				this.logs(doc.EnsureIndex(mgo.Index{
+						Key:    []string{"userId", "focusUserId"},
+						Unique: true,
+						Sparse: false,
+				}))
+				this.logs(doc.EnsureIndexKey("status"))
+				this.logs(doc.EnsureIndexKey("targetId"))
+		}
 }
 
 func (this *UserFocusModel) GetByUnique(m beego.M) *UserFocus {

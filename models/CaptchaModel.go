@@ -6,7 +6,7 @@ type CaptchaModel struct {
 
 func CaptchaModelOf() *CaptchaModel  {
 		var model = new(CaptchaModel)
-		model._Self= model
+		model._Binder = model
 		model.Init()
 		return model
 }
