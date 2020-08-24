@@ -16,8 +16,8 @@ type ThumbsUpRequest struct {
 }
 
 func (this *ThumbsUpRequest) Boot() {
-		this.Register("getPayload", this.getPayLoad)
 		this.AddFilter(transforms.FilterEmpty)
+		this.Register(getPayloadFn, this.getPayLoad)
 }
 
 func (this *ThumbsUpRequest) Load(data []byte) error {

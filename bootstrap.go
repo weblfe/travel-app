@@ -193,6 +193,8 @@ func registerGob() {
 
 // 注册插件
 func registerPlugins() {
+		plugins.GetOSS().Register()
+		plugins.GetQrcode().Register()
 		plugins.GetNatsPlugin().Register()
 }
 

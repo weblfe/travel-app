@@ -32,7 +32,10 @@ type transportImpl struct {
 }
 
 const (
-		GetPayload = "getPayload"
+		GetMethod   = "GET"
+		Form        = "form"
+		Json        = "json"
+		ContentType = "Content-Type"
 )
 
 // 初始化
@@ -170,15 +173,15 @@ func (this *transportImpl) SetPayLoad(m beego.M) TransportInterface {
 // 初始化数据解析
 func (this *transportImpl) InitPayload() *transportImpl {
 		var (
-				n = this._called["getPayload"]
-				v = this.GetHandler("getPayload")
+				n = this._called[getPayloadFn]
+				v = this.GetHandler(getPayloadFn)
 		)
 		if v == nil || n > 0 {
 				return this
 		}
 		if fn, ok := v.(func() error); ok {
 				err := fn()
-				this._called["getPayload"] = +1
+				this._called[getPayloadFn] = +1
 				if err == nil {
 						return this
 				}
@@ -259,11 +262,11 @@ func (this *transportImpl) Clone(source interface{}, dest interface{}) error {
 }
 
 func (this *transportImpl) IsJson(header http.Header) bool {
-		return strings.Contains(header.Get("Content-Type"), "json")
+		return strings.Contains(header.Get(ContentType), Json)
 }
 
 func (this *transportImpl) IsForm(header http.Header) bool {
-		return strings.Contains(header.Get("Content-Type"), "form")
+		return strings.Contains(header.Get(ContentType), Form)
 }
 
 func (this *transportImpl) Decoder(ctx *context.BeegoInput, v interface{}) error {
@@ -294,7 +297,7 @@ func (this *transportImpl) Decoder(ctx *context.BeegoInput, v interface{}) error
 }
 
 func (this *transportImpl) IsGet(method string) bool {
-		return strings.EqualFold("GET", method)
+		return strings.EqualFold(GetMethod, method)
 }
 
 func (this *transportImpl) listFrom(values url.Values) beego.M {

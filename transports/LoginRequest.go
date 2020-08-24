@@ -31,8 +31,8 @@ func NewLogin(ctx ...*context.BeegoInput) *Login {
 }
 
 func (this *Login) Boot() {
-		this.Register("getPayload", this.getPayLoad)
 		this.AddFilter(transforms.FilterEmpty)
+		this.Register(getPayloadFn, this.getPayLoad)
 }
 
 func (this *Login) getPayLoad() error {

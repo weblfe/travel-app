@@ -42,5 +42,5 @@ func (this *MobileRequest)Init() TransportInterface {
 }
 
 func (this *MobileRequest) Boot() {
-		this.Register(GetPayload, this.getPayLoad)
+		this.Register(getPayloadFn, this.getPayLoad)
 }

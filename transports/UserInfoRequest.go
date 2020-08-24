@@ -7,6 +7,10 @@ import (
 		"github.com/weblfe/travel-app/transforms"
 )
 
+const (
+		getPayloadFn = "getPayload"
+)
+
 // 请求参数
 type UpdateUserRequest struct {
 		AvatarId          string   `json:"avatarId,omitempty"`
@@ -18,11 +22,11 @@ type UpdateUserRequest struct {
 		Birthday          int64    `json:"birthday,omitempty"`
 		Address           string   `json:"address,omitempty"`
 		Modifies          []string `json:"modifies,omitempty"`
-		transportImpl `json:",omitempty"`
+		transportImpl     `json:",omitempty"`
 }
 
 func (this *UpdateUserRequest) Boot() {
-		this.Register("getPayload", this.getPayLoad)
+		this.Register(getPayloadFn, this.getPayLoad)
 		this.AddFilter(this.filter, transforms.FilterEmpty)
 }
 
@@ -127,7 +131,7 @@ func (this *ResetPassword) getPayLoad() error {
 }
 
 func (this *ResetPassword) Boot() {
-		this.Register("getPayload", this.getPayLoad)
+		this.Register(getPayloadFn, this.getPayLoad)
 		this.AddFilter(transforms.FilterEmpty)
 }
 

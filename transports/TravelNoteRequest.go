@@ -38,12 +38,12 @@ func (this *TravelNoteRequest) M(m beego.M) beego.M {
 
 func (this *TravelNoteRequest) Decode() *models.TravelNotes {
 		var note = new(models.TravelNotes)
-		note.UserId = this.UserId
 		note.Type = this.Type
 		note.Tags = this.Tags
-		note.Address = this.Address
+		note.UserId = this.UserId
 		note.Images = this.Images
 		note.Videos = this.Videos
+		note.Address = this.Address
 		note.Privacy = this.Privacy
 		return note
 }

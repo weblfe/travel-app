@@ -261,18 +261,18 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PostsController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PostsController"],
         beego.ControllerComments{
-            Method: "DetailById",
+            Method: "RemoveById",
             Router: `/posts/:id`,
-            AllowHTTPMethods: []string{"get"},
+            AllowHTTPMethods: []string{"delete"},
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})
 
     beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PostsController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:PostsController"],
         beego.ControllerComments{
-            Method: "RemoveById",
+            Method: "DetailById",
             Router: `/posts/:id`,
-            AllowHTTPMethods: []string{"delete"},
+            AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})
@@ -417,6 +417,69 @@ func init() {
             Method: "Lists",
             Router: `/tags`,
             AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:TaskController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:TaskController"],
+        beego.ControllerComments{
+            Method: "Add",
+            Router: `/task/add`,
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:TaskController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:TaskController"],
+        beego.ControllerComments{
+            Method: "Create",
+            Router: `/task/create`,
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:TaskController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:TaskController"],
+        beego.ControllerComments{
+            Method: "Remove",
+            Router: `/task/del`,
+            AllowHTTPMethods: []string{"delete"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:TaskController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:TaskController"],
+        beego.ControllerComments{
+            Method: "Hook",
+            Router: `/task/hook`,
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:TaskController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:TaskController"],
+        beego.ControllerComments{
+            Method: "Lists",
+            Router: `/task/lists`,
+            AllowHTTPMethods: []string{"get"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:TaskController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:TaskController"],
+        beego.ControllerComments{
+            Method: "Stop",
+            Router: `/task/stop`,
+            AllowHTTPMethods: []string{"patch"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:TaskController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:TaskController"],
+        beego.ControllerComments{
+            Method: "Update",
+            Router: `/task/update`,
+            AllowHTTPMethods: []string{"patch"},
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})
