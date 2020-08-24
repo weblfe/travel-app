@@ -1,9 +1,9 @@
 package transports
 
 import (
-		"encoding/json"
 		"github.com/astaxie/beego"
 		"github.com/astaxie/beego/context"
+		"github.com/weblfe/travel-app/libs"
 		"github.com/weblfe/travel-app/transforms"
 )
 
@@ -48,7 +48,7 @@ func (this *Login) getPayLoad() error {
 
 func (this *Login) Load(ctx *context.BeegoInput) *Login {
 		var (
-				_      = json.Unmarshal(ctx.RequestBody, this)
+				_      = libs.Json().Unmarshal(ctx.RequestBody, this)
 				mapper = map[string]interface{}{
 						"mobile":   &this.Mobile,
 						"code":     &this.Code,

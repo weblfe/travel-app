@@ -8,6 +8,9 @@ import (
 		"github.com/astaxie/beego/logs"
 		"github.com/globalsign/mgo"
 		"github.com/globalsign/mgo/bson"
+		"github.com/globalsign/mgo/txn"
+		"math"
+		"math/rand"
 		"reflect"
 		"strconv"
 		"sync"
@@ -74,6 +77,14 @@ type ConnOption struct {
 		Db       string `json:"db"`     // 数据库
 		Server   string `json:"server"` // 配置类型
 		Document string `json:"table"`  // 表,文档
+}
+
+// 事务上下文
+type TxnContext struct {
+		TxnOps    []txn.Op
+		TxnRunner *txn.Runner
+		TxnId     bson.ObjectId
+		TxnResult interface{}
 }
 
 var (
@@ -432,12 +443,12 @@ func (this *BaseModel) getRefCountName(server string) string {
 }
 
 func (this *BaseModel) Add(docs interface{}) error {
-		table := this.Document()
+		var table = this.Document()
 		return table.Insert(docs)
 }
 
 func (this *BaseModel) Insert(docs interface{}) error {
-		table := this.Document()
+		var table = this.Document()
 		defer this.destroy(table)
 		if m, ok := docs.(MapperAble); ok {
 				return table.Insert(m.M())
@@ -449,13 +460,13 @@ func (this *BaseModel) Inserts(docs []interface{}) error {
 		if len(docs) == 0 {
 				return nil
 		}
-		table := this.Document()
+		var table = this.Document()
 		defer this.destroy(table)
 		return table.Insert(docs...)
 }
 
 func (this *BaseModel) GetByKey(key string, v interface{}, result interface{}) error {
-		table := this.Document()
+		var table = this.Document()
 		defer this.destroy(table)
 		defer this.resetScopeQuery()
 		return table.Find(this.UseScopeQuery(bson.M{key: v})).One(result)
@@ -465,7 +476,7 @@ func (this *BaseModel) GetById(id string, result interface{}, selects ...interfa
 		if id == "" {
 				return mgo.ErrNotFound
 		}
-		table := this.Document()
+		var table = this.Document()
 		defer this.destroy(table)
 		defer this.resetScopeQuery()
 		if len(selects) > 0 {
@@ -510,7 +521,7 @@ func (this *BaseModel) resetScopeQuery() {
 }
 
 func (this *BaseModel) GetByObjectId(id bson.ObjectId, result interface{}, selects ...interface{}) error {
-		table := this.Document()
+		var table = this.Document()
 		defer this.destroy(table)
 		defer this.resetScopeQuery()
 		if len(selects) > 0 {
@@ -524,7 +535,7 @@ func (this *BaseModel) GetByObjectId(id bson.ObjectId, result interface{}, selec
 }
 
 func (this *BaseModel) Update(query interface{}, data interface{}) error {
-		table := this.Document()
+		var table = this.Document()
 		data = this.setUpdate(data)
 		defer this.destroy(table)
 		return table.Update(query, data)
@@ -562,7 +573,7 @@ func (this *BaseModel) setUpdate(data interface{}) interface{} {
 }
 
 func (this *BaseModel) UpdateById(id string, data interface{}) error {
-		table := this.Document()
+		var table = this.Document()
 		defer this.destroy(table)
 		defer this.resetScopeQuery()
 		data = this.setUpdate(data)
@@ -570,14 +581,14 @@ func (this *BaseModel) UpdateById(id string, data interface{}) error {
 }
 
 func (this *BaseModel) Updates(query interface{}, data interface{}) (*mgo.ChangeInfo, error) {
-		table := this.Document()
+		var table = this.Document()
 		defer this.destroy(table)
 		data = this.setUpdate(data)
 		return table.UpdateAll(query, data)
 }
 
 func (this *BaseModel) All(query interface{}, result interface{}, selects ...interface{}) error {
-		table := this.Document()
+		var table = this.Document()
 		defer this.destroy(table)
 		query = this.WrapperScopeQuery(query)
 		defer this.resetScopeQuery()
@@ -588,7 +599,7 @@ func (this *BaseModel) All(query interface{}, result interface{}, selects ...int
 }
 
 func (this *BaseModel) Remove(query interface{}, softDelete ...bool) error {
-		table := this.Document()
+		var table = this.Document()
 		defer this.destroy(table)
 		if len(softDelete) == 0 {
 				softDelete = append(softDelete, true)
@@ -600,7 +611,7 @@ func (this *BaseModel) Remove(query interface{}, softDelete ...bool) error {
 }
 
 func (this *BaseModel) Deletes(query interface{}, softDelete ...bool) (*mgo.ChangeInfo, error) {
-		table := this.Document()
+		var table = this.Document()
 		defer this.destroy(table)
 		if len(softDelete) == 0 {
 				softDelete = append(softDelete, true)
@@ -612,7 +623,7 @@ func (this *BaseModel) Deletes(query interface{}, softDelete ...bool) (*mgo.Chan
 }
 
 func (this *BaseModel) Lists(query interface{}, result interface{}, limit ListsParams, selects ...interface{}) (int, error) {
-		table := this.Document()
+		var table = this.Document()
 		var (
 				size, skip = limit.Count(), limit.Skip()
 		)
@@ -633,7 +644,7 @@ func (this *BaseModel) Lists(query interface{}, result interface{}, limit ListsP
 }
 
 func (this *BaseModel) ListsQuery(query interface{}, limit ListsParams, selects ...interface{}) *mgo.Query {
-		table := this.Document()
+		var table = this.Document()
 		var (
 				size, skip = 0, 0
 		)
@@ -655,7 +666,7 @@ func (this *BaseModel) ListsQuery(query interface{}, limit ListsParams, selects 
 }
 
 func (this *BaseModel) FindOne(query interface{}, result interface{}, selects ...interface{}) error {
-		table := this.Document()
+		var table = this.Document()
 		query = this.WrapperScopeQuery(query)
 		defer this.destroy(table)
 		defer this.resetScopeQuery()
@@ -682,12 +693,12 @@ func (this *BaseModel) WrapperScopeQuery(query interface{}) interface{} {
 }
 
 func (this *BaseModel) NewQuery(query bson.M) *mgo.Query {
-		table := this.Document()
+		var table = this.Document()
 		return table.Find(query)
 }
 
 func (this *BaseModel) Gets(query interface{}, result interface{}, selects ...interface{}) error {
-		table := this.Document()
+		var table = this.Document()
 		defer this.destroy(table)
 		query = this.WrapperScopeQuery(query)
 		defer this.resetScopeQuery()
@@ -698,7 +709,7 @@ func (this *BaseModel) Gets(query interface{}, result interface{}, selects ...in
 }
 
 func (this *BaseModel) Count(query interface{}) int {
-		table := this.Document()
+		var table = this.Document()
 		defer this.destroy(table)
 		defer this.resetScopeQuery()
 		query = this.WrapperScopeQuery(query)
@@ -717,9 +728,9 @@ func (this *BaseModel) Count(query interface{}) int {
 //        'total_money' => ['$sum' => '$money'],
 //        'total_money_usd' => ['$sum' => '$money_usd']
 //    ]
-//   ]
+// ]
 func (this *BaseModel) Sum(query bson.M, sum string) int {
-		table := this.Document()
+		var table = this.Document()
 		defer this.destroy(table)
 		query = this.UseScopeQuery(query)
 		var (
@@ -748,7 +759,7 @@ func (this *BaseModel) Sum(query bson.M, sum string) int {
 }
 
 func (this *BaseModel) Exists(query interface{}) bool {
-		table := this.Document()
+		var table = this.Document()
 		defer this.destroy(table)
 		query = this.WrapperScopeQuery(query)
 		var tmp beego.M
@@ -762,7 +773,7 @@ func (this *BaseModel) Exists(query interface{}) bool {
 }
 
 func (this *BaseModel) IncrBy(query interface{}, incr interface{}) error {
-		table := this.Document()
+		var table = this.Document()
 		defer this.destroy(table)
 		return table.Update(query, bson.M{"$inc": incr})
 }
@@ -851,6 +862,55 @@ func (this *BaseModel) unLocker(name string) bool {
 		return false
 }
 
+// 高级查询
+func (this *BaseModel) Pipe(handler func(pipe *mgo.Pipe) interface{}) interface{} {
+		return handler(this.Document().Pipe(nil))
+}
+
+// 执行事务
+// 示例：
+//  ops := []txn.Op{{
+//				C:      "accounts",
+//				Id:     "aram",
+//				Assert: bson.M{"balance": bson.M{"$gte": 100}},
+//				Update: M{"$inc": M{"balance": -100}},
+//		}, {
+//				C:      "accounts",
+//				Id:     "ben",
+//				Assert: M{"valid": true},
+//				Update: M{"$inc": M{"balance": 100}},
+//		}}
+//	  runner.Run(ops, id, nil)
+func (this *BaseModel) Txn(handler func(runner *txn.Runner, txnId bson.ObjectId) error) error {
+		var (
+				table         = this.Document()
+				txnId, runner = this.StartTxn(table)
+		)
+		defer this.destroy(table)
+		return handler(runner, txnId)
+}
+
+// 提交事务
+func (this *BaseModel) Commit(ctx TxnContext) error {
+		if ctx.TxnRunner == nil {
+				return errors.New("empty txn runner")
+		}
+		return ctx.TxnRunner.Run(ctx.TxnOps, ctx.TxnId, ctx.TxnResult)
+}
+
+// 创建事务
+func (this *BaseModel) StartTxn(docs ...*mgo.Collection) (bson.ObjectId, *txn.Runner) {
+		if len(docs) == 0 {
+				docs = append(docs, this.Document())
+		}
+		var (
+				id     = bson.NewObjectId()
+				runner = txn.NewRunner(docs[0])
+		)
+		return id, runner
+}
+
+// 创建索引
 func (this *BaseModel) createIndex(handler func(doc *mgo.Collection), force ...bool) {
 		if len(force) == 0 || handler == nil {
 				return
@@ -861,6 +921,7 @@ func (this *BaseModel) createIndex(handler func(doc *mgo.Collection), force ...b
 		return
 }
 
+// 日志记录
 func (this *BaseModel) logs(msg interface{}) {
 		if msg == nil {
 				return
@@ -893,7 +954,18 @@ func (this *BaseModel) getLocker() cache.Cache {
 }
 
 func (this *BaseModel) wait() {
-		time.Sleep(100 * time.Millisecond)
+		var s = float64(randInt(100, 200))
+		time.Sleep(time.Duration(s) * time.Millisecond)
+}
+
+func randInt(min, max int) int {
+		rand.Seed(time.Now().UnixNano())
+		min, max = int(math.Max(float64(min), float64(max))), int(math.Min(float64(min), float64(max)))
+		var n = rand.Intn(max) + min
+		if n > max {
+				return max
+		}
+		return n
 }
 
 func IsNotFound(err error) bool {

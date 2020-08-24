@@ -1,9 +1,9 @@
 package transports
 
 import (
-		"encoding/json"
 		"github.com/astaxie/beego"
 		"github.com/astaxie/beego/context"
+		"github.com/weblfe/travel-app/libs"
 		"github.com/weblfe/travel-app/transforms"
 )
 
@@ -22,7 +22,7 @@ type RegisterRequest struct {
 // 载入数据
 func (this *RegisterRequest) Load(ctx *context.BeegoInput) *RegisterRequest {
 		var (
-				_      = json.Unmarshal(ctx.RequestBody, this)
+				_      = libs.Json().Unmarshal(ctx.RequestBody, this)
 				mapper = map[string]interface{}{
 						"mobile":    &this.Mobile,
 						"password":  &this.Password,
@@ -80,7 +80,7 @@ type QuickRegister struct {
 // 载入
 func (this *QuickRegister) Load(ctx *context.BeegoInput) *QuickRegister {
 		var (
-				_      = json.Unmarshal(ctx.RequestBody, this)
+				_      = libs.Json().Unmarshal(ctx.RequestBody, this)
 				mapper = map[string]interface{}{
 						"mobile":    &this.Mobile,
 						"password":  &this.Password,

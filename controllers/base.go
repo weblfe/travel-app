@@ -1,12 +1,12 @@
 package controllers
 
 import (
-		"encoding/json"
 		"fmt"
 		"github.com/astaxie/beego"
 		"github.com/astaxie/beego/context"
 		"github.com/astaxie/beego/session"
 		"github.com/weblfe/travel-app/common"
+		"github.com/weblfe/travel-app/libs"
 		"net/http"
 		"reflect"
 		"strconv"
@@ -77,7 +77,7 @@ func (this *BaseController) GetParam(key string, defaults ...interface{}) (inter
 func (this *BaseController) GetJson() (beego.M, error) {
 		var data = make(beego.M)
 		if this.IsJsonStream() {
-				decoder := json.NewDecoder(this.Ctx.Request.Body)
+				decoder := libs.Json().NewDecoder(this.Ctx.Request.Body)
 				if err := decoder.Decode(&data); err != nil {
 						return nil, err
 				}
@@ -102,7 +102,7 @@ func (this *BaseController) JsonDecode(v interface{}) error {
 		if !this.IsJsonStream() {
 				return fmt.Errorf("is not json stream")
 		}
-		return json.Unmarshal(this.GetBody(), v)
+		return libs.Json().Unmarshal(this.GetBody(), v)
 }
 
 func (this *BaseController) Session(key string, v ...interface{}) interface{} {

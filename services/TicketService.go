@@ -1,11 +1,10 @@
 package services
 
 import (
-	"encoding/json"
-	"fmt"
-	"github.com/astaxie/beego/cache"
-	"github.com/weblfe/travel-app/libs"
-	"time"
+		"fmt"
+		"github.com/astaxie/beego/cache"
+		"github.com/weblfe/travel-app/libs"
+		"time"
 )
 
 type TicketService interface {
@@ -56,7 +55,7 @@ func (this *ticketServiceImpl) CreateTicket(expire time.Duration, extras ...map[
 	var (
 		err     error
 		ticket  = this.ticket()
-		data, _ = json.Marshal(extras[0])
+		data, _ = libs.Json().Marshal(extras[0])
 	)
 	err = this.storage.Put(ticket, string(data), expire)
 	if err == nil {
@@ -74,7 +73,7 @@ func (this *ticketServiceImpl) GetTicketInfo(s string) (map[string]interface{}, 
 	 if v == nil || v == "" {
 	 	return nil,fmt.Errorf("not found")
 	 }
-	 err=json.Unmarshal(v.([]byte),&data)
+	 err=libs.Json().Unmarshal(v.([]byte),&data)
 	 if err !=nil {
 	 	return nil, err
 	 }

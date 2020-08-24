@@ -3,11 +3,11 @@ package models
 import (
 		"crypto/md5"
 		"encoding/hex"
-		"encoding/json"
 		"fmt"
 		"github.com/astaxie/beego"
 		"github.com/globalsign/mgo"
 		"github.com/globalsign/mgo/bson"
+		"github.com/weblfe/travel-app/libs"
 		"github.com/weblfe/travel-app/transforms"
 		"strings"
 		"time"
@@ -584,7 +584,7 @@ func (this *Location) GetDesc() []string {
 }
 
 func (this *Location) Json() []byte {
-		data, _ := json.Marshal(this)
+		data, _ := libs.Json().Marshal(this)
 		return data
 }
 
@@ -613,6 +613,6 @@ func (this *Location3d) Points() []float64 {
 }
 
 func (this *Location3d) Json() []byte {
-		data, _ := json.Marshal(this)
+		data, _ := libs.Json().Marshal(this)
 		return data
 }

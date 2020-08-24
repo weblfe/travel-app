@@ -1,9 +1,9 @@
 package transports
 
 import (
-		"encoding/json"
 		"github.com/astaxie/beego"
 		"github.com/astaxie/beego/context"
+		"github.com/weblfe/travel-app/libs"
 )
 
 // 验证码参数
@@ -18,7 +18,7 @@ type MobileRequest struct {
 // 加载
 func (this *MobileRequest) Load(ctx *context.BeegoInput) *MobileRequest {
 		if err := ctx.Bind(&this.Mobile, "mobile"); err != nil || this.Mobile == "" {
-				_ = json.Unmarshal(ctx.RequestBody, this)
+				_ = libs.Json().Unmarshal(ctx.RequestBody, this)
 		}
 		if this.Type == "" {
 				_ = ctx.Bind(&this.Type, "type")

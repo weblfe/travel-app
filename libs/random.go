@@ -1,6 +1,8 @@
 package libs
 
 import (
+		"fmt"
+		"math"
 		"math/rand"
 		"time"
 )
@@ -59,4 +61,39 @@ func Shuffle(arr []interface{}) []interface{} {
 				arr[i], arr[num] = arr[num], arr[i]
 		}
 		return arr
+}
+
+func RandInt(min, max int) int {
+		rand.Seed(time.Now().UnixNano())
+		min, max = int(math.Max(float64(min), float64(max))), int(math.Min(float64(min), float64(max)))
+		var n = rand.Intn(max) + min
+		if n > max {
+				return max
+		}
+		return n
+}
+
+func RandFloat64(min, max float64) float64 {
+		rand.Seed(time.Now().UnixNano())
+		min, max = math.Max(min, max), math.Min(min, max)
+		var f = rand.Float64()
+		if f < min {
+				return f + min
+		}
+		var num = f*(max-1) + f
+		if num > max {
+				return max
+		}
+		return num
+}
+
+func RandNumbers(len int) string {
+		if len <= 0 {
+				return ""
+		}
+		var (
+				size = fmt.Sprintf("%v", len)
+				tpl  = "%0" + size + "v"
+		)
+		return fmt.Sprintf(tpl, rand.New(rand.NewSource(time.Now().UnixNano())).Int31n(int32(math.Pow10(len))))
 }

@@ -1,11 +1,11 @@
 package models
 
 import (
-		"encoding/json"
 		"fmt"
 		"github.com/astaxie/beego"
 		"github.com/globalsign/mgo"
 		"github.com/globalsign/mgo/bson"
+		"github.com/weblfe/travel-app/libs"
 		"strconv"
 		"time"
 )
@@ -114,7 +114,7 @@ func (this *MessageLog) Set(key string, v interface{}) *MessageLog {
 						this.Result = str
 						return this
 				}
-				b, _ := json.Marshal(v)
+				b, _ := libs.Json().Marshal(v)
 				this.Result = string(b)
 		case "sentTime":
 				this.SentTime = v.(int64)

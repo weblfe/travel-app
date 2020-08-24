@@ -3,10 +3,10 @@ package transports
 import (
 		"bytes"
 		"encoding/gob"
-		"encoding/json"
 		"fmt"
 		"github.com/astaxie/beego"
 		"github.com/astaxie/beego/context"
+		"github.com/weblfe/travel-app/libs"
 		"net/http"
 		"net/url"
 		"reflect"
@@ -248,9 +248,9 @@ func (this *transportImpl) Copy(data interface{}, dest interface{}) error {
 
 // 对象拷贝
 func (this *transportImpl) Clone(source interface{}, dest interface{}) error {
-		var byt, err = json.Marshal(source)
+		var byt, err = libs.Json().Marshal(source)
 		if err == nil {
-				err = json.Unmarshal(byt, dest)
+				err = libs.Json().Unmarshal(byt, dest)
 				if err == nil {
 						return nil
 				}
@@ -278,7 +278,7 @@ func (this *transportImpl) Decoder(ctx *context.BeegoInput, v interface{}) error
 		}
 		// 是json 数据请求
 		if this.IsJson(ctx.Context.Request.Header) {
-				err = json.Unmarshal(ctx.RequestBody, v)
+				err = libs.Json().Unmarshal(ctx.RequestBody, v)
 		}
 		// 表单请求
 		if err != nil || this.IsForm(ctx.Context.Request.Header) {

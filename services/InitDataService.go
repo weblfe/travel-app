@@ -1,7 +1,6 @@
 package services
 
 import (
-		"encoding/json"
 		"fmt"
 		"github.com/astaxie/beego/logs"
 		"github.com/weblfe/travel-app/libs"
@@ -379,7 +378,7 @@ func getSensitivesByGroups(items []map[string]interface{}) map[group][]string {
 // 加载json数据
 func loaderJsons(data []byte) []map[string]interface{} {
 		var arr []map[string]interface{}
-		err := json.Unmarshal(data, &arr)
+		err := libs.Json().Unmarshal(data, &arr)
 		if err != nil {
 				return nil
 		}

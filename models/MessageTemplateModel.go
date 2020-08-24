@@ -1,10 +1,10 @@
 package models
 
 import (
-		"encoding/json"
 		"github.com/astaxie/beego"
 		"github.com/globalsign/mgo"
 		"github.com/globalsign/mgo/bson"
+		"github.com/weblfe/travel-app/libs"
 		"time"
 )
 
@@ -65,8 +65,8 @@ func (this *SmsTemplate) M() beego.M {
 }
 
 func (this *SmsTemplate) Load(data map[string]interface{}) *SmsTemplate {
-		if str, err := json.Marshal(data); err == nil {
-				_ = json.Unmarshal(str, this)
+		if str, err := libs.Json().Marshal(data); err == nil {
+				_ = libs.Json().Unmarshal(str, this)
 		}
 		return this
 }

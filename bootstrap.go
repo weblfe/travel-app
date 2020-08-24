@@ -77,6 +77,17 @@ func initMongodb(data map[string]string) {
 		for key, v := range data {
 				models.SetProfile(key, v)
 		}
+		initMongoIndex()
+}
+
+// 初始化 数据索引
+func initMongoIndex()  {
+		models.UserModelOf().CreateIndex(true)
+		models.PostsModelOf().CreateIndex(true)
+		models.ConfigModelOf().CreateIndex(true)
+		models.ThumbsUpModelOf().CreateIndex(true)
+		models.SensitiveWordsModelOf().CreateIndex(true)
+		models.UserRolesConfigModelOf().CreateIndex(true)
 }
 
 // 注册环境变量

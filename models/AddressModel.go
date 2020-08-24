@@ -1,13 +1,13 @@
 package models
 
 import (
-		"encoding/json"
 		"errors"
 		"fmt"
 		"github.com/astaxie/beego"
 		"github.com/astaxie/beego/utils"
 		"github.com/globalsign/mgo"
 		"github.com/globalsign/mgo/bson"
+		"github.com/weblfe/travel-app/libs"
 		"github.com/weblfe/travel-app/transforms"
 		"io/ioutil"
 		"strings"
@@ -137,7 +137,7 @@ func (this *AddressModel) ImportFromJsonFile(file string) (int, error) {
 		if err != nil {
 				return 0, err
 		}
-		err = json.Unmarshal(jsonByte, &data)
+		err = libs.Json().Unmarshal(jsonByte, &data)
 		if err != nil {
 				return 0, err
 		}

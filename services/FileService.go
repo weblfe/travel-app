@@ -1,7 +1,6 @@
 package services
 
 import (
-		"encoding/json"
 		"fmt"
 		"github.com/astaxie/beego"
 		"github.com/astaxie/beego/logs"
@@ -249,7 +248,7 @@ func (this *fileSystemServiceImpl) load() {
 				conf := beego.AppConfig.String(fmt.Sprintf(FileSystemJsonTpl, disk))
 				if conf != "" {
 						cnf := &FsConfig{}
-						if err := json.Unmarshal([]byte(conf), cnf); err == nil {
+						if err := libs.Json().Unmarshal([]byte(conf), cnf); err == nil {
 								this.config[disk] = cnf
 						}
 				}
