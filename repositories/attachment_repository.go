@@ -6,6 +6,7 @@ import (
 		"github.com/astaxie/beego/logs"
 		"github.com/weblfe/travel-app/common"
 		"github.com/weblfe/travel-app/libs"
+		"github.com/weblfe/travel-app/models"
 		"github.com/weblfe/travel-app/services"
 		"github.com/weblfe/travel-app/transforms"
 		"io"
@@ -47,7 +48,15 @@ func (this *AttachmentRepositoryImpl) init() {
 
 // 罗列附件接口
 func (this *AttachmentRepositoryImpl) List() common.ResponseJson {
-		return common.NewInDevResp(this.ctx.GetActionId())
+		var (
+				data        []interface{}
+				page, count = getPaginationParams(this.ctx)
+				items, meta = this.attachmentService.Lists(page, count)
+		)
+		for _, it := range items {
+				data = append(data, it.M(getUrlTransform(it)))
+		}
+		return common.NewSuccessResp(beego.M{"items": data, "meta": meta}, common.Success)
 }
 
 // 跨站上传ticket
@@ -96,15 +105,19 @@ func (this *AttachmentRepositoryImpl) Upload() common.ResponseJson {
 				return common.NewErrorResp(common.NewErrors(common.InvalidTokenCode, "文件保存失败"))
 		}
 		filter := transforms.FilterWrapper(this.getAttachmentFilters()...)
-		data  = result.M(filter)
+		data = result.M(filter)
 		data["url"] = services.UrlTicketServiceOf().GetTicketUrlByAttach(result)
 		return common.NewSuccessResp(data, "上传成功")
 }
 
 // 多文件上传
 func (this *AttachmentRepositoryImpl) Uploads() common.ResponseJson {
+		var ctx = this.ctx.GetParent()
+		if ctx.Ctx.Input == nil || len(ctx.Ctx.Input.Params()) == 0 {
+				return common.NewErrorResp(common.NewErrors(common.EmptyParamCode, "请选择对应资源"))
+		}
+
 		var (
-				ctx      = this.ctx.GetParent()
 				typ      = ctx.GetString("type")
 				ticket   = ctx.GetString("ticket")
 				uid      = ctx.Ctx.Input.Param("_userId")
@@ -113,6 +126,9 @@ func (this *AttachmentRepositoryImpl) Uploads() common.ResponseJson {
 
 		if typ == "" {
 				typ = DefaultFilesKey
+		}
+		if ctx.Ctx.Request.MultipartForm == nil || ctx.Ctx.Request.MultipartForm.File == nil {
+				return common.NewErrorResp(common.NewErrors(common.EmptyParamCode, "请选择对应资源"))
 		}
 		fsArr, err := ctx.GetFiles(typ)
 		if err != nil {
@@ -161,7 +177,7 @@ func (this *AttachmentRepositoryImpl) Uploads() common.ResponseJson {
 						results = append(results, beego.M{"filename": m.Filename, "status": -1, "error": "save failed!"})
 				} else {
 						successCount++
-						it:= result.M(filter)
+						it := result.M(filter)
 						it["url"] = ticketService.GetTicketUrlByAttach(result)
 						results = append(results, it)
 				}
@@ -235,7 +251,7 @@ func (this *AttachmentRepositoryImpl) getAttachmentPath() string {
 func (this *AttachmentRepositoryImpl) getAttachmentFilters() []func(beego.M) beego.M {
 		return []func(beego.M) beego.M{
 				transforms.FilterAttachment, transforms.FilterEmptyMapper,
-				transforms.FieldsFilter([]string{"path", "id", "createdAt","updatedAt", "extrasInfo"}),
+				transforms.FieldsFilter([]string{"path", "id", "createdAt", "updatedAt", "extrasInfo"}),
 		}
 }
 
@@ -246,4 +262,11 @@ func (this *AttachmentRepositoryImpl) transUrl(m beego.M) beego.M {
 		}
 		m["url"] = this.attachmentService.GetUrl(id.(string))
 		return m
+}
+
+func getUrlTransform(it *models.Attachment) func(data beego.M) beego.M {
+		return func(data beego.M) beego.M {
+				data["url"] = it.GetUrl()
+				return data
+		}
 }

@@ -33,4 +33,6 @@ const (
 		DevelopCodeError          = "developing"
 		ServiceFailedError        = "server failed!"
 		RecordNotFoundError       = "empty"
+		Page                      = 1  // 默认页
+		Count                     = 20 // 默认分页量
 )

@@ -9,6 +9,7 @@ import (
 		"github.com/globalsign/mgo/bson"
 		"github.com/weblfe/travel-app/common"
 		"github.com/weblfe/travel-app/libs"
+		"github.com/weblfe/travel-app/plugins"
 		"path/filepath"
 		"strings"
 		"time"
@@ -41,7 +42,7 @@ type Attachment struct {
 		Size          int64         `json:"size" bson:"size"`                                       // 文件大小 单位: byte
 		SizeText      string        `json:"sizeText" bson:"sizeText"`                               // 带单的文件大小 eg: ..1G,120MB,1KB,1B,1byte
 		FileType      string        `json:"fileType" bson:"fileType"`                               // 文件类型 [doc,image,avatar,mp4,mp3,txt....]
-		Status        int           `json:"status" bson:"status"`                                   // 文件状态 [0,1]
+		Status        int           `json:"status" bson:"status"`                                   // 文件状态 [1,2,3]
 		Privately     bool          `json:"privately" bson:"privately"`                             // 文件是否私有
 		Watermark     bool          `json:"watermark" bson:"watermark"`                             // 文件是否有水印
 		UpdatedAt     time.Time     `json:"updatedAt" bson:"updatedAt"`                             // 记录更新时间
@@ -322,6 +323,9 @@ func (this *Attachment) Defaults() *Attachment {
 		if this.UserId == "" {
 				this.UserId = ""
 		}
+		if this.Status == 0 {
+				this.Status = 1
+		}
 		if this.Url == "" {
 				if this.CdnUrl == "" && this.Path != "" && this.FileName != "" {
 						this.Url = fmt.Sprintf(
@@ -396,9 +400,16 @@ func (this *Attachment) M(filters ...func(m beego.M) beego.M) beego.M {
 
 func (this *Attachment) GetUrl() string {
 		if this.CdnUrl != "" {
-				return this.CdnUrl
+				return this.Certificate(this.CdnUrl)
 		}
 		return this.Url
+}
+
+func (this *Attachment) Certificate(url string,expire...int64) string  {
+		if len(expire) == 0 {
+				expire = append(expire,0)
+		}
+		return 	plugins.AppendCertificate(url,expire[0])
 }
 
 func (this *Attachment) Image() *Image {
@@ -466,6 +477,20 @@ func (this *Attachment) AutoType() *Attachment {
 
 func (this *Attachment) GetLocal() string {
 		return filepath.Join(this.Path, this.FileName)
+}
+
+func (this *Attachment) GetBase(seps ...string) string {
+		if len(seps) == 0 {
+				seps = append(seps, "/static/")
+		}
+		var (
+				key = this.GetLocal()
+				arr = strings.SplitN(key, seps[0], 2)
+		)
+		if len(arr) >= 1 {
+				return arr[1]
+		}
+		return key
 }
 
 func (this *Attachment) GetCoverInfo(id bson.ObjectId) *Attachment {

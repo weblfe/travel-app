@@ -6,6 +6,7 @@ type ThumbsUpController struct {
 		BaseController
 }
 
+// 点赞控控制器
 func ThumbsUpControllerOf() *ThumbsUpController {
 		var controller = new(ThumbsUpController)
 		return controller

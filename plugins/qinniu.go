@@ -9,6 +9,7 @@ import (
 		"github.com/qiniu/api.v7/v7/storage"
 		"github.com/weblfe/travel-app/libs"
 		"io"
+		url2 "net/url"
 		"os"
 		"time"
 )
@@ -37,7 +38,9 @@ const (
 		QinNiuBucketImg   = "IMG"
 		QinNiuBucketVideo = "VIDEO"
 		QinNiuReturnBody  = "RETURN_BODY"
-		QinNiuCallbackUrl = "Callback_Url"
+		QinNiuCallbackUrl = "CALLBACK_URL"
+		OssProviderQinNiu = "QinNiu"
+		OssDefaultExpires = 1800
 )
 
 var (
@@ -161,7 +164,7 @@ func (this *OssPlugin) PluginName() string {
 }
 
 // 构建上传函数
-func (this *OssPlugin) CreateUploader(params OssParams, configures ...func(*storage.Config)) func(
+func (this *OssPlugin) CreateUploader(params *OssParams, configures ...func(*storage.Config)) func(
 		context.Context, ...func(*storage.PutExtra)) (interface{}, error) {
 
 		var (
@@ -176,6 +179,15 @@ func (this *OssPlugin) CreateUploader(params OssParams, configures ...func(*stor
 				bucket = this.GetBucket(params.TypeName)
 		}
 		var putPolicy storage.PutPolicy
+		if params.Provider == "" {
+				params.Provider = OssProviderQinNiu
+		}
+		if params.PutPolicy.Scope == "" {
+				params.PutPolicy.Scope = bucket
+		}
+		if params.PutPolicy.Expires == 0 {
+				params.PutPolicy.Expires = OssDefaultExpires
+		}
 		if params.PutPolicy != nil {
 				putPolicy = *params.PutPolicy
 		} else {
@@ -211,7 +223,8 @@ func (this *OssPlugin) CreateUploader(params OssParams, configures ...func(*stor
 				formUploader = storage.NewFormUploader(&cfg)
 		)
 		if ret == nil {
-				ret = map[string]interface{}{}
+				ret = &map[string]interface{}{}
+				params.Result = ret
 		}
 		var putExtra *storage.PutExtra
 
@@ -233,10 +246,13 @@ func (this *OssPlugin) CreateUploader(params OssParams, configures ...func(*stor
 								fn(putExtra)
 						}
 				}
+				//	fmt.Println(params.Result)
+				//	fmt.Println(params.PutPolicy.Scope)
+				// 	fmt.Println(params.PutPolicy.ReturnBody)
 				if params.File == "" && params.Reader != nil {
-						return ret, formUploader.Put(ctx, &ret, upToken, key, params.Reader, params.Size, putExtra)
+						return ret, formUploader.Put(ctx, ret, upToken, key, params.Reader, params.Size, putExtra)
 				}
-				return ret, formUploader.PutFile(ctx, &ret, upToken, key, params.File, putExtra)
+				return ret, formUploader.PutFile(ctx, ret, upToken, key, params.File, putExtra)
 		}
 
 }
@@ -282,7 +298,57 @@ func GetOSS() *OssPlugin {
 		return OSS()
 }
 
+func AppendCertificate(Url string, expire int64) string {
+		if expire == 0 {
+				expire = time.Now().Add(30 * time.Second).Unix()
+		}
+		var info, err = url2.Parse(Url)
+		if err != nil {
+				logs.Error(err)
+				return Url
+		}
+		var (
+				ak          = GetOSS().GetAccessKey()
+				sk          = GetOSS().GetSecretKey()
+				mac         = qbox.NewMac(ak, sk)
+				domain, key = info.Scheme + "://" + info.Host, info.Path
+		)
+		if key[0] == '/' {
+				key = key[1:]
+		}
+		return storage.MakePrivateURL(mac, domain, key, expire)
+}
+
+func GetOssAccessUrl(key string, ossName string, bucket string) string {
+		if ossName != OssProviderQinNiu {
+				return ""
+		}
+		var ty = getBucketTypeByBucket(bucket)
+		if ty == "" {
+				return ""
+		}
+		var host = GetQinNiuProperty("CDN_" + ty + "_DOMAIN")
+		if host == "" {
+				return ""
+		}
+		if key[0] == '/' {
+				return host + key
+		}
+		return host + "/" + key
+}
+
+func getBucketTypeByBucket(bucket string) string {
+		if GetQinNiuProperty(QinNiuBucketImg+"_BUCKET") == bucket {
+				return QinNiuBucketImg
+		}
+		if GetQinNiuProperty(QinNiuBucketVideo+"_BUCKET") == bucket {
+				return QinNiuBucketVideo
+		}
+		return ""
+}
+
 type OssParams struct {
+		Provider  string             `json:"provider"`          // 服务提供
 		TypeName  string             `json:"type"`              // 图片 ｜ 视频类型 IMG , VIDEO 按类型自动获取 bucket
 		Token     string             `json:"token,omitempty"`   // 上传令牌
 		Bucket    string             `json:"bucket,omitempty"`  // 存储桶 ，有对应类型时可选

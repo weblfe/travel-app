@@ -7,6 +7,7 @@ import (
 		"github.com/astaxie/beego"
 		"github.com/astaxie/beego/logs"
 		"github.com/globalsign/mgo/bson"
+		"github.com/weblfe/travel-app/libs"
 		"github.com/weblfe/travel-app/models"
 		"github.com/weblfe/travel-app/services"
 		"sort"
@@ -37,7 +38,7 @@ type cache struct {
 
 // 基础用户信息
 type BaseUser struct {
-		UserId     string  `json:"userId"`       // 用户ID
+		UserId     string  `json:"userId"`   // 用户ID
 		Nickname   string  `json:"nickname"` // 用户昵称
 		AvatarInfo *Avatar `json:"avatar"`   // 用户头像
 }
@@ -107,9 +108,9 @@ func newDto() *DtoRepository {
 
 func (this *BaseUser) M(filters ...func(m beego.M) beego.M) beego.M {
 		var data = beego.M{
-				"userId":     this.UserId,
-				"nickname":   this.Nickname,
-				"avatar": this.AvatarInfo,
+				"userId":   this.UserId,
+				"nickname": this.Nickname,
+				"avatar":   this.AvatarInfo,
 		}
 		if len(filters) == 0 {
 				return data
@@ -450,6 +451,14 @@ func (this *DtoRepository) Cache(key string, v interface{}, alive ...time.Durati
 		return this
 }
 
+// 获取cdn url
+func (this *DtoRepository) getCdnUrl(url string, ty ...libs.OssUrlType) string {
+		if len(ty) == 0 {
+				ty = append(ty, libs.Row)
+		}
+		return libs.GetCdnUrl(url, ty[0])
+}
+
 // 检查是否触发 lru gc 条件
 func (this *DtoRepository) check() {
 		if (this._Len + this._MaxCacheItemNum/10) > this._MaxCacheItemNum {
@@ -537,7 +546,7 @@ func (this *DtoRepository) appendFollowStatus(userId string) func(m beego.M) bee
 
 // 是否已关注
 func (this *DtoRepository) IsFollowed(userId, followerUserId string) bool {
-		return  services.UserBehaviorServiceOf().IsFollowed(userId,followerUserId)
+		return services.UserBehaviorServiceOf().IsFollowed(userId, followerUserId)
 }
 
 // 手动回收

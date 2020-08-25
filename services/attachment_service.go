@@ -14,8 +14,10 @@ import (
 		"github.com/weblfe/travel-app/models"
 		"github.com/weblfe/travel-app/plugins"
 		"io"
+		"math"
 		"os"
 		"path/filepath"
+		"strconv"
 		"strings"
 		"time"
 )
@@ -27,6 +29,7 @@ type AttachmentService interface {
 		GetUrl(string) string
 		GetById(id string) *models.Attachment
 		GetAccessUrl(string) string
+		Lists(page, count int) ([]*models.Attachment, *models.Meta)
 		AutoCoverForVideo(attachment *models.Attachment, posts ...*models.TravelNotes) string
 		Save(reader io.ReadCloser, extras ...beego.M) *models.Attachment
 }
@@ -114,7 +117,7 @@ func (this *AttachmentServiceImpl) Create(attach *models.Attachment) bool {
 				return false
 		}
 		attach = this.onlySaveOne(attach)
-		if err := this.model.Add(attach); err == nil {
+		if err := this.model.Add(attach.Defaults()); err == nil {
 				go this.after(attach)
 				return true
 		}
@@ -126,6 +129,15 @@ func (this *AttachmentServiceImpl) after(attachment *models.Attachment) {
 		case "video":
 				this.video(attachment)
 		}
+		var fs, err = os.Open(attachment.GetLocal())
+		if err != nil {
+				logs.Error(err)
+				return
+		}
+		defer this.closer(fs)
+		extras := attachment.M()
+		extras["key"] = attachment.GetBase()
+		this.Uploader(fs, extras)
 }
 
 func (this *AttachmentServiceImpl) video(attachment *models.Attachment) bool {
@@ -221,9 +233,11 @@ func (this *AttachmentServiceImpl) save(reader io.ReadCloser, extras beego.M) *m
 
 func (this *AttachmentServiceImpl) Uploader(reader io.ReadCloser, extras beego.M) *models.Attachment {
 		var (
-				path = extras["path"]
+				id  = getId(extras)
+				key = extras["key"]
 		)
-		if reader == nil {
+		// 空流， 未知附件
+		if reader == nil || id == "" {
 				return nil
 		}
 
@@ -231,24 +245,82 @@ func (this *AttachmentServiceImpl) Uploader(reader io.ReadCloser, extras beego.M
 				TypeName:  getType(extras),
 				Storage:   storage.Config{},
 				Reader:    reader,
-				Size:      0,
-				Key:       path.(string),
+				Size:      getSize(extras),
+				Key:       key.(string),
 				Extras:    nil,
 				PutPolicy: nil,
 		}
 		params.Result = result()
 		params.Extras = putExtras(extras)
 		params.PutPolicy = putPolicy(extras)
-		var uploader = plugins.GetOSS().CreateUploader(params, func(cfg *storage.Config) {
+		var uploader = plugins.GetOSS().CreateUploader(&params, func(cfg *storage.Config) {
 				cfg.Zone = &storage.ZoneHuanan
 				cfg.UseHTTPS = libs.Boolean(plugins.GetQinNiuProperty("USE_HTTPS", "false"))
 		})
 
-		var _, err = uploader(context.Background())
+		var res, err = uploader(context.Background())
+
 		if err != nil {
 				logs.Error(err)
+				return nil
 		}
-		return nil
+		var (
+				oss    string
+				attr   = models.NewAttachment()
+				bucket = params.PutPolicy.Scope
+		)
+		if oss == "" {
+				oss = params.Provider
+		}
+		if strings.Contains(bucket, ":") {
+				var keys = strings.Split(bucket, ":")
+				bucket = keys[0]
+		}
+		body, ok := res.(*ReturnBody)
+		if !ok || body == nil {
+				logs.Error(errors.New("empty oss return body"))
+				return nil
+		}
+		err = this.model.FindOne(beego.M{"_id": id}, attr)
+		if err != nil {
+				logs.Error(err)
+				return nil
+		}
+		if body.Id != id.Hex() {
+				logs.Error(errors.New("id not matched"))
+				return nil
+		}
+		attr.Oss = oss
+		attr.Cdn = oss
+		attr.OssBucket = bucket
+		attr.Width, _ = strconv.Atoi(body.Width)
+		attr.Height, _ = strconv.Atoi(body.Height)
+		attr.CdnUrl = plugins.GetOssAccessUrl(body.Path, oss, bucket)
+
+		if attr.Duration == 0 && body.Duration != "" {
+				t, _ := strconv.ParseFloat(body.Duration, 10)
+				if t != 0 {
+						d := int64(math.Floor(t))
+						attr.Duration = time.Duration(d) * time.Second
+				}
+		}
+		if attr.Size == 0 && body.Size != "" {
+				n, err1 := strconv.Atoi(body.Size)
+				if err1 != nil {
+						logs.Error(err1)
+				}
+				attr.Size = int64(n)
+		}
+		attr.ExtrasInfo["oss"] = body
+		attr.UpdatedAt = time.Now().Local()
+		err = this.model.Update(beego.M{"_id": attr.Id}, attr)
+		if err != nil {
+				logs.Error(err)
+		} else {
+				logs.Info("cdn put success id: " + attr.Id.Hex())
+				// @todo 自预热
+		}
+		return attr
 }
 
 func (this *AttachmentServiceImpl) SaveToOssById(id string) error {
@@ -294,6 +366,28 @@ func (this *AttachmentServiceImpl) GetUrl(mediaId string) string {
 				return data.CdnUrl
 		}
 		return data.Url
+}
+
+func (this *AttachmentServiceImpl) Lists(page, count int) ([]*models.Attachment, *models.Meta) {
+		var (
+				meta  = models.NewMeta()
+				query = bson.M{"status": models.StatusOk}
+				items = make([]*models.Attachment, count)
+		)
+		items = items[:0]
+		meta.Count = count
+		meta.Page = page
+
+		var err = this.model.NewQuery(query).Limit(count).Skip((page - 1) * count).All(&items)
+		if err == nil {
+				meta.Total, err = this.model.NewQuery(query).Count()
+				if err != nil {
+						logs.Error(err)
+				}
+		}
+		meta.Size = len(items)
+		meta.Boot()
+		return items, meta
 }
 
 func (this *AttachmentServiceImpl) GetAccessUrl(mediaId string) string {
@@ -356,6 +450,13 @@ func (this *AttachmentServiceImpl) closer(closer io.Closer) {
 		}
 }
 
+func getSize(extras beego.M) int64 {
+		if v, ok := extras["size"]; ok {
+				return v.(int64)
+		}
+		return 0
+}
+
 func getMediaId(v interface{}) string {
 		if v == nil {
 				return bson.NewObjectId().Hex()
@@ -379,6 +480,15 @@ func getType(extras beego.M) string {
 						return plugins.QinNiuBucketVideo
 				}
 		}
+		if v, ok := extras["fileType"]; ok {
+				var t = v.(string)
+				if t == AttachTypeImage {
+						return plugins.QinNiuBucketImg
+				}
+				if t == AttachTypeVideo {
+						return plugins.QinNiuBucketVideo
+				}
+		}
 		return ""
 }
 
@@ -391,7 +501,7 @@ func putExtras(extras beego.M) *storage.PutExtra {
 				params = &storage.PutExtra{
 						Params: map[string]string{
 								"x:app":       os.Getenv("APP_NAME"),
-								"x:mediaId":   getMediaId(extras["id"]),
+								"x:uuid":      getMediaId(extras["id"]),
 								"x:filename":  getFileName(extras["filename"]),
 								"x:timestamp": fmt.Sprintf("%v", time.Now().Unix()),
 						},
@@ -405,17 +515,27 @@ func putPolicy(extras beego.M) *storage.PutPolicy {
 				ty     = getType(extras)
 				params = &storage.PutPolicy{ReturnBody: ""}
 				body   = map[string]string{
-						"name": "$(fname)",
-						"size": "$(fsize)",
-						"key":  "$(key)",
-						"type": "$(mimeType)",
-						"hash": "$(etag)",
+						"name":        "$(fname)",
+						"size":        "$(fsize)",
+						"key":         "$(key)",
+						"type":        "$(mimeType)",
+						"hash":        "$(etag)",
+						"x:uuid":      "$(x:uuid)",
+						"x:app":       "$(x:app)",
+						"x:type":      "$(x:type)",
+						"x:filename":  "$(x:filename)",
+						"x:timestamp": "$(x:timestamp)",
 				}
 		)
 		if ty == plugins.QinNiuBucketImg {
 				body["w"] = "$(imageInfo.width)"
 				body["h"] = "$(imageInfo.height)"
 				body["color"] = "$(exif.ColorSpace.val)"
+		}
+		if ty == plugins.QinNiuBucketVideo {
+				body["w"] = "$(avinfo.video.width)"
+				body["h"] = "$(avinfo.video.height)"
+				body["duration"] = "$(avinfo.video.duration)"
 		}
 		var info, err = libs.Json().Marshal(body)
 		if err != nil {
@@ -447,34 +567,50 @@ func getFileName(v interface{}) string {
 		return ""
 }
 
+func getId(extras beego.M) bson.ObjectId {
+		if id, ok := extras["id"]; ok {
+				if id == "" || id == nil {
+						return ""
+				}
+				if str, ok := id.(string); ok {
+						return bson.ObjectIdHex(str)
+				}
+				if obj, ok := id.(bson.ObjectId); ok {
+						return obj
+				}
+		}
+		return ""
+}
+
 // 返回数据
 type ReturnBody struct {
 		Hash      string `json:"hash"`
-		Size      int64  `json:"x:size"`
+		Size      string `json:"size"`
 		Ty        string `json:"x:type"`
 		FileType  string `json:"type"`
-		Timestamp int64  `json:"x:timestamp"`
+		Timestamp string `json:"x:timestamp"`
 		App       string `json:"x:app"`
 		Name      string `json:"name"`
-		Id        string `json:"x:mediaId"`
+		Id        string `json:"x:uuid"`
 		Path      string `json:"key"`
 		Color     string `json:"color,omitempty"`
 		FileName  string `json:"x:filename,omitempty"`
-		With      int    `json:"w,omitempty"`
-		Height    int    `json:"h,omitempty"`
+		Width     string `json:"w,omitempty"`
+		Height    string `json:"h,omitempty"`
+		Duration  string `json:"duration,omitempty"`
 }
 
 // 声频 audio
 type ReturnAudio struct {
 		BitRate    int64       `json:"bit_rate"`
-		Channels   int         `json:"channels"`
+		Channels   string      `json:"channels"`
 		CodeName   string      `json:"code_name"`
 		CodecType  string      `json:"codec_type"`
-		Duration   float64     `json:"duration"`
-		Height     int         `json:"height"`
-		Width      int         `json:"width"`
-		Index      int         `json:"index"`
-		NbFrames   int         `json:"nb_frames"`
+		Duration   string      `json:"duration"`
+		Height     string      `json:"height"`
+		Width      string      `json:"width"`
+		Index      string      `json:"index"`
+		NbFrames   string      `json:"nb_frames"`
 		SampleFmt  string      `json:"sample_fmt"`
 		RFrameRate string      `json:"r_frame_rate"`
 		SampleRate string      `json:"sample_rate"`
@@ -488,11 +624,11 @@ type ReturnVideo struct {
 		CodeName           string      `json:"code_name"`
 		CodecType          string      `json:"codec_type"`
 		DisplayAspectRatio string      `json:"display_aspect_ratio"`
-		Duration           float64     `json:"duration"`
-		Height             int         `json:"height"`
-		Width              int         `json:"width"`
-		Index              int         `json:"index"`
-		NbFrames           int         `json:"nb_frames"`
+		Duration           string      `json:"duration"`
+		Height             string      `json:"height"`
+		Width              string      `json:"width"`
+		Index              string      `json:"index"`
+		NbFrames           string      `json:"nb_frames"`
 		PixFmt             string      `json:"pix_fmt"`
 		RFrameRate         string      `json:"r_frame_rate"`
 		SampleAspectRatio  string      `json:"sample_aspect_ratio"`

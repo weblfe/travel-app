@@ -67,3 +67,14 @@ func Integer(v interface{}) (int, bool) {
 		}
 		return 0, false
 }
+
+// 字符串数组第一个元素
+func ArrayFirst(arr []string, defaults ...string) string {
+		if len(defaults) == 0 {
+				defaults = append(defaults, "")
+		}
+		if len(arr) == 0 {
+				return defaults[0]
+		}
+		return arr[0]
+}

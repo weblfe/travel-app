@@ -3,6 +3,7 @@ package repositories
 import (
 		"fmt"
 		"github.com/astaxie/beego"
+		"github.com/astaxie/beego/logs"
 		"github.com/weblfe/travel-app/common"
 		"github.com/weblfe/travel-app/middlewares"
 		"github.com/weblfe/travel-app/models"
@@ -333,3 +334,34 @@ func getMediaInfoTransform() func(m beego.M) beego.M {
 func getToken(request common.BaseRequestContext) string {
 		return request.GetHeader().Get(middlewares.AppAccessTokenHeader)
 }
+
+// 获取分页查询参数
+func getPaginationParams(request common.BaseRequestContext) (page int, count int) {
+		if request.IsJsonStream() {
+				var data, err = request.GetJson()
+				if err != nil {
+						logs.Error(err)
+				}
+				if data == nil || len(data) == 0 {
+						return request.GetInt("page", common.Page), request.GetInt("count", common.Count)
+				}
+				var _page, _count = data["page"], data["count"]
+				if _page != nil && _page != "" {
+						if p, ok := _page.(int); ok && p > 0 {
+								page = p
+						} else {
+								page = common.Page
+						}
+				}
+				if _count != nil && _count != "" {
+						if size, ok := _count.(int); ok && size > 0 {
+								count = size
+						} else {
+								count = common.Count
+						}
+				}
+				return page, count
+		}
+		return request.GetInt("page", common.Page), request.GetInt("count", common.Count)
+}
+
