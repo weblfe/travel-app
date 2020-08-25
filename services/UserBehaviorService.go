@@ -18,7 +18,7 @@ type UserBehaviorService interface {
 		GetFans(userId string, limit models.ListsParams) ([]bson.ObjectId, *models.Meta)
 		GetFollows(userId string, limit models.ListsParams) ([]bson.ObjectId, *models.Meta)
 		GetFollowPostsLists(query bson.M, limit models.ListsParams) ([]*models.TravelNotes, *models.Meta)
-		ListsByUserId(userId string, limit models.ListsParams, extras ...beego.M) ([]*models.UserFocus, *models.Meta)
+		ListsByUserId(userId string, limit models.ListsParams, extras ...beego.M) ([]*models.UserFollow, *models.Meta)
 }
 
 type userBehaviorServiceImpl struct {
@@ -36,13 +36,13 @@ func newUserBehaviorServiceInstance() *userBehaviorServiceImpl {
 }
 
 // 罗列用户关注的用户列表
-func (this *userBehaviorServiceImpl) ListsByUserId(userId string, limit models.ListsParams, extras ...beego.M) ([]*models.UserFocus, *models.Meta) {
+func (this *userBehaviorServiceImpl) ListsByUserId(userId string, limit models.ListsParams, extras ...beego.M) ([]*models.UserFollow, *models.Meta) {
 		if len(extras) == 0 {
 				extras = append(extras, beego.M{"status": 1})
 		}
 		var (
 				meta  = models.NewMeta()
-				items = make([]*models.UserFocus, 2)
+				items = make([]*models.UserFollow, 2)
 				query = beego.M{"userId": bson.ObjectIdHex(userId)}
 		)
 		items = items[:0]
@@ -148,7 +148,7 @@ func (this *userBehaviorServiceImpl) GetUserFansNumber(userId string) int64 {
 }
 
 // 关注之后
-func (this *userBehaviorServiceImpl) followAfter(focus *models.UserFocus) {
+func (this *userBehaviorServiceImpl) followAfter(focus *models.UserFollow) {
 		if focus == nil {
 				return
 		}
@@ -161,7 +161,7 @@ func (this *userBehaviorServiceImpl) followAfter(focus *models.UserFocus) {
 }
 
 // 取消好友关系
-func (this *userBehaviorServiceImpl) cancel(focus *models.UserFocus) bool {
+func (this *userBehaviorServiceImpl) cancel(focus *models.UserFollow) bool {
 		var (
 				extras = beego.M{
 						"unFollow":   time.Now().Unix(),
@@ -177,7 +177,7 @@ func (this *userBehaviorServiceImpl) cancel(focus *models.UserFocus) bool {
 }
 
 // 建立好友关系
-func (this *userBehaviorServiceImpl) success(focus *models.UserFocus) bool {
+func (this *userBehaviorServiceImpl) success(focus *models.UserFollow) bool {
 		var (
 				err    error
 				model  = this.getUserRelation()
@@ -280,7 +280,7 @@ func (this *userBehaviorServiceImpl) GetFans(userId string, limit models.ListsPa
 				results []bson.ObjectId
 				meta    = models.NewMeta()
 				model   = this.getUserFocusModel()
-				items   = make([]*models.UserFocus, 2)
+				items   = make([]*models.UserFollow, 2)
 		)
 		items = items[:0]
 		Query := model.NewQuery(query)
@@ -310,7 +310,7 @@ func (this *userBehaviorServiceImpl) GetFollows(userId string, limit models.List
 				results []bson.ObjectId
 				meta    = models.NewMeta()
 				model   = this.getUserFocusModel()
-				items   = make([]*models.UserFocus, 2)
+				items   = make([]*models.UserFollow, 2)
 		)
 		items = items[:0]
 		Query := model.NewQuery(query)
@@ -336,7 +336,7 @@ func (this *userBehaviorServiceImpl) GetFollowPostsLists(query bson.M, limit mod
 				ids   []string
 				meta  = models.NewMeta()
 				model = this.getUserFocusModel()
-				items = make([]*models.UserFocus, 2)
+				items = make([]*models.UserFollow, 2)
 		)
 		items = items[:0]
 		query["status"] = models.StatusOk

@@ -1,11 +1,14 @@
 package services
 
 import (
+		"context"
+		"errors"
 		"fmt"
 		"github.com/astaxie/beego"
 		"github.com/astaxie/beego/config/env"
 		"github.com/astaxie/beego/logs"
 		"github.com/globalsign/mgo/bson"
+		"github.com/qiniu/api.v7/v7/storage"
 		"github.com/weblfe/travel-app/common"
 		"github.com/weblfe/travel-app/libs"
 		"github.com/weblfe/travel-app/models"
@@ -28,11 +31,6 @@ type AttachmentService interface {
 		Save(reader io.ReadCloser, extras ...beego.M) *models.Attachment
 }
 
-type AttachmentServiceImpl struct {
-		BaseService
-		model *models.AttachmentModel
-}
-
 const (
 		AttachTypeDoc         = models.AttachTypeDoc
 		AttachTypeText        = models.AttachTypeText
@@ -40,6 +38,11 @@ const (
 		AttachTypeImage       = models.AttachTypeImage
 		AttachTypeImageAvatar = models.AttachTypeImageAvatar
 )
+
+type AttachmentServiceImpl struct {
+		BaseService
+		model *models.AttachmentModel
+}
 
 func AttachmentServiceOf() AttachmentService {
 		var service = new(AttachmentServiceImpl)
@@ -211,13 +214,60 @@ func (this *AttachmentServiceImpl) save(reader io.ReadCloser, extras beego.M) *m
 				return nil
 		}
 		if oss != "" && ossBucket != "" {
-				extras["schema"] = "@oss(" + oss.(string) + ")://" + ossBucket.(string)
-				res, ok := GetFileSystem().SaveByReader(reader, extras)
-				if ok && len(res) > 0 {
-						return models.NewAttachment().Load(res).Defaults()
-				}
+				return this.Uploader(reader, extras)
 		}
 		return nil
+}
+
+func (this *AttachmentServiceImpl) Uploader(reader io.ReadCloser, extras beego.M) *models.Attachment {
+		var (
+				path = extras["path"]
+		)
+		if reader == nil {
+				return nil
+		}
+
+		var params = plugins.OssParams{
+				TypeName:  getType(extras),
+				Storage:   storage.Config{},
+				Reader:    reader,
+				Size:      0,
+				Key:       path.(string),
+				Extras:    nil,
+				PutPolicy: nil,
+		}
+		params.Result = result()
+		params.Extras = putExtras(extras)
+		params.PutPolicy = putPolicy(extras)
+		var uploader = plugins.GetOSS().CreateUploader(params, func(cfg *storage.Config) {
+				cfg.Zone = &storage.ZoneHuanan
+				cfg.UseHTTPS = libs.Boolean(plugins.GetQinNiuProperty("USE_HTTPS", "false"))
+		})
+
+		var _, err = uploader(context.Background())
+		if err != nil {
+				logs.Error(err)
+		}
+		return nil
+}
+
+func (this *AttachmentServiceImpl) SaveToOssById(id string) error {
+		var data = this.GetById(id)
+		if data == nil {
+				return errors.New("not exists id")
+		}
+		var fs = data.GetLocal()
+		if fs == "" {
+				return errors.New("file not exists")
+		}
+		var fd, err = os.Open(fs)
+		if err != nil {
+				return err
+		}
+		if nil != this.Uploader(fd, data.M()) {
+				return nil
+		}
+		return errors.New("save failed ,id: " + id)
 }
 
 func (this *AttachmentServiceImpl) GetByHash(hash string) *models.Attachment {
@@ -266,12 +316,12 @@ func (this *AttachmentServiceImpl) AutoCoverForVideo(attachment *models.Attachme
 				return ""
 		}
 		var (
-				ext     = filepath.Ext(fs)
-				name    = fmt.Sprintf("%d.%s", time.Now().Unix(), "jpg")
-				storage = strings.Replace(fs, ext, name, 1)
+				ext         = filepath.Ext(fs)
+				name        = fmt.Sprintf("%d.%s", time.Now().Unix(), "jpg")
+				storageName = strings.Replace(fs, ext, name, 1)
 		)
-		if plugins.ScreenShot(fs, storage) {
-				fd, _ := os.Open(storage)
+		if plugins.ScreenShot(fs, storageName) {
+				fd, _ := os.Open(storageName)
 				defer this.closer(fd)
 				data := beego.M{
 						"userId":  attachment.UserId,
@@ -305,3 +355,217 @@ func (this *AttachmentServiceImpl) closer(closer io.Closer) {
 				logs.Error(err)
 		}
 }
+
+func getMediaId(v interface{}) string {
+		if v == nil {
+				return bson.NewObjectId().Hex()
+		}
+		if id, ok := v.(string); ok {
+				return id
+		}
+		if id, ok := v.(bson.ObjectId); ok {
+				return id.Hex()
+		}
+		return bson.NewObjectId().Hex()
+}
+
+func getType(extras beego.M) string {
+		if v, ok := extras["type"]; ok {
+				var t = v.(string)
+				if t == AttachTypeImage {
+						return plugins.QinNiuBucketImg
+				}
+				if t == AttachTypeVideo {
+						return plugins.QinNiuBucketVideo
+				}
+		}
+		return ""
+}
+
+func result() *ReturnBody {
+		return new(ReturnBody)
+}
+
+func putExtras(extras beego.M) *storage.PutExtra {
+		var (
+				params = &storage.PutExtra{
+						Params: map[string]string{
+								"x:app":       os.Getenv("APP_NAME"),
+								"x:mediaId":   getMediaId(extras["id"]),
+								"x:filename":  getFileName(extras["filename"]),
+								"x:timestamp": fmt.Sprintf("%v", time.Now().Unix()),
+						},
+				}
+		)
+		return params
+}
+
+func putPolicy(extras beego.M) *storage.PutPolicy {
+		var (
+				ty     = getType(extras)
+				params = &storage.PutPolicy{ReturnBody: ""}
+				body   = map[string]string{
+						"name": "$(fname)",
+						"size": "$(fsize)",
+						"key":  "$(key)",
+						"type": "$(mimeType)",
+						"hash": "$(etag)",
+				}
+		)
+		if ty == plugins.QinNiuBucketImg {
+				body["w"] = "$(imageInfo.width)"
+				body["h"] = "$(imageInfo.height)"
+				body["color"] = "$(exif.ColorSpace.val)"
+		}
+		var info, err = libs.Json().Marshal(body)
+		if err != nil {
+				logs.Error(err)
+		}
+		if len(info) > 0 {
+				params.ReturnBody = string(info)
+		}
+		params.Expires = getExpires(extras)
+		return params
+}
+
+func getExpires(extras beego.M) uint64 {
+		if e, ok := extras["expires"]; ok {
+				if n, ok := e.(int64); ok {
+						return uint64(n)
+				}
+		}
+		return 1800
+}
+
+func getFileName(v interface{}) string {
+		if v == nil {
+				return ""
+		}
+		if name, ok := v.(string); ok {
+				return name
+		}
+		return ""
+}
+
+// 返回数据
+type ReturnBody struct {
+		Hash      string `json:"hash"`
+		Size      int64  `json:"x:size"`
+		Ty        string `json:"x:type"`
+		FileType  string `json:"type"`
+		Timestamp int64  `json:"x:timestamp"`
+		App       string `json:"x:app"`
+		Name      string `json:"name"`
+		Id        string `json:"x:mediaId"`
+		Path      string `json:"key"`
+		Color     string `json:"color,omitempty"`
+		FileName  string `json:"x:filename,omitempty"`
+		With      int    `json:"w,omitempty"`
+		Height    int    `json:"h,omitempty"`
+}
+
+// 声频 audio
+type ReturnAudio struct {
+		BitRate    int64       `json:"bit_rate"`
+		Channels   int         `json:"channels"`
+		CodeName   string      `json:"code_name"`
+		CodecType  string      `json:"codec_type"`
+		Duration   float64     `json:"duration"`
+		Height     int         `json:"height"`
+		Width      int         `json:"width"`
+		Index      int         `json:"index"`
+		NbFrames   int         `json:"nb_frames"`
+		SampleFmt  string      `json:"sample_fmt"`
+		RFrameRate string      `json:"r_frame_rate"`
+		SampleRate string      `json:"sample_rate"`
+		StartTime  string      `json:"start_time"`
+		Tags       *ReturnTags `json:"tags"`
+}
+
+// 视频 video
+type ReturnVideo struct {
+		BitRate            int64       `json:"bit_rate"`
+		CodeName           string      `json:"code_name"`
+		CodecType          string      `json:"codec_type"`
+		DisplayAspectRatio string      `json:"display_aspect_ratio"`
+		Duration           float64     `json:"duration"`
+		Height             int         `json:"height"`
+		Width              int         `json:"width"`
+		Index              int         `json:"index"`
+		NbFrames           int         `json:"nb_frames"`
+		PixFmt             string      `json:"pix_fmt"`
+		RFrameRate         string      `json:"r_frame_rate"`
+		SampleAspectRatio  string      `json:"sample_aspect_ratio"`
+		StartTime          string      `json:"start_time"`
+		Tags               *ReturnTags `json:"tags"`
+}
+
+// 格式
+type ReturnFormat struct {
+		BitRate        int64       `json:"bit_rate"`
+		Duration       float64     `json:"duration"`
+		FormatLongName string      `json:"format_long_name"`
+		FormatName     string      `json:"format_name"`
+		NbFrames       int         `json:"nb_frames"`
+		Size           int64       `json:"size"`
+		StartTime      string      `json:"start_time"`
+		Tags           *ReturnTags `json:"tags"`
+}
+
+// tags
+type ReturnTags struct {
+		CreationTime string `json:"creation_time"`
+}
+
+// 	七牛云
+//  音频
+//  "audio" : {
+//        "bit_rate":"64028",
+//        "channels":1,
+//        "codec_name":"mp3",
+//        "codec_type":"audio",
+//        "duration":"30.105556",
+//        "index":1,
+//        "nb_frames":"1153",
+//        "r_frame_rate":"0/0",
+//        "sample_fmt":"s16p",
+//        "sample_rate":"44100",
+//        "start_time":"0.000000",
+//        "tags":{
+//            "creation_time":"2012-10-21 01:13:54"
+//        }
+//    }
+//
+//   "format" : {
+//        "bit_rate":"918325",
+//        "duration":"30.106000",
+//        "format_long_name":"QuickTime / MOV",
+//        "format_name":"mov,mp4,m4a,3gp,3g2,mj2",
+//        "nb_streams":2,
+//        "size":"3455888",
+//        "start_time":"0.000000",
+//        "tags":{
+//            "creation_time":"2012-10-21 01:13:54"
+//        }
+//    }
+//
+//    视频
+//    "video": {
+//        "bit_rate":"856559",
+//        "codec_name":"h264",
+//        "codec_type":"video",
+//        "display_aspect_ratio":"4:3",
+//        "duration":"29.791667",
+//        "height":480,
+//        "index":0,
+//        "nb_frames":"715",
+//        "pix_fmt":"yuv420p",
+//        "r_frame_rate":"24/1",
+//        "sample_aspect_ratio":"1:1",
+//        "start_time":"0.000000",
+//        "tags":{
+//            "creation_time":"2012-10-21 01:13:54"
+//        },
+//        "width":640
+//    }
+//

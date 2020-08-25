@@ -9,7 +9,7 @@ import (
 )
 
 // 用户关注
-type UserFocus struct {
+type UserFollow struct {
 		Id            bson.ObjectId `json:"id" bson:"_id"`                                // ID
 		Status        int           `json:"status" bson:"status"`                         // 状态
 		UserId        bson.ObjectId `json:"userId" bson:"userId"`                         // 用户ID
@@ -33,8 +33,8 @@ func UserFocusModelOf() *UserFocusModel {
 		return model
 }
 
-func NewUserFocus() *UserFocus {
-		var focus = new(UserFocus)
+func NewUserFocus() *UserFollow {
+		var focus = new(UserFollow)
 		focus.Init()
 		return focus
 }
@@ -43,7 +43,7 @@ const (
 		UserFocusTable = "user_focus"
 )
 
-func (this *UserFocus) Init() {
+func (this *UserFollow) Init() {
 		this.AddFilters(transforms.FilterEmpty)
 		this.SetProvider(DataProvider, this.data)
 		this.SetProvider(SaverProvider, this.save)
@@ -51,7 +51,7 @@ func (this *UserFocus) Init() {
 		this.SetProvider(AttributesProvider, this.setAttributes)
 }
 
-func (this *UserFocus) data() beego.M {
+func (this *UserFollow) data() beego.M {
 		return beego.M{
 				"id":          this.Id.Hex(),
 				"status":      this.Status,
@@ -65,7 +65,7 @@ func (this *UserFocus) data() beego.M {
 }
 
 // 保存
-func (this *UserFocus) save() error {
+func (this *UserFollow) save() error {
 		var (
 				model = UserFocusModelOf()
 				data  = model.GetByUnique(this.data())
@@ -82,7 +82,7 @@ func (this *UserFocus) save() error {
 		}))
 }
 
-func (this *UserFocus) setDefaults() {
+func (this *UserFollow) setDefaults() {
 		if this.CreatedAt.IsZero() {
 				this.CreatedAt = time.Now().Local()
 		}
@@ -101,7 +101,7 @@ func (this *UserFocus) setDefaults() {
 }
 
 // 设置数值
-func (this *UserFocus) setAttributes(data map[string]interface{}, safe ...bool) {
+func (this *UserFollow) setAttributes(data map[string]interface{}, safe ...bool) {
 		for key, v := range data {
 				if !safe[0] {
 						if this.Excludes(key) {
@@ -115,7 +115,7 @@ func (this *UserFocus) setAttributes(data map[string]interface{}, safe ...bool) 
 		}
 }
 
-func (this *UserFocus) Set(key string, v interface{}) *UserFocus {
+func (this *UserFollow) Set(key string, v interface{}) *UserFollow {
 		switch key {
 		case "id":
 				this.SetObjectId(&this.Id, v)
@@ -159,7 +159,7 @@ func (this *UserFocusModel) getCreateIndexHandler() func(*mgo.Collection) {
 		}
 }
 
-func (this *UserFocusModel) GetByUnique(m beego.M) *UserFocus {
+func (this *UserFocusModel) GetByUnique(m beego.M) *UserFollow {
 		var (
 				err   error
 				data  = NewUserFocus()
@@ -205,14 +205,14 @@ func (this *UserFocusModel) GetFocusTwo(userId, userId2 string) bool {
 }
 
 // 获取 用户关注列表
-func (this *UserFocusModel) GetUserFocusLists(userId string, params ...ListsParams) ([]*UserFocus, ListsParams) {
+func (this *UserFocusModel) GetUserFocusLists(userId string, params ...ListsParams) ([]*UserFollow, ListsParams) {
 		if len(params) == 0 {
 				params = append(params, NewListParam(1, 10))
 		}
 		var (
 				err   error
 				page  = params[0]
-				items = make([]*UserFocus, page.Count())
+				items = make([]*UserFollow, page.Count())
 				query = bson.M{"userId": bson.ObjectIdHex(userId), "status": 1}
 		)
 		items = items[:0]
