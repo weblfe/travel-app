@@ -485,7 +485,7 @@ func (this *AttachmentServiceImpl) ossAsyncTask(iter *mgo.Iter, count *int) {
 				items = items[:0]
 				// iter.Done()
 				err := iter.All(&items)
-				if err!=nil  {
+				if err != nil {
 						logs.Error(err)
 						break
 				}
@@ -493,6 +493,7 @@ func (this *AttachmentServiceImpl) ossAsyncTask(iter *mgo.Iter, count *int) {
 						logs.Warn("empty attache for async task")
 						break
 				}
+				logs.Info(fmt.Sprintf("count: %d", len(items)))
 				for _, it := range items {
 						logs.Info("start..." + it.Id.Hex())
 						if it.CdnUrl != "" {
