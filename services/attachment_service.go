@@ -315,6 +315,9 @@ func (this *AttachmentServiceImpl) Uploader(reader io.ReadCloser, extras beego.M
 				}
 				attr.Size = int64(n)
 		}
+		if attr.ExtrasInfo == nil {
+				attr.ExtrasInfo = bson.M{}
+		}
 		attr.ExtrasInfo["oss"] = body
 		attr.UpdatedAt = time.Now().Local()
 		err = this.model.Update(beego.M{"_id": attr.Id}, attr)
