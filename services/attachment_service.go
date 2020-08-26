@@ -7,6 +7,7 @@ import (
 		"github.com/astaxie/beego"
 		"github.com/astaxie/beego/config/env"
 		"github.com/astaxie/beego/logs"
+		"github.com/globalsign/mgo"
 		"github.com/globalsign/mgo/bson"
 		"github.com/qiniu/api.v7/v7/storage"
 		"github.com/weblfe/travel-app/common"
@@ -23,6 +24,7 @@ import (
 )
 
 type AttachmentService interface {
+		SyncOssTask() int
 		Remove(query beego.M) bool
 		Get(mediaId string) *models.Attachment
 		UpdateById(string, beego.M) error
@@ -231,6 +233,7 @@ func (this *AttachmentServiceImpl) save(reader io.ReadCloser, extras beego.M) *m
 		return nil
 }
 
+// oss 上传器
 func (this *AttachmentServiceImpl) Uploader(reader io.ReadCloser, extras beego.M) *models.Attachment {
 		var (
 				id  = getId(extras)
@@ -290,13 +293,13 @@ func (this *AttachmentServiceImpl) Uploader(reader io.ReadCloser, extras beego.M
 				logs.Error(errors.New("id not matched"))
 				return nil
 		}
+		// 更新记录
 		attr.Oss = oss
 		attr.Cdn = oss
 		attr.OssBucket = bucket
 		attr.Width, _ = strconv.Atoi(body.Width)
 		attr.Height, _ = strconv.Atoi(body.Height)
 		attr.CdnUrl = plugins.GetOssAccessUrl(body.Path, oss, bucket)
-
 		if attr.Duration == 0 && body.Duration != "" {
 				t, _ := strconv.ParseFloat(body.Duration, 10)
 				if t != 0 {
@@ -420,7 +423,8 @@ func (this *AttachmentServiceImpl) AutoCoverForVideo(attachment *models.Attachme
 				data := beego.M{
 						"userId":  attachment.UserId,
 						"referId": attachment.Id.Hex(), "fileType": AttachTypeImage,
-						"filename": filepath.Base(fd.Name()),
+						"referName": models.AttachmentTable,
+						"filename":  filepath.Base(fd.Name()),
 				}
 				image := this.Save(fd, data)
 				if image == nil {
@@ -450,6 +454,66 @@ func (this *AttachmentServiceImpl) closer(closer io.Closer) {
 		}
 }
 
+func (this *AttachmentServiceImpl) SyncOssTask() int {
+		var (
+				count int
+				query = bson.M{"cdnUrl": beego.M{"$in": []interface{}{nil, ""}, "$exists": false}, "status": models.StatusOk}
+		)
+		var (
+				iter       = this.model.NewQuery(query).Limit(100).Iter()
+				total, err = this.model.NewQuery(query).Count()
+		)
+		if err != nil {
+				logs.Error(err)
+				return 0
+		}
+		if iter == nil {
+				logs.Warn("iter for SyncOssTask nil ")
+				return total
+		}
+		// 异步循环
+		go this.ossAsyncTask(iter, &count)
+		return total
+}
+
+// 异步同步任务
+func (this *AttachmentServiceImpl) ossAsyncTask(iter *mgo.Iter, count *int) {
+		var (
+				items = make([]*models.Attachment, 10)
+		)
+		for {
+				items = items[:0]
+				// iter.Done()
+				err := iter.All(&items)
+				if err!=nil  {
+						logs.Error(err)
+						break
+				}
+				if len(items) == 0 {
+						logs.Warn("empty attache for async task")
+						break
+				}
+				for _, it := range items {
+						logs.Info("start..." + it.Id.Hex())
+						if it.CdnUrl != "" {
+								continue
+						}
+						fs, err1 := os.Open(it.GetLocal())
+						if err1 != nil {
+								logs.Error(err1)
+								continue
+						}
+						data := it.M()
+						data["key"] = it.GetBase()
+						if this.Uploader(fs, data) != nil {
+								*count++
+						}
+						this.closer(fs)
+
+				}
+		}
+}
+
 func getSize(extras beego.M) int64 {
 		if v, ok := extras["size"]; ok {
 				return v.(int64)
@@ -470,6 +534,7 @@ func getMediaId(v interface{}) string {
 		return bson.NewObjectId().Hex()
 }
 
+// 上传类型
 func getType(extras beego.M) string {
 		if v, ok := extras["type"]; ok {
 				var t = v.(string)
@@ -492,10 +557,12 @@ func getType(extras beego.M) string {
 		return ""
 }
 
+// 返回数据结构
 func result() *ReturnBody {
 		return new(ReturnBody)
 }
 
+// 扩展数据
 func putExtras(extras beego.M) *storage.PutExtra {
 		var (
 				params = &storage.PutExtra{
@@ -510,6 +577,7 @@ func putExtras(extras beego.M) *storage.PutExtra {
 		return params
 }
 
+// 上传策略
 func putPolicy(extras beego.M) *storage.PutPolicy {
 		var (
 				ty     = getType(extras)
@@ -548,6 +616,7 @@ func putPolicy(extras beego.M) *storage.PutPolicy {
 		return params
 }
 
+// token过期时长
 func getExpires(extras beego.M) uint64 {
 		if e, ok := extras["expires"]; ok {
 				if n, ok := e.(int64); ok {

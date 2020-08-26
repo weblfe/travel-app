@@ -1,5 +1,7 @@
 package controllers
 
+import "github.com/weblfe/travel-app/repositories"
+
 type TaskController struct {
 		BaseController
 }
@@ -49,4 +51,10 @@ func (this *TaskController) Remove() {
 // @router /task/lists [get]
 func (this *TaskController) Lists() {
 		this.Send(nil)
+}
+
+// 同步数据到oss
+// @router /task/sync/assets [post]
+func (this *TaskController) SyncAssetsToOss() {
+		this.Send(repositories.NewTaskRepository(this).SyncAssetsTask())
 }

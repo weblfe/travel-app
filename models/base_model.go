@@ -377,7 +377,7 @@ func (this *BaseModel) GetProfile(key string, defaults ...interface{}) interface
 
 // 回收session
 func (this *BaseModel) destroy(document *mgo.Collection) {
-		this.done(document.Database.Name)
+		this.done(document.Name)
 		this.Release()
 }
 
@@ -386,6 +386,9 @@ func (this *BaseModel) done(name string) {
 				key  = this.getRefCountName(name)
 				n, _ = GlobalMgoSessionContainer.Load(key)
 		)
+		if n == 0 {
+				return
+		}
 		if n == nil {
 				GlobalMgoSessionContainer.Store(key, 0)
 				return

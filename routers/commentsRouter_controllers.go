@@ -477,6 +477,15 @@ func init() {
 
     beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:TaskController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:TaskController"],
         beego.ControllerComments{
+            Method: "SyncAssetsToOss",
+            Router: `/task/sync/assets`,
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:TaskController"] = append(beego.GlobalControllerRouter["github.com/weblfe/travel-app/controllers:TaskController"],
+        beego.ControllerComments{
             Method: "Update",
             Router: `/task/update`,
             AllowHTTPMethods: []string{"patch"},
