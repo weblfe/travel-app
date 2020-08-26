@@ -460,7 +460,7 @@ func (this *AttachmentServiceImpl) SyncOssTask() int {
 				query = bson.M{"cdnUrl": beego.M{"$in": []interface{}{nil, ""}, "$exists": false}, "status": models.StatusOk}
 		)
 		var (
-				iter       = this.model.NewQuery(query).Limit(100).Iter()
+				iter       = this.model.NewQuery(query)
 				total, err = this.model.NewQuery(query).Count()
 		)
 		if err != nil {
@@ -477,14 +477,17 @@ func (this *AttachmentServiceImpl) SyncOssTask() int {
 }
 
 // 异步同步任务
-func (this *AttachmentServiceImpl) ossAsyncTask(iter *mgo.Iter, count *int) {
+func (this *AttachmentServiceImpl) ossAsyncTask(iter *mgo.Query, count *int) {
 		var (
+				page = 1
+				size  = 100
 				items = make([]*models.Attachment, 10)
 		)
+		// iter.Iter()
 		for {
 				items = items[:0]
 				// iter.Done()
-				err := iter.All(&items)
+				err := iter.Skip((page-1)*size).Limit(size).All(&items)
 				if err != nil {
 						logs.Error(err)
 						break
@@ -515,7 +518,6 @@ func (this *AttachmentServiceImpl) ossAsyncTask(iter *mgo.Iter, count *int) {
 								logs.Info("failed..." + it.Id.Hex())
 						}
 						this.closer(fs)
-
 				}
 		}
 }
