@@ -538,6 +538,7 @@ func (this *AttachmentServiceImpl) ossAsyncTask(iter *mgo.Query, count *int) {
 								logs.Info("failed..." + it.Id.Hex())
 						}
 						this.closer(fs)
+						page++
 				}
 		}
 }
