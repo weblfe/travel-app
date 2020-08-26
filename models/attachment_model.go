@@ -579,7 +579,8 @@ func (this *AttachmentModel) GetByMediaId(id string) (*Attachment, error) {
 // 获取图片
 func (this *AttachmentModel) GetImageById(id string) *Image {
 		var attach = NewAttachment()
-		if err := this.GetById(id, attach); err != nil || attach == nil {
+		if err := this.GetById(id, attach); err != nil || attach == nil  {
+				this.logs(err)
 				return nil
 		}
 		if attach.FileType != AttachTypeImage {
@@ -620,6 +621,7 @@ func (this *AttachmentModel) getExpiredAt() int64 {
 func (this *AttachmentModel) GetVideoById(id string) *Video {
 		var attach = NewAttachment()
 		if err := this.GetById(id, attach); err != nil || attach == nil {
+				this.logs(err)
 				return nil
 		}
 		if attach.FileType != AttachTypeVideo {
