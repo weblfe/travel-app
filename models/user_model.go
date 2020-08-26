@@ -3,6 +3,7 @@ package models
 import (
 		"fmt"
 		"github.com/astaxie/beego"
+		"github.com/astaxie/beego/logs"
 		"github.com/globalsign/mgo"
 		"github.com/globalsign/mgo/bson"
 		"github.com/weblfe/travel-app/libs"
@@ -40,6 +41,43 @@ type User struct {
 		UpdatedAt          time.Time     `json:"updatedAt" bson:"updatedAt"`                   // 更新时间
 		DeletedAt          int64         `json:"deletedAt" bson:"deletedAt"`                   // 删除时间戳
 		dataClassImpl      `json:",omitempty" bson:",omitempty"`
+}
+
+// 头像信息
+type AvatarInfo struct {
+		AvatarUrl string `json:"avatarUrl"`
+		AvatarId  string `json:"avatarId"`
+}
+
+// 地址信息
+type AddressInfo struct {
+		Address  string `json:"address"`
+		Country  string `json:"country"`
+		Province string `json:"province"`
+		City     string `json:"city"`
+		District string `json:"district"`
+		Street   string `json:"street"`
+}
+
+// 公共用户相关信息
+type UserProfile struct {
+		Gender             int          `json:"gender"`             // 性别类型ID
+		UserNumber         int64        `json:"userNumId"`          // 用户数字ID
+		Intro              string       `json:"intro"`              // 简介
+		BackgroundCoverUrl string       `json:"backgroundCoverUrl"` // 背景图片URL
+		Avatar             *AvatarInfo  `json:"avatar"`             // 用户头像
+		UserId             string       `json:"userId"`             // 用户唯一ID
+		Address            *AddressInfo `json:"address"`            // 地址
+		NickName           string       `json:"nickname"`           // 用户昵称
+		GenderDesc         string       `json:"genderDesc"`         // 性别描述
+		PostNumber         int64        `json:"postNum"`            // 用户作品数
+		ThumbsUpNum        int64        `json:"thumbsUpNum"`        // 点赞数
+		ThumbsUpNumTxt     string       `json:"thumbsUpNumTxt"`     // 点赞数字符串
+		CommentNum         int64        `json:"commentNum"`         // 评论数
+		CommentNumTxt      string       `json:"commentNumTxt"`      // 评论数字符串
+		LikesNum           int64        `json:"likesNum"`           // 用户喜欢作品数量
+		FollowNum          int64        `json:"followNum"`          // 用户关注数
+		FansNum            int64        `json:"fansNum"`            // 用户粉丝数
 }
 
 const (
@@ -387,4 +425,175 @@ func GetGenderEnum(gender string) int {
 
 func IsForbid(data *User) bool {
 		return data.DeletedAt != 0 || data.Status != 1
+}
+
+// 用户信息
+func NewUserProfile(id string) *UserProfile {
+		if id == "" {
+				return nil
+		}
+		var (
+				user    = NewUser()
+				profile = new(UserProfile)
+				err     = UserModelOf().GetById(id, user)
+		)
+		if err != nil {
+				logs.Error(err)
+				return nil
+		}
+		profile.Intro = user.Intro
+		profile.Gender = user.Gender
+		profile.UserId = user.Id.Hex()
+		profile.NickName = user.NickName
+		profile.UserNumber = user.UserNumId
+		profile.GenderDesc = GenderText(user.Gender)
+		profile.Avatar = NewAvatarInfo(user.AvatarId)
+		profile.FansNum = GetUserFansNumber(profile.UserId)
+		profile.LikesNum = GetUserLikeNumber(profile.UserId)
+		profile.PostNumber = GetUserPostNumber(profile.UserId)
+		profile.FollowNum = GetUserFollowNumber(profile.UserId)
+		profile.CommentNum = GetUserCommentNumber(profile.UserId)
+		profile.ThumbsUpNum = GetUserThumbsUpNumber(profile.UserId)
+		profile.Address = NewAddressInfo(user.Address, profile.UserId)
+		profile.CommentNumTxt = libs.BigNumberStringer(profile.CommentNum)
+		profile.ThumbsUpNumTxt = libs.BigNumberStringer(profile.ThumbsUpNum)
+		profile.BackgroundCoverUrl = GetUserBackgroundUrl(user.BackgroundCoverId, "mediaId")
+		return profile
+}
+
+func NewAvatarInfo(avatarId string) *AvatarInfo {
+		var avatar = new(AvatarInfo)
+		avatar.AvatarId = avatarId
+		var image = AttachmentModelOf().GetImageById(avatarId)
+		if image != nil {
+				avatar.AvatarUrl = image.Url
+		}
+		return avatar
+}
+
+func NewAddressInfo(address string, userId string) *AddressInfo {
+		var addr = new(AddressInfo)
+		addr.Country = "中国"
+		if userId == "" {
+				return addr
+		}
+		addr.Address = address
+		addr.City = "广州"
+		addr.Province = "广东"
+		addr.District = ""
+		addr.Street = ""
+		return addr
+}
+
+// 作品评论数
+func GetUserCommentNumber(userId string) int64 {
+		var query = bson.M{
+				"userId": userId,
+				"status": beego.M{"$in": []int{StatusAuditPass, StatusWaitAudit}},
+		}
+		return int64(PostsModelOf().Sum(query, "commentNum"))
+}
+
+// 作品点赞数
+func GetUserThumbsUpNumber(userId string) int64 {
+		var query = bson.M{
+				"userId": userId,
+				"status": beego.M{"$in": []int{StatusAuditPass, StatusWaitAudit}},
+		}
+		return int64(PostsModelOf().Sum(query, "thumbsUpNum"))
+}
+
+// 获取用户背景封面图
+func GetUserBackgroundUrl(id string, ty string) string {
+		if id == "" {
+				return ""
+		}
+		if ty == "mediaId" {
+				var image = AttachmentModelOf().GetImageById(id)
+				if image == nil {
+						return ""
+				}
+				return image.Url
+		}
+		if ty == "userId" {
+				var user = NewUser()
+				if err := UserModelOf().GetById(id, user); err != nil {
+						logs.Error(err)
+						return ""
+				}
+				return GetUserBackgroundUrl(user.BackgroundCoverId, "mediaId")
+		}
+		return ""
+}
+
+// 作品可见作品数
+func GetUserPostNumber(userId string) int64 {
+		var query = bson.M{
+				"userId": userId,
+				"status": beego.M{"$in": []int{StatusAuditPass, StatusWaitAudit}},
+		}
+		return int64(PostsModelOf().Count(query))
+}
+
+// 该用户关注用户数
+func GetUserFollowNumber(userId string) int64 {
+		var query = beego.M{
+				"status": StatusOk,
+				"userId": userId,
+		}
+		return UserFocusModelOf().Count(query)
+}
+
+// 该用户喜欢作品用户数
+func GetUserLikeNumber(userId string) int64 {
+		var query = bson.M{
+				"status": StatusOk,
+				"type":   ThumbsTypePost,
+				"userId": userId,
+		}
+		return int64(ThumbsUpModelOf().Count(query))
+}
+
+// 该用户粉丝数
+func GetUserFansNumber(userId string) int64 {
+		var query = beego.M{
+				"status":      StatusOk,
+				"focusUserId": userId,
+		}
+		return UserFocusModelOf().Count(query)
+}
+
+// 用户作品通过审核数
+func GetUserPassPostNumber(userId string) int64 {
+		var query = bson.M{
+				"userId": userId,
+				"status": StatusAuditPass,
+		}
+		return int64(PostsModelOf().Count(query))
+}
+
+// 用户作品未通过审核数
+func GetUserNotPassPostNumber(userId string) int64 {
+		var query = bson.M{
+				"userId": userId,
+				"status": StatusAuditUnPass,
+		}
+		return int64(PostsModelOf().Count(query))
+}
+
+// 获取用户作品下架数
+func GetUserDownPostNumber(userId string) int64 {
+		var query = bson.M{
+				"userId": userId,
+				"status": StatusAuditOff,
+		}
+		return int64(PostsModelOf().Count(query))
+}
+
+// 用户作品总数
+func GetUserPostTotal(userId string) int64 {
+		var query = bson.M{
+				"userId": userId,
+		}
+		return int64(PostsModelOf().Count(query))
 }

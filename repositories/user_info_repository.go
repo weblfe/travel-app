@@ -15,11 +15,12 @@ import (
 
 type UserInfoRepository interface {
 		GetUserInfo() common.ResponseJson
-		ResetPassword() common.ResponseJson
-		GetUserFriends(ids ...string) common.ResponseJson
-		UpdateUserInfo() common.ResponseJson
 		Search(string) common.ResponseJson
+		ResetPassword() common.ResponseJson
+		UpdateUserInfo() common.ResponseJson
+		GetProfile(string) common.ResponseJson
 		GetUserPublicInfo(string) common.ResponseJson
+		GetUserFriends(ids ...string) common.ResponseJson
 }
 
 type UserInfoRepositoryImpl struct {
@@ -339,4 +340,12 @@ func (this *UserInfoRepositoryImpl) removes(m beego.M) beego.M {
 				delete(m, key)
 		}
 		return m
+}
+
+func (this *UserInfoRepositoryImpl)GetProfile(userId string) common.ResponseJson  {
+		var data,err = this.userService.GetUserProfile(userId)
+		if err == nil {
+				return common.NewSuccessResp(beego.M{"user":data},common.Success)
+		}
+		return common.NewFailedResp(common.NotFound,err.Error())
 }

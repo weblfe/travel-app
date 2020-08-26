@@ -255,7 +255,7 @@ func (this *AttachmentRepositoryImpl) getAttachmentFilters() []func(beego.M) bee
 		}
 }
 
-func (this *AttachmentRepositoryImpl) transUrl(m beego.M) beego.M {
+func (this *AttachmentRepositoryImpl) transformUrl(m beego.M) beego.M {
 		var id = m["mediaId"]
 		if id == nil || id == "" {
 				return m

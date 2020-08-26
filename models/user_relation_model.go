@@ -32,8 +32,8 @@ type UserRelationModel struct {
 const (
 		UserRelationTable = "user_relations" // 表名
 		TargetTypeFriend  = "friend"         // 朋友关系
-		StatusOk          = 1                // 状态 正常
 		StatusUnKnown     = 0                // 状态 初始化
+		StatusOk          = 1                // 状态 正常
 		StatusCancel      = 2                // 状态 取消
 )
 

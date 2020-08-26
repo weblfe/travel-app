@@ -400,16 +400,9 @@ func (this *Attachment) M(filters ...func(m beego.M) beego.M) beego.M {
 
 func (this *Attachment) GetUrl() string {
 		if this.CdnUrl != "" {
-				return this.Certificate(this.CdnUrl)
+				return this.CertificateUrl(this.CdnUrl)
 		}
 		return this.Url
-}
-
-func (this *Attachment) Certificate(url string,expire...int64) string  {
-		if len(expire) == 0 {
-				expire = append(expire,0)
-		}
-		return 	plugins.AppendCertificate(url,expire[0])
 }
 
 func (this *Attachment) Image() *Image {
@@ -507,6 +500,14 @@ func (this *Attachment) GetCoverInfo(id bson.ObjectId) *Attachment {
 		return nil
 }
 
+// 获取认证访问的url
+func (this *Attachment) CertificateUrl(url string, expire ...int64) string {
+		if len(expire) == 0 {
+				expire = append(expire, 0)
+		}
+		return plugins.AppendCertificate(url, expire[0])
+}
+
 func (this *AttachmentModel) CreateIndex(force ...bool) {
 		this.createIndex(this.getCreateIndexHandler(), force...)
 }
@@ -588,10 +589,14 @@ func (this *AttachmentModel) GetImageById(id string) *Image {
 				image   = attach.Image()
 				service = this.getUrlService()
 		)
-		if service == nil {
-				image.Url = this.getTicketUrl(image.Url)
-		} else {
-				image.Url = service.GetTicketUrlByAttach(attach)
+		if attach.CdnUrl != "" {
+				image.Url = attach.GetUrl()
+		}else{
+				if service == nil {
+						image.Url = this.getTicketUrl(image.Url)
+				} else {
+						image.Url = service.GetTicketUrlByAttach(attach)
+				}
 		}
 		return image
 }
@@ -624,10 +629,15 @@ func (this *AttachmentModel) GetVideoById(id string) *Video {
 				video   = attach.Video()
 				service = this.getUrlService()
 		)
-		if service == nil {
-				video.Url = this.getTicketUrl(video.Url)
-		} else {
-				video.Url = service.GetTicketUrlByAttach(attach)
+
+		if attach.CdnUrl != "" {
+				video.Url = attach.GetUrl()
+		}else{
+				if service == nil {
+						video.Url = this.getTicketUrl(video.Url)
+				} else {
+						video.Url = service.GetTicketUrlByAttach(attach)
+				}
 		}
 		return video
 }

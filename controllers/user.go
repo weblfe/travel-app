@@ -148,19 +148,23 @@ func (this *UserController) GetUserFans() {
 // 用户搜索
 // @router /user/search  [get]
 func (this *UserController) Search() {
-	this.Send(repositories.NewUserInfoRepository(this).Search(this.GetString("query")))
+		this.Send(repositories.NewUserInfoRepository(this).Search(this.GetString("query")))
 }
 
+// 用户个人页信息
+//  @router /user/profile
+func (this *UserController) GetProfile() {
+		this.Send(repositories.NewUserInfoRepository(this).GetProfile(this.GetString("userId")))
+}
 
 // 收藏文章
 // @router /user/collect/post  [post]
-func (this *UserController)AddCollect() {
+func (this *UserController) AddCollect() {
 
 }
 
 // 移除收藏
 // @router /user/collect/post  [delete]
-func (this *UserController)RemoveCollects() {
+func (this *UserController) RemoveCollects() {
 
 }
-
