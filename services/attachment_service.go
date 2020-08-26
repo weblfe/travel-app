@@ -42,6 +42,7 @@ const (
 		AttachTypeVideo       = models.AttachTypeVideo
 		AttachTypeImage       = models.AttachTypeImage
 		AttachTypeImageAvatar = models.AttachTypeImageAvatar
+		MaxSize               = 220000000
 )
 
 type AttachmentServiceImpl struct {
@@ -503,8 +504,19 @@ func (this *AttachmentServiceImpl) ossAsyncTask(iter *mgo.Query, count *int) {
 								logs.Info("cdnUrl: " + it.CdnUrl)
 								continue
 						}
-						logs.Info("filename..." + it.GetLocal(),it.Size)
-						if it.Size >= 240000000 {
+						// 更新
+						if it.FileType == "" {
+								it.AutoType()
+								it.UpdatedAt = time.Now().Local()
+								if it.FileType != "" {
+										err = this.model.Update(bson.M{"_id": it.Id}, it)
+								}
+								if err != nil {
+										logs.Error(err)
+								}
+						}
+						logs.Info("filename..."+it.GetLocal(), it.Size)
+						if it.Size >= MaxSize {
 								logs.Info("filename size to lager", it.Size)
 								continue
 						}
@@ -515,7 +527,7 @@ func (this *AttachmentServiceImpl) ossAsyncTask(iter *mgo.Query, count *int) {
 						}
 						data := it.M()
 						data["key"] = it.GetBase()
-						logs.Info("data..." ,data)
+						logs.Info("data...", data)
 						if this.Uploader(fs, data) != nil {
 								*count++
 								logs.Info("success..." + it.Id.Hex())
@@ -566,6 +578,18 @@ func getType(extras beego.M) string {
 				if t == AttachTypeVideo {
 						return plugins.QinNiuBucketVideo
 				}
+		}
+		if v, ok := extras["filename"]; ok {
+				var name = v.(string)
+				if name != "" {
+						if isImage(name) {
+								return plugins.QinNiuBucketImg
+						}
+						if isVideo(name) {
+								return plugins.QinNiuBucketImg
+						}
+				}
+
 		}
 		return ""
 }
@@ -662,6 +686,28 @@ func getId(extras beego.M) bson.ObjectId {
 				}
 		}
 		return ""
+}
+
+func isImage(name string) bool {
+		var images = models.GetAttachTypes(models.AttachTypeImage)
+		if len(images) <= 0 {
+				return false
+		}
+		var ext = filepath.Ext(name)
+		for _, it := range images {
+				if strings.EqualFold(it, ext) {
+						return true
+				}
+		}
+		return false
+}
+
+func isVideo(name string) bool {
+		var ext = filepath.Ext(name)
+		if strings.EqualFold(".mp4", ext) {
+				return true
+		}
+		return false
 }
 
 // 返回数据

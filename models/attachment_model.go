@@ -579,7 +579,7 @@ func (this *AttachmentModel) GetByMediaId(id string) (*Attachment, error) {
 // 获取图片
 func (this *AttachmentModel) GetImageById(id string) *Image {
 		var attach = NewAttachment()
-		if err := this.GetById(id, attach); err != nil || attach == nil  {
+		if err := this.GetById(id, attach); err != nil || attach == nil {
 				this.logs(err)
 				return nil
 		}
@@ -592,7 +592,7 @@ func (this *AttachmentModel) GetImageById(id string) *Image {
 		)
 		if attach.CdnUrl != "" {
 				image.Url = attach.GetUrl()
-		}else{
+		} else {
 				if service == nil {
 						image.Url = this.getTicketUrl(image.Url)
 				} else {
@@ -634,7 +634,7 @@ func (this *AttachmentModel) GetVideoById(id string) *Video {
 
 		if attach.CdnUrl != "" {
 				video.Url = attach.GetUrl()
-		}else{
+		} else {
 				if service == nil {
 						video.Url = this.getTicketUrl(video.Url)
 				} else {
@@ -671,4 +671,14 @@ func (this *AttachmentModel) TypeMediaOk(id string, ty string) bool {
 				return false
 		}
 		return this.Exists(bson.M{"_id": bson.ObjectIdHex(id), "status": StatusOk, "fileType": ty})
+}
+
+// 获取对应类型
+func GetAttachTypes(ty string) []string {
+		for _, it := range AttachmentTypesMatcher {
+				if it.Key == ty {
+						return it.Values()
+				}
+		}
+		return []string{}
 }
