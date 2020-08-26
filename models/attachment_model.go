@@ -363,7 +363,7 @@ func (this *Attachment) M(filters ...func(m beego.M) beego.M) beego.M {
 				"userId":        this.UserId.Hex(),
 				"extrasInfo":    this.ExtrasInfo,
 				"tags":          this.Tags,
-				"url":           this.Url,
+				"url":           this.GetUrl(),
 				"cdn":           this.Cdn,
 				"cdnUrl":        this.CdnUrl,
 				"ossBucket":     this.OssBucket,

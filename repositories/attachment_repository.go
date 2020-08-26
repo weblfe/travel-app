@@ -54,7 +54,7 @@ func (this *AttachmentRepositoryImpl) List() common.ResponseJson {
 				items, meta = this.attachmentService.Lists(page, count)
 		)
 		for _, it := range items {
-				data = append(data, it.M(getUrlTransform(it)))
+				data = append(data, it.M())
 		}
 		return common.NewSuccessResp(beego.M{"items": data, "meta": meta}, common.Success)
 }
