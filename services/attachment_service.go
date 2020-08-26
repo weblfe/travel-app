@@ -504,7 +504,7 @@ func (this *AttachmentServiceImpl) ossAsyncTask(iter *mgo.Query, count *int) {
 								continue
 						}
 						logs.Info("filename..." + it.GetLocal(),it.Size)
-						if it.Size >= 251658240 {
+						if it.Size >= 240000000 {
 								logs.Info("filename size to lager", it.Size)
 								continue
 						}
