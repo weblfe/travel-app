@@ -300,7 +300,7 @@ func GetOSS() *OssPlugin {
 
 func AppendCertificate(Url string, expire int64) string {
 		if expire == 0 {
-				expire = time.Now().Add(30 * time.Second).Unix()
+				expire = time.Now().Add(30 * time.Minute).Unix()
 		}
 		var info, err = url2.Parse(Url)
 		if err != nil {
