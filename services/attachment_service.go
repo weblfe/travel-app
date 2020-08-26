@@ -495,10 +495,12 @@ func (this *AttachmentServiceImpl) ossAsyncTask(iter *mgo.Iter, count *int) {
 				}
 				logs.Info(fmt.Sprintf("count: %d", len(items)))
 				for _, it := range items {
-						logs.Info("start..." + it.Id.Hex())
-						if it.CdnUrl != "" {
+						logs.Info("start..." + it.Id.Hex(),it.CdnUrl)
+						if it.CdnUrl != ""  {
+								logs.Info("cdnUrl: " + it.CdnUrl)
 								continue
 						}
+						logs.Info("filename..." + it.GetLocal())
 						fs, err1 := os.Open(it.GetLocal())
 						if err1 != nil {
 								logs.Error(err1)
