@@ -479,7 +479,7 @@ func (this *AttachmentServiceImpl) SyncOssTask() int {
 // 异步同步任务
 func (this *AttachmentServiceImpl) ossAsyncTask(iter *mgo.Query, count *int) {
 		var (
-				page = 1
+				page  = 1
 				size  = 100
 				items = make([]*models.Attachment, 10)
 		)
@@ -487,7 +487,7 @@ func (this *AttachmentServiceImpl) ossAsyncTask(iter *mgo.Query, count *int) {
 		for {
 				items = items[:0]
 				// iter.Done()
-				err := iter.Skip((page-1)*size).Limit(size).All(&items)
+				err := iter.Skip((page - 1) * size).Limit(size).All(&items)
 				if err != nil {
 						logs.Error(err)
 						break
@@ -498,15 +498,15 @@ func (this *AttachmentServiceImpl) ossAsyncTask(iter *mgo.Query, count *int) {
 				}
 				logs.Info(fmt.Sprintf("count: %d", len(items)))
 				for _, it := range items {
-						logs.Info("start..." + it.Id.Hex(),it.CdnUrl)
-						if it.CdnUrl != ""  {
+						logs.Info("start..."+it.Id.Hex(), it.CdnUrl)
+						if it.CdnUrl != "" {
 								logs.Info("cdnUrl: " + it.CdnUrl)
 								continue
 						}
-						logs.Info("filename..." + it.GetLocal())
+						logs.Info("filename..." + it.GetLocal(),it.Size)
 						if it.Size >= 251658240 {
-								logs.Info("filename size to lager" , it.Size)
-							continue
+								logs.Info("filename size to lager", it.Size)
+								continue
 						}
 						fs, err1 := os.Open(it.GetLocal())
 						if err1 != nil {
@@ -518,7 +518,7 @@ func (this *AttachmentServiceImpl) ossAsyncTask(iter *mgo.Query, count *int) {
 						if this.Uploader(fs, data) != nil {
 								*count++
 								logs.Info("success..." + it.Id.Hex())
-						}else{
+						} else {
 								logs.Info("failed..." + it.Id.Hex())
 						}
 						this.closer(fs)
