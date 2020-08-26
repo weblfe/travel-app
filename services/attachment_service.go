@@ -508,6 +508,9 @@ func (this *AttachmentServiceImpl) ossAsyncTask(iter *mgo.Iter, count *int) {
 						data["key"] = it.GetBase()
 						if this.Uploader(fs, data) != nil {
 								*count++
+								logs.Info("success..." + it.Id.Hex())
+						}else{
+								logs.Info("failed..." + it.Id.Hex())
 						}
 						this.closer(fs)
 
