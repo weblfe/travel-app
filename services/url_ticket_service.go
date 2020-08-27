@@ -168,6 +168,9 @@ func (this *urlTicketServiceImpl) GetTicketUrlByAttach(attach *models.Attachment
 				return ""
 		}
 		var url = attach.CdnUrl
+		if url!= "" {
+				return attach.GetUrl()
+		}
 		if url == "" && attach.Url != "" {
 				url = attach.Url
 		}
