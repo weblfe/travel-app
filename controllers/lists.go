@@ -18,6 +18,7 @@ func (this *PostsController) Ranking() {
 
 // 关注
 // @router /posts/follows  [get]
+// @router /posts/follow  [get]
 func (this *PostsController) Follows() {
 		this.Send(repositories.NewPostsRepository(this).GetFollows())
 }

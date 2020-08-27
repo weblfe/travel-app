@@ -160,6 +160,7 @@ func initMiddleware() {
 		manger.Router(middlewares.TokenMiddleware, "/reset/password", beego.BeforeRouter)
 		manger.Router(middlewares.TokenMiddleware, "/posts/lists/my", beego.BeforeRouter)
 		manger.Router(middlewares.TokenMiddleware, "/posts/follows", beego.BeforeRouter)
+		manger.Router(middlewares.TokenMiddleware, "/posts/follow", beego.BeforeRouter)
 		manger.Router(middlewares.AuthMiddlewareName, "/posts/create", beego.BeforeRouter)
 		manger.Router(middlewares.AuthMiddlewareName, "/thumbsUp", beego.BeforeRouter)
 		manger.Router(middlewares.AuthMiddlewareName, "/fans", beego.BeforeRouter)
