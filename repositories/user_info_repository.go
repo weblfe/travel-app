@@ -323,7 +323,7 @@ func (this *UserInfoRepositoryImpl) Search(query string) common.ResponseJson {
 				transforms = getUserTransform(getUserId(this.ctx))
 		)
 		for _, it := range items {
-				result = append(result, it.M(transforms,this.removes))
+				result = append(result, it.M(transforms, this.removes))
 		}
 		return common.NewSuccessResp(bson.M{"items": result, "meta": meta}, "获取成功")
 }
@@ -342,10 +342,13 @@ func (this *UserInfoRepositoryImpl) removes(m beego.M) beego.M {
 		return m
 }
 
-func (this *UserInfoRepositoryImpl)GetProfile(userId string) common.ResponseJson  {
-		var data,err = this.userService.GetUserProfile(userId)
-		if err == nil {
-				return common.NewSuccessResp(beego.M{"user":data},common.Success)
+func (this *UserInfoRepositoryImpl) GetProfile(userId string) common.ResponseJson {
+		if userId == "" {
+				userId = getUserId(this.ctx)
 		}
-		return common.NewFailedResp(common.NotFound,err.Error())
+		var data, err = this.userService.GetUserProfile(userId)
+		if err == nil {
+				return common.NewSuccessResp(beego.M{"user": data}, common.Success)
+		}
+		return common.NewFailedResp(common.NotFound, err.Error())
 }

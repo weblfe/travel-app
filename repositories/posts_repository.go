@@ -290,6 +290,7 @@ func (this *postRepositoryImpl) getPostTransform() func(m beego.M) beego.M {
 						value := dto.IsThumbsUp(id.(string), currentUserId)
 						m["isUp"] = value
 						m["isFollowed"] = services.UserBehaviorServiceOf().IsFollowed(currentUserId, userId.(string))
+						// m["isThumbsUp"] = dto.IsThumbsUp(id.(string),currentUserId)
 				}
 				if !ok {
 						return m
@@ -385,9 +386,10 @@ func (this *postRepositoryImpl) GetFollows() common.ResponseJson {
 				limit    = models.NewListParam(page, count)
 		)
 		if userId == "" {
-				return common.NewUnLoginResp("please login!")
+				return common.NewFailedResp(common.RecordNotFound, common.RecordNotFoundError)
 		}
 		var query = bson.M{"userId": userId}
+		query["$type"] = ctx.GetString("type", "all")
 		items, meta = services.UserBehaviorServiceOf().GetFollowPostsLists(query, limit)
 		if items != nil && len(items) > 0 && meta != nil {
 				var arr []beego.M

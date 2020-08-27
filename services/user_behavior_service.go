@@ -1,9 +1,11 @@
 package services
 
 import (
+		"fmt"
 		"github.com/astaxie/beego"
 		"github.com/globalsign/mgo/bson"
 		"github.com/weblfe/travel-app/common"
+		"github.com/weblfe/travel-app/libs"
 		"github.com/weblfe/travel-app/models"
 		"time"
 )
@@ -336,9 +338,14 @@ func (this *userBehaviorServiceImpl) GetFollowPostsLists(query bson.M, limit mod
 				ids   []string
 				meta  = models.NewMeta()
 				model = this.getUserFocusModel()
+				ty    = this.getStr(beego.M(query), "$type")
 				items = make([]*models.UserFollow, 2)
 		)
 		items = items[:0]
+		delete(query, "$type")
+		if this.isSet(beego.M(query), "userId") {
+				query["userId"] = this.getObjectId(beego.M(query), "userId")
+		}
 		query["status"] = models.StatusOk
 		Query := model.NewQuery(query)
 		err = Query.Sort("-createdAt").All(&items)
@@ -347,17 +354,8 @@ func (this *userBehaviorServiceImpl) GetFollowPostsLists(query bson.M, limit mod
 				for _, it := range items {
 						ids = append(ids, it.FocusUserId.Hex())
 				}
-				// 7 天内更新的作品
-				day, _ := time.ParseDuration("7day")
-				query = bson.M{
-						"userId":  bson.M{"$in": ids},
-						"privacy": models.PublicPrivacy,
-						"status":  models.StatusAuditPass,
-						"createdAt": beego.M{
-								"$lte": time.Now().Local(), "$gt": time.Now().Add(-day).Local(),
-						},
-				}
-				return PostServiceOf().ListsQuery(query, limit, "-createdAt")
+				query["type"] = ty
+				return PostServiceOf().ListsQuery(this.parserQuery(query, ids), limit, "-createdAt")
 		}
 		return nil, meta
 }
@@ -385,4 +383,42 @@ func (this *userBehaviorServiceImpl) IsFriend(userId, userId2 string) bool {
 				return true
 		}
 		return false
+}
+
+func (this *userBehaviorServiceImpl) parserQuery(query bson.M, ids []string) bson.M {
+		// 7 天内更新的作品
+		var conditions = bson.M{
+				"userId":  bson.M{"$in": ids},
+				"privacy": models.PublicPrivacy,
+				"status":  models.StatusAuditPass,
+		}
+		var t, ok = this.getTime(beego.M(query), "timestamp")
+		if !ok {
+				t = time.Time{}
+		}
+		if t.IsZero() {
+				t = time.Now()
+		}
+		var ty = this.getStr(beego.M(query), "type")
+		// t.Local()
+		if ty == "recently" {
+				day, _ := time.ParseDuration("3day")
+				conditions["createdAt"] = bson.M{
+						"$lte": t.Local(), "$gt": t.Add(-day).Local(),
+				}
+		}
+		if ty == "weekly" {
+				day, _ := time.ParseDuration("7day")
+				conditions["createdAt"] = bson.M{
+						"$lte": t.Local(), "$gt": t.Add(-day).Local(),
+				}
+		}
+		if ty == "month" {
+				day, _ := time.ParseDuration("60day")
+				conditions["createdAt"] = bson.M{
+						"$lte": t.Local(), "$gt": t.Add(-day).Local(),
+				}
+		}
+		fmt.Printf("%v\n", string(libs.JsonEncode(conditions)))
+		return conditions
 }

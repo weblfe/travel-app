@@ -1,8 +1,14 @@
 package services
 
 import (
+		"fmt"
+		"github.com/astaxie/beego"
+		"github.com/astaxie/beego/logs"
 		"github.com/globalsign/mgo/bson"
+		"github.com/weblfe/travel-app/libs"
+		"reflect"
 		"sync"
+		"time"
 )
 
 type BaseService struct {
@@ -125,4 +131,109 @@ func (this *BaseService) id(v interface{}) bson.ObjectId {
 				return id
 		}
 		return ""
+}
+
+func (this *BaseService) isSet(m beego.M, key string) bool {
+		if _, ok := m[key]; ok {
+				return true
+		}
+		return false
+}
+
+func (this *BaseService) getObjectId(m beego.M, key string) bson.ObjectId {
+		var v, ok = m[key]
+		if !ok {
+				return ""
+		}
+		if id, ok := v.(string); ok {
+				return bson.ObjectIdHex(id)
+		}
+		if id, ok := v.(bson.ObjectId); ok {
+				return id
+		}
+		return ""
+}
+
+func (this *BaseService) getStr(m beego.M, key string) string {
+		var v, ok = m[key]
+		if !ok {
+				return ""
+		}
+		if value, ok := v.(string); ok {
+				return value
+		}
+		if id, ok := v.(bson.ObjectId); ok {
+				return id.Hex()
+		}
+		if str, ok := v.(fmt.Stringer); ok {
+				return str.String()
+		}
+		return fmt.Sprintf("%v", v)
+}
+
+func (this *BaseService) getAny(m beego.M, key string) interface{} {
+		var v, ok = m[key]
+		if !ok {
+				return nil
+		}
+		return v
+}
+
+func (this *BaseService) isEmpty(m beego.M, key string) bool {
+		var v, ok = m[key]
+		if !ok {
+				return true
+		}
+		if v == nil || v == "" {
+				return true
+		}
+		return false
+}
+
+func (this *BaseService) isZero(m beego.M, key string) bool {
+		var v, ok = m[key]
+		if !ok {
+				return true
+		}
+		if v == nil || v == "" || v == 0 || v == false {
+				return true
+		}
+		switch v.(type) {
+		case beego.M:
+				return len(v.(beego.M)) == 0
+		case bson.M:
+				return len(v.(bson.M)) == 0
+		case map[string]interface{}:
+				return len(v.(map[string]interface{})) == 0
+		case map[interface{}]interface{}:
+				return len(v.(map[interface{}]interface{})) == 0
+		}
+		return reflect.ValueOf(v).IsZero()
+}
+
+func (this *BaseService) getTime(query beego.M, key string) (time.Time, bool) {
+		var v, ok = query[key]
+		if !ok {
+				return time.Now(), false
+		}
+		switch v.(type) {
+		case string:
+				str := v.(string)
+				t, err := libs.GetTimeByNormalString(str)
+				if err == nil {
+						logs.Error(err)
+						return time.Now(), false
+				}
+				return t, true
+		case int64:
+				t := v.(int64)
+				return time.Unix(t, 0), true
+		case time.Time:
+				t := v.(time.Time)
+				return t, true
+		case *time.Time:
+				t := v.(*time.Time)
+				return *t, true
+		}
+		return time.Now(), false
 }

@@ -18,6 +18,7 @@ type PostService interface {
 		Create(notes *models.TravelNotes) error
 		GetById(id string) *models.TravelNotes
 		IncrThumbsUp(id string, incr int) error
+		IsThumbsUp(postId string,userId string) bool
 		UpdateById(id string, data beego.M) error
 		AutoVideoCoverImageTask(ids []string) int
 		AddAuditLog(userId, typ, comment string, ids []string) bool
@@ -450,4 +451,14 @@ func (this *TravelPostServiceImpl) All(query beego.M, limit models.ListsParams, 
 				return lists, meta
 		}
 		return nil, meta
+}
+
+func (this *TravelPostServiceImpl)IsThumbsUp(postId string,userId string) bool  {
+		var query = bson.M{
+				"typeId": postId,
+				"type":   "post",
+				"userId": userId,
+				"status": models.StatusOk,
+		}
+		return ThumbsUpServiceOf().Exists(query)
 }

@@ -156,6 +156,7 @@ func initMiddleware() {
 		manger.Router(middlewares.AuthMiddlewareName, "/attachment/*", beego.BeforeRouter)
 		manger.Router(middlewares.AttachTicketMiddlewareName, "/attachments/*", beego.BeforeRouter)
 
+		manger.Router(middlewares.TokenMiddleware, "/user/profile", beego.BeforeRouter)
 		manger.Router(middlewares.TokenMiddleware, "/reset/password", beego.BeforeRouter)
 		manger.Router(middlewares.TokenMiddleware, "/posts/lists/my", beego.BeforeRouter)
 		manger.Router(middlewares.TokenMiddleware, "/posts/follows", beego.BeforeRouter)
@@ -173,6 +174,7 @@ func initMiddleware() {
 		manger.Router(middlewares.RoleMiddleware, "/posts/audit", beego.BeforeRouter)
 		manger.Router(middlewares.RoleMiddleware, "/posts/all", beego.BeforeRouter)
 		manger.Router(middlewares.RoleMiddleware, "/posts/video/cover", beego.BeforeRouter)
+
 
 		// 启用中间
 		manger.Boot()
