@@ -96,11 +96,11 @@ func GetDtoRepository() *DtoRepository {
 
 func newDto() *DtoRepository {
 		var dto = new(DtoRepository)
-		dto._MaxCacheItemNum = DefaultMaxCacheItemNum
+		dto._Cache = make(beego.M,100)
 		dto._Table = make([]*cache, 2)
 		dto._Table = dto._Table[:0]
-		dto._Cache = beego.M{}
-		dto._Timer = time.NewTicker(DefaultMaxCacheItemNum)
+		dto._MaxCacheItemNum = DefaultMaxCacheItemNum
+		dto._Timer = time.NewTicker(DefaultCacheAliveDuration)
 		dto._Closer = make(chan byte, 2)
 		dto.startGc()
 		return dto
