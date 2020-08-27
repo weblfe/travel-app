@@ -83,7 +83,7 @@ func NewAddress() *Address {
 // 地址模型
 func AddressModelOf() *AddressModel {
 		var addr = new(AddressModel)
-		addr._Binder = addr
+		addr.Bind(addr)
 		addr.Init()
 		return addr
 }

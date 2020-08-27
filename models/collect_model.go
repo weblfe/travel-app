@@ -165,7 +165,7 @@ func (this *CollectModel) getCreateIndexHandler() func(*mgo.Collection) {
 }
 
 func (this *CollectModel) init() *CollectModel {
-		this._Binder = this
+		this.Bind(this)
 		this.Init()
 		return this
 }

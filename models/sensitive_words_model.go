@@ -192,7 +192,7 @@ func (this *SensitiveWordsModel) getCreateIndexHandler() func(*mgo.Collection) {
 }
 
 func (this *SensitiveWordsModel) init() *SensitiveWordsModel {
-		this._Binder = this
+		this.Bind(this)
 		this.Init()
 		return this
 }

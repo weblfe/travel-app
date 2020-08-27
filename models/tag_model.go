@@ -126,7 +126,7 @@ func (this *TagModel) TableName() string {
 
 func TagsModelOf() *TagModel {
 		var model = new(TagModel)
-		model._Binder = model
+		model.Bind(model)
 		model.Init()
 		return model
 }

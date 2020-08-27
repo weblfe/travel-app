@@ -6,7 +6,7 @@ type DiscoverModel struct {
 
 func DiscoverModelOf() *DiscoverModel {
 		var model = new(DiscoverModel)
-		model._Binder = model
+		model.Bind(model)
 		model.Init()
 		return model
 }

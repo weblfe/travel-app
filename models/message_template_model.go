@@ -48,7 +48,7 @@ func NewMessageTemplate() *MessageTemplate {
 
 func MessageTemplateModelOf() *MessageTemplateModel {
 		var model = new(MessageTemplateModel)
-		model._Binder = model
+		model.Bind(model)
 		model.Init()
 		return model
 }

@@ -19,7 +19,7 @@ const (
 
 func AppModelOf() *AppModel {
 		var model = new(AppModel)
-		model._Binder = model
+		model.Bind(model)
 		model.Init()
 		return model
 }

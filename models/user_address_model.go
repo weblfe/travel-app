@@ -134,7 +134,7 @@ func GetTypeDesc(typ int) string {
 
 func UserAddressModelOf() *UserAddressModel {
 		var model = new(UserAddressModel)
-		model._Binder = model
+		model.Bind(model)
 		model.Init()
 		return model
 }

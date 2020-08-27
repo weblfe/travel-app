@@ -14,7 +14,7 @@ type PostsModel struct {
 
 func PostsModelOf() *PostsModel {
 		var model = new(PostsModel)
-		model._Binder = model
+		model.Bind(model)
 		model.Init()
 		return model
 }

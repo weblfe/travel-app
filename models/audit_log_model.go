@@ -34,7 +34,7 @@ func NewAuditLog() *AuditLog {
 
 func AuditLogModelOf() *AuditLogModel {
 		var model = new(AuditLogModel)
-		model._Binder = model
+		model.Bind(model)
 		model.init()
 		return model
 }

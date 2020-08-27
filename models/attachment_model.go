@@ -123,7 +123,7 @@ func NewAttachment() *Attachment {
 
 func AttachmentModelOf() *AttachmentModel {
 		var model = new(AttachmentModel)
-		model._Binder = model
+		model.Bind(model)
 		model.Init()
 		return model
 }

@@ -32,7 +32,7 @@ const (
 
 func SmsLogModelOf() *SmsLogModel {
 		var model = new(SmsLogModel)
-		model._Binder = model
+		model.Bind(model)
 		model.Init()
 		return model
 }

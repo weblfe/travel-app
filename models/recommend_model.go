@@ -6,7 +6,7 @@ type RecommendModel struct {
 
 func RecommendModelOf() *RecommendModel  {
 		var model = new(RecommendModel)
-		model._Binder = model
+		model.Bind(model)
 		model.Init()
 		return model
 }

@@ -28,7 +28,7 @@ type UserFocusModel struct {
 
 func UserFocusModelOf() *UserFocusModel {
 		var model = new(UserFocusModel)
-		model._Binder = model
+		model.Bind(model)
 		model.Init()
 		return model
 }

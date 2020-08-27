@@ -257,7 +257,7 @@ func (this *PopularizationChannels) IsOk() bool {
 
 func PopularizationChannelsModelOf() *PopularizationChannelsModel {
 		var model = new(PopularizationChannelsModel)
-		model._Binder = model
+		model.Bind(model)
 		model.Init()
 		return model
 }

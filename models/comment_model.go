@@ -32,7 +32,7 @@ type Comment struct {
 
 func CommentModelOf() *CommentModel {
 		var model = new(CommentModel)
-		model._Binder = model
+		model.Bind(model)
 		model.Init()
 		return model
 }

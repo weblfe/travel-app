@@ -37,7 +37,7 @@ const (
 // 配置模型
 func ConfigModelOf() *ConfigModel {
 		var model = new(ConfigModel)
-		model._Binder = model
+		model.Bind(model)
 		model.Init()
 		return model
 }

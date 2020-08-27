@@ -38,7 +38,7 @@ func NewUserRole() *UserRoleType {
 
 func UserRolesConfigModelOf() *UserRolesConfigModel {
 		var model = new(UserRolesConfigModel)
-		model._Binder = model
+		model.Bind(model)
 		model.Init()
 		return model
 }

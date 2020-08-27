@@ -121,7 +121,7 @@ func (this *ThumbsUp) Save() error {
 
 func ThumbsUpModelOf() *ThumbsUpModel {
 		var model = new(ThumbsUpModel)
-		model._Binder = model
+		model.Bind(model)
 		model.Init()
 		return model
 }

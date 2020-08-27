@@ -109,7 +109,7 @@ var (
 
 func UserModelOf() *UserModel {
 		var model = new(UserModel)
-		model._Binder = model
+		model.Bind(model)
 		model.Init()
 		return model
 }

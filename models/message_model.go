@@ -44,7 +44,7 @@ func NewMessageLog() *MessageLog {
 
 func MessageModelOf() *MessageModel {
 		var model = new(MessageModel)
-		model._Binder = model
+		model.Bind(model)
 		model.Init()
 		return model
 }

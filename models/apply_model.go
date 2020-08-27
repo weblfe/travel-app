@@ -228,7 +228,7 @@ func (this *ApplyInfo) setAttributes(data map[string]interface{}, safe ...bool) 
 
 func ApplyInfoModelOf() *ApplyInfoModel {
 		var model = new(ApplyInfoModel)
-		model._Binder = model
+		model.Bind(model)
 		model.Init()
 		return model
 }
