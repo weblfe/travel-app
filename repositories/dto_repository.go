@@ -100,7 +100,7 @@ func newDto() *DtoRepository {
 		dto._Table = make([]*cache, 2)
 		dto._Table = dto._Table[:0]
 		dto._Cache = beego.M{}
-		dto._Timer = time.NewTicker(time.Minute)
+		dto._Timer = time.NewTicker(DefaultMaxCacheItemNum)
 		dto._Closer = make(chan byte, 2)
 		dto.startGc()
 		return dto
