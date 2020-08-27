@@ -528,6 +528,7 @@ func (this *DtoRepository) expireGc(table cacheTable) {
 				}
 		}
 		if len(deleteKeys) > 0 {
+				logs.Info(fmt.Sprintf("回收数据：%v",deleteKeys))
 				this.GC(deleteKeys...)
 		}
 }
