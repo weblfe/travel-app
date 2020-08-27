@@ -509,7 +509,6 @@ func (this *DtoRepository) lru(num ...int) {
 
 		// 定时Gc
 		if num[0] == -1 {
-				logs.Info("系统内部缓存GC,checking...")
 				this.expireGc(arr)
 				return
 		}
