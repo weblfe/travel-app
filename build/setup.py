@@ -13,6 +13,21 @@ default_password = os.getenv("MY_ROOT_PASSWORD")
 current_dir = os.getcwd()
 os.chdir(current_dir)
 
+'''
+    获取 git 用户 | 目录名 自动填充镜像名
+'''
+
+
+def get_default_name():
+    user = os.popen("git config --get user.name").read()
+    if user is None or user == 0:
+        user = os.path.basename(os.path.dirname(current_dir))
+    app = os.path.basename(current_dir)
+    user = user.strip("\n")
+    if user != "":
+        return user + "/" + app
+    return app
+
 
 def init_env(password=None):
     if password == "":
@@ -45,32 +60,49 @@ def build():
     docker()
 
 
+def help_menu():
+    print('setup.py [command] -t <tag>  -f <dockerfile> -i <image> -v <version> \n')
+    print(' tags : build , start, stop ,restart, rm , clean ')
+    print(' [command] docker-compose\'s command ')
+    print(' v,version build image tag version ')
+    print(' i,image build image tag name ')
+    print(' f,file  build docker image dockerfile ')
+
+
 def main(argv):
     try:
-        opts, args = getopt.getopt(argv[1:], "ht:", ["help", "tag="])
+        opts, args = getopt.getopt(argv[1:], "ht:v:i:f", ["help", "tag=", "version=", "image=", "file="])
     except getopt.GetoptError:
-        print('setup.py -t <tag> \n')
-        print(' tags : build , start, stop ,restart, rm , clean \n')
+        help_menu()
         sys.exit(2)
     opt_num = len(opts)
     args_num = len(args)
     if opt_num == 0 and args_num == 0:
-        print("test.py -t <tag> \n")
-        print(' tags : build , start, stop ,restart, rm , clean \n')
+        help_menu()
         sys.exit()
 
     if opt_num == 0 and args_num == 1:
         sys.exit(docker_cmd(args[0]))
-
+    action_opt = version = file = name = ""
     for opt, arg in opts:
         if opt == '-h':
-            print("test.py -t <tag> \n")
-            print(' tags : build , start, stop ,restart, rm , clean \n')
+            help_menu()
             sys.exit()
         elif opt in ("-t", "--tag"):
-            action(arg)
+            action_opt = arg
+        elif opt in ("-v", "--version"):
+            version = arg
+        elif opt in ("-f", "--file"):
+            file = arg
+        elif opt in ("-i", "--image"):
+            name = arg
         else:
-            action("start")
+            return action("start")
+    if action_opt != "" and action_opt != "image":
+        action(action_opt)
+        return 0
+    if action_opt == "image":
+        return image(file or docker_file, version or image_version, name or image_name)
 
 
 def action(opt):
@@ -106,14 +138,16 @@ def image(dockerfile_name, version, name):
         if version == "" or version == "\n":
             version = "1.0.0"
     if name == "" or name is None:
-        name = input("please set image name : (default  weblinuxgame/apiserver)")
+        default_name = get_default_name()
+        name = input("please set image name : (default " + default_name + " )")
         if name == "" or name == "\n":
-            name = "weblinuxgame/apiserver"
+            name = default_name
     cmd = tpl.substitute(dockerfile=dockerfile_name, version=version, name=name)
     print("command : `" + cmd + "`")
     ok = input("that command is ok? you want to exec  Y(es)/N(o) \n")
+    ok = ok.strip("\n")
     # 是否确定执行
-    if ok in ("Y", "Yes", "yes", "1", "\n"):
+    if ok in ("Y", "Yes", "yes", "1", "\n", ""):
         return os.system(cmd)
     else:
         return 1
