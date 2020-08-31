@@ -9,8 +9,7 @@ RUN  go env -w GOPROXY=https://goproxy.io \
     && go env -w GOPRIVATE=*.gitlab.com,*.gitee.com \
     && go build  -o api  \
     && rm -rf common controllers libs middlewares models plugins repositories routers services  \
-      tests transfroms transports .env data go.* .gitigrnore deploy.sh lastupdate.tmp .git \
-    && rm -rf static/storage \
+      tests transfroms transports .env \
     && rm -rf ${GOPATH}/src  && rm -rf ${GOPATH}/pkg && rm -rf ${GOPATH}/mod
 
 EXPOSE 8080

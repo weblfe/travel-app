@@ -1,0 +1,15 @@
+static/storage
+tests
+go.mod
+go.sum
+README.md
+deploy.sh
+lastupdate.tmp
+docker-compose.yaml
+Dockerfile
+data
+build
+.idea
+.gitignore
+.git
+.svn
