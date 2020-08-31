@@ -71,7 +71,7 @@ def help_menu():
 
 def main(argv):
     try:
-        opts, args = getopt.getopt(argv[1:], "ht:v:i:f", ["help", "tag=", "version=", "image=", "file="])
+        opts, args = getopt.getopt(argv[1:], "ht:v:i:f:", ["help", "tag=", "version=", "image=", "file="])
     except getopt.GetoptError:
         help_menu()
         sys.exit(2)
