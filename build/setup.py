@@ -3,7 +3,11 @@
 import getopt
 import os
 import sys
+from string import Template
 
+image_version = os.getenv("API_VERSION")
+image_name = os.getenv("IMAGE_NAME")
+docker_file = os.getenv("DOCKERFILE")
 docker_deploy_bin = "docker-compose"
 default_password = os.getenv("MY_ROOT_PASSWORD")
 current_dir = os.getcwd()
@@ -72,6 +76,8 @@ def main(argv):
 def action(opt):
     if opt == "start":
         docker()
+    elif opt == "image":
+        image(docker_file, image_version, image_name)
     elif opt == "build":
         build()
     elif opt == "stop":
@@ -87,6 +93,30 @@ def action(opt):
         docker_cmd("down --volumes")
     elif opt in ("ps", "status"):
         docker_cmd("ps")
+
+
+def image(dockerfile_name, version, name):
+    tpl = Template('docker build -f ${dockerfile} -t ${name}:${version} .')
+    if dockerfile_name == "" or dockerfile_name is None:
+        dockerfile_name = input("please set dockerfile name :(default Dockerfile)")
+        if dockerfile_name == "" or dockerfile_name == "\n":
+            dockerfile_name = "Dockerfile"
+    if version == "" or version is None:
+        version = input("please set image version : (default 1.0.0)")
+        if version == "" or version == "\n":
+            version = "1.0.0"
+    if name == "" or name is None:
+        name = input("please set image name : (default  weblinuxgame/apiserver)")
+        if name == "" or name == "\n":
+            name = "weblinuxgame/apiserver"
+    cmd = tpl.substitute(dockerfile=dockerfile_name, version=version, name=name)
+    print("command : `" + cmd + "`")
+    ok = input("that command is ok? you want to exec  Y(es)/N(o) \n")
+    # 是否确定执行
+    if ok in ("Y", "Yes", "yes", "1", "\n"):
+        return os.system(cmd)
+    else:
+        return 1
 
 
 def docker_cmd(cmd):
