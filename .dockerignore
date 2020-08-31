@@ -1,7 +1,5 @@
 static/storage
 tests
-go.mod
-go.sum
 README.md
 deploy.sh
 lastupdate.tmp
