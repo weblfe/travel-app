@@ -10,6 +10,7 @@ RUN  go env -w GOPROXY=https://goproxy.io \
     && go build  -o api  \
     && rm -rf common controllers libs middlewares models plugins repositories routers services  \
       tests transfroms transports .env data go.* .gitigrnore deploy.sh lastupdate.tmp .git \
+    && rm -rf static/storage \
     && rm -rf ${GOPATH}/src  && rm -rf ${GOPATH}/pkg && rm -rf ${GOPATH}/mod
 
 EXPOSE 8080
