@@ -10,3 +10,5 @@ static/storage/*
 *.log
 *.pprof
 *.memprof
+data
+venv
