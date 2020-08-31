@@ -147,7 +147,7 @@ def image(dockerfile_name, version, name):
     ok = input("that command is ok? you want to exec  Y(es)/N(o) \n")
     ok = ok.strip("\n")
     # 是否确定执行
-    if ok in ("Y", "Yes", "yes", "1", "\n", ""):
+    if ok in ("y", "Y", "Yes", "yes", "1", "\n", ""):
         return os.system(cmd)
     else:
         return 1
