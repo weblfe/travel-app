@@ -7,14 +7,16 @@ COPY . ./
 RUN  go env -w GOPROXY=https://goproxy.io \
     && export GO111MODULE=on && export GOPROXY=https://goproxy.io \
     && go env -w GOPRIVATE=*.gitlab.com,*.gitee.com \
-    && go build  -o api  \
-    && rm -rf common controllers libs middlewares models plugins repositories routers services  \
-      tests transfroms transports .env  go.* \
-    && rm -rf ${GOPATH}/src  && rm -rf ${GOPATH}/pkg && rm -rf ${GOPATH}/mod
+    && go build -ldflags="-s -w" -o /data/www/app/api
 
 FROM alpine
 
 WORKDIR /data/www/app
+
+FROM alpine
+
+RUN apk update --no-cache && apk add --no-cache ca-certificates && apk add --no-cache tzdata
+ENV TZ Asia/Shanghai
 
 COPY --from=builder /data/www/app/api    /data/www/app/api
 COPY --from=builder /data/www/app/conf    /data/www/app/conf
