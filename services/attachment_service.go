@@ -228,7 +228,7 @@ func (this *AttachmentServiceImpl) save(reader io.ReadCloser, extras beego.M) *m
 				}
 				return nil
 		}
-		if oss != "" && ossBucket != "" {
+		if oss != "" && ossBucket != "" && "" != os.Getenv("CDN_SYNC_ON") {
 				return this.Uploader(reader, extras)
 		}
 		return nil

@@ -7,6 +7,7 @@ import (
 		"path/filepath"
 		"strconv"
 		"strings"
+		"time"
 		"unicode"
 )
 
@@ -62,7 +63,7 @@ type FileSize int64
 
 func IsExits(file string) bool {
 		_, err := os.Stat(file)
-		if  err != nil {
+		if err != nil {
 				if os.IsExist(err) || os.IsNotExist(err) {
 						return false
 				}
@@ -140,4 +141,25 @@ func GetFileType(file string) string {
 				}
 		}
 		return ext
+}
+
+// 唯一名文件
+func UniqueFile(file string, root ...string) string {
+		var ext, base = filepath.Ext(file), filepath.Base(file)
+		var name = strings.Replace(base,ext,"",-1)
+		if IsExits(file) {
+				if len(root) > 0 {
+						return filepath.Join(root[0], fmt.Sprintf("%s", unique())+"_"+name+ext)
+				}
+				return strings.Replace(file, base, unique()+ext, 1)
+		}
+		file = strings.Replace(file, base, unique()+ext, 1)
+		if len(root) == 0 {
+				return file
+		}
+		return filepath.Join(root[0], file)
+}
+
+func unique() string {
+		return fmt.Sprintf("%v", time.Now().UnixNano())
 }

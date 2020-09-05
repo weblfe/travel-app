@@ -290,9 +290,7 @@ func (this *fileSystemServiceImpl) SaveByReader(reader io.ReadCloser, extras bee
 				savePath = filepath.Join(root, name)
 		}
 		// 文件是否存在
-		if libs.IsExits(savePath) {
-				savePath = filepath.Join(root, fmt.Sprintf("%d", time.Now().Unix())+"_"+name)
-		}
+		savePath = libs.UniqueFile(savePath)
 		fs, err := os.OpenFile(savePath, os.O_CREATE|os.O_WRONLY, os.ModePerm)
 		defer func() {
 				_ = fs.Close()
