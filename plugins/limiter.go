@@ -17,7 +17,7 @@ const (
 		TokenCtxValueKey      = "token"
 		MacCtxValueKey        = "mac"
 		MinAccessTimeInterval = 50 * time.Millisecond // api 访问时间间隔
-		MaxAccessTimes        = 100                     // api 最大访问次数
+		MaxAccessTimes        = 100                   // api 最大访问次数
 )
 
 type LimitResult struct {
@@ -233,13 +233,14 @@ func (this *tokenLimiterProviderImpl) limitByToken(token string) *LimitResult {
 				pass = false
 		}
 		// 访问次数检查
-		if pass && times != nil && this.accessTimesLimit(times.(int)) {
-				pass = false
+		if times != nil && this.accessTimesLimit(times.(int)) {
+				if pass != false {
+						pass = false
+				}
 		}
 		// 更新范围次数
 		if times != nil {
 				err = this.storage.Incr(keyTime)
-
 		} else {
 				err = this.storage.Put(keyTime, 1, this.timeInterval)
 		}
@@ -261,7 +262,7 @@ func (this *tokenLimiterProviderImpl) limitByToken(token string) *LimitResult {
 func (this *tokenLimiterProviderImpl) timeAccessLimit(now, last int64) bool {
 		var (
 				min = int64(this.timeInterval)
-				sub  = now - last
+				sub = now - last
 		)
 		logs.Info(fmt.Sprintf("limit timer : %s , statand: %s, more : %s ", time.Duration(sub), time.Duration(min), time.Duration(sub-min)))
 		if now > last && sub >= min {
