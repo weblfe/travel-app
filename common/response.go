@@ -401,7 +401,7 @@ func NewErrorResp(err Errors, args ...interface{}) ResponseJson {
 		var resp = NewResponse(args...)
 		resp.Set("err", err)
 		if !resp.Has("code") {
-				resp.Set("code", ErrorCode)
+				resp.Set("code", SuccessCode)
 		}
 		if !resp.Has("msg") {
 				resp.Set("msg", Error)
