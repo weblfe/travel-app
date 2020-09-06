@@ -8,8 +8,8 @@ import (
 )
 
 type UserCollectionRepository interface {
-		Add(id string) common.ResponseJson
-		Remove(id string) common.ResponseJson
+		Add(id ,userId string) common.ResponseJson
+		Remove(id ,userId string) common.ResponseJson
 }
 
 type userCollectionRepositoryImpl struct {
@@ -44,7 +44,7 @@ func (this *userCollectionRepositoryImpl) Remove(id string,userId string) common
 
 // 移除
 func (this *userCollectionRepositoryImpl) Lists(userId string) common.ResponseJson {
-		var items, meta = this.service.Lists(userId)
+		var items, meta = this.service.Lists(userId,nil)
 		if items != nil {
 				return common.NewSuccessResp(beego.M{"items": items, "meta": meta}, "罗列成功")
 		}

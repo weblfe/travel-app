@@ -7,6 +7,7 @@ import (
 		"github.com/astaxie/beego/session"
 		"github.com/weblfe/travel-app/common"
 		"github.com/weblfe/travel-app/libs"
+		"github.com/weblfe/travel-app/middlewares"
 		"net/http"
 		"reflect"
 		"strconv"
@@ -23,10 +24,10 @@ func (this *BaseController) Send(json common.ResponseJson) {
 		this.ServeJSON()
 }
 
-func (this *BaseController)View(name string,data ...beego.M)  {
+func (this *BaseController) View(name string, data ...beego.M) {
 		if len(data) > 0 {
-				for _,m:= range data{
-						for k,v:=range m {
+				for _, m := range data {
+						for k, v := range m {
 								this.Data[k] = v
 						}
 				}
@@ -215,7 +216,7 @@ func (this *BaseController) GetStrings(key string, def ...[]string) []string {
 
 func (this *BaseController) GetInt(key string, def ...int) int {
 		if len(def) == 0 {
-				def = append(def,0)
+				def = append(def, 0)
 		}
 		var v, err = this.Controller.GetInt(key, def...)
 		if err == nil {
@@ -301,4 +302,24 @@ func (this *BaseController) GetDriver() string {
 				return "android"
 		}
 		return driver
+}
+
+func (this *BaseController) GetUserId() string {
+		var sess session.Store
+		if this.CruSession == nil {
+				sess = this.Ctx.Input.CruSession
+		}
+		if sess == nil {
+				return ""
+		}
+		var (
+				userId = sess.Get(middlewares.AuthUserId)
+		)
+		if userId == nil || userId == "" {
+				return ""
+		}
+		if id, ok := userId.(string); ok {
+				return id
+		}
+		return ""
 }
