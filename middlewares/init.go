@@ -7,4 +7,5 @@ func init()  {
 		GetAttachTicketMiddleware()
 		GetRoleMiddleware()
 		GetCorsMiddleware()
+		GetHeaderWares()
 }

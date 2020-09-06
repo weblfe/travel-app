@@ -151,16 +151,19 @@ func initMiddleware() {
 		manger := middlewares.GetMiddlewareManger()
 		// 注册路由中间件
 		manger.Router(middlewares.CorsMiddlewareName, "*", beego.BeforeExec)
+		manger.Router(middlewares.HeaderMiddleWareName, "*", beego.BeforeExec)
+		manger.Router(middlewares.HeaderMiddleWareName, "*", beego.AfterExec)
 		// 登陆中间
 		manger.Router(middlewares.AuthMiddlewareName, "/user/info", beego.BeforeRouter)
 		manger.Router(middlewares.AuthMiddlewareName, "/attachment/*", beego.BeforeRouter)
 		manger.Router(middlewares.AttachTicketMiddlewareName, "/attachments/*", beego.BeforeRouter)
-
+		// 检查认证
 		manger.Router(middlewares.TokenMiddleware, "/user/profile", beego.BeforeRouter)
 		manger.Router(middlewares.TokenMiddleware, "/reset/password", beego.BeforeRouter)
 		manger.Router(middlewares.TokenMiddleware, "/posts/lists/my", beego.BeforeRouter)
 		manger.Router(middlewares.TokenMiddleware, "/posts/follows", beego.BeforeRouter)
 		manger.Router(middlewares.TokenMiddleware, "/posts/follow", beego.BeforeRouter)
+
 		manger.Router(middlewares.AuthMiddlewareName, "/posts/create", beego.BeforeRouter)
 		manger.Router(middlewares.AuthMiddlewareName, "/logout", beego.BeforeRouter)
 		manger.Router(middlewares.AuthMiddlewareName, "/thumbsUp", beego.BeforeRouter)
@@ -200,6 +203,7 @@ func registerPlugins() {
 		plugins.GetOSS().Register()
 		plugins.GetQrcode().Register()
 		plugins.GetNatsPlugin().Register()
+		plugins.GetLimiter().Register()
 }
 
 // 注册全局服务

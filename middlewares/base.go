@@ -191,3 +191,7 @@ func (this *middlewareManager) Boot() {
 				delete(this.routers, key)
 		}
 }
+
+func (this *middlewareImpl)hasIndex() bool  {
+		return  beego.BConfig.RunMode != beego.PROD
+}
