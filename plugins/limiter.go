@@ -193,8 +193,9 @@ func (this *tokenLimiterProviderImpl) Handler(ctx ContextLimit) *LimitResult {
 		var mac = ctxObj.Value(MacCtxValueKey)
 		// 机器人访问限制
 		if mac == nil || mac == "" {
+				// @todo robot
 				return &LimitResult{
-						Ok:  false,
+						Ok:  true,
 						Msg: "robot limit!",
 				}
 		}
