@@ -425,6 +425,9 @@ func NewFailedResp(code int, args ...interface{}) ResponseJson {
 		if !res.Has("msg") {
 				res.Set("msg", args[1])
 		}
+		if !res.Has("error") {
+				res.Set("error",NewErrors(res.Get("code"),res.Get("msg")))
+		}
 		return res
 }
 
