@@ -30,6 +30,7 @@ type CollectModel struct {
 const (
 		CollectTable          = "user_collects"
 		CollectTargetTypePost = "post"
+		StatusActivity  =1
 )
 
 func NewCollect() *Collect {

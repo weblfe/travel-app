@@ -160,11 +160,13 @@ func (this *UserController) GetProfile() {
 // 收藏文章
 // @router /user/collect/post  [post]
 func (this *UserController) AddCollect() {
-
+		var postId = this.GetString("post_id")
+		this.Send(repositories.NewUserCollectionRepository(this).Add(postId))
 }
 
 // 移除收藏
 // @router /user/collect/post  [delete]
 func (this *UserController) RemoveCollects() {
-
+		var postId = this.GetString("post_id")
+		this.Send(repositories.NewUserCollectionRepository(this).Remove(postId))
 }
