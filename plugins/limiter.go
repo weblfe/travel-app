@@ -16,7 +16,7 @@ const (
 		GlobalPolicyEnvKey    = "LIMIT_POLICY"
 		TokenCtxValueKey      = "token"
 		MacCtxValueKey        = "mac"
-		MaxAccessTimeInterval = 150 * time.Millisecond // api 访问时间间隔
+		MaxAccessTimeInterval = 300 * time.Millisecond // api 访问时间间隔
 		MaxAccessTimes        = 100                     // api 最大访问次数
 )
 
