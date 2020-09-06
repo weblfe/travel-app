@@ -205,7 +205,7 @@ func (this *LoginRepositoryImpl) Logout() common.ResponseJson {
 				this.ctx.Cookie(middlewares.AppAccessTokenHeader, nil)
 				return common.NewSuccessResp(beego.M{"id": id, "timestamp": time.Now().Unix()}, "logout success!")
 		}
-		return common.NewFailedResp(common.ServiceFailed, common.NewErrors(err, "logout success!"))
+		return common.NewSuccessResp(beego.M{"id": id, "timestamp": time.Now().Unix(),"errno":common.ServiceFailed, "errmsg":common.NewErrors(err, "logout success!")},"logout success")
 }
 
 func (this *LoginRepositoryImpl) getUserService() services.UserService {
