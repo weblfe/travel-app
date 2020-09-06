@@ -266,7 +266,7 @@ func (this *ApplyInfoModel) GetByUnique(m beego.M) *ApplyInfo {
 		var (
 				err   error
 				data  = NewApplyInfo()
-				query = bson.M{"userId": "", "target": "", "type": "", "title": ""}
+				query = bson.M{"userId": "", "target": "", "type": "", "title": "","content":""}
 		)
 		for key := range query {
 				v, ok := m[key]

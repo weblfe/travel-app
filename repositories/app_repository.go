@@ -46,7 +46,7 @@ func (this *appRepository) Apply() common.ResponseJson {
 				err    error
 				userId = getUserId(this.ctx)
 				data   = models.NewApplyInfo()
-				extras =  this.ctx.GetJsonData()
+				extras = this.ctx.GetJsonData()
 		)
 		data.UserId = userId
 		data.Date = models.GetDate()
@@ -95,6 +95,15 @@ func getImages(m beego.M) []string {
 				var arr []string
 				for _, str := range v {
 						arr = append(arr, *str)
+				}
+				return arr
+		}
+		if v, ok := images.([]interface{}); ok {
+				var arr []string
+				for _, str := range v {
+						if s, ok := str.(string); ok {
+								arr = append(arr, s)
+						}
 				}
 				return arr
 		}
