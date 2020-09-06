@@ -258,6 +258,7 @@ func (this *tokenLimiterProviderImpl) timeAccessLimit(now, last int64) bool {
 		if now > last && now-last >= long {
 				return false
 		}
+		logs.Info("limit timer ")
 		return true
 }
 
@@ -266,6 +267,7 @@ func (this *tokenLimiterProviderImpl) accessTimesLimit(times int) bool {
 		if this.maxTimes >= times {
 				return false
 		}
+		logs.Info("limit times ")
 		return true
 }
 
