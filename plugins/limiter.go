@@ -17,7 +17,7 @@ const (
 		TokenCtxValueKey      = "token"
 		MacCtxValueKey        = "mac"
 		MinAccessTimeInterval = 100 * time.Microsecond // api 访问时间间隔
-		MaxAccessTimes        = 100                   // api 最大访问次数
+		MaxAccessTimes        = 30                   // api 最大访问次数
 )
 
 type LimitResult struct {
