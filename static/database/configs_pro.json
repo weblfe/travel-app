@@ -1,7 +1,7 @@
 [
   {
     "key": "appName",
-    "value": "游迹网",
+    "value": "萤火虫游迹",
     "title": "应用名",
     "root": "app"
   },
@@ -13,25 +13,25 @@
   },
   {
     "key": "appHelpUrl",
-    "value": "https://www.baidu.com",
-    "title": "帮助页",
+    "value": "https://ffmark.nuokwan.com/contactUs",
+    "title": "联系我们",
     "root": "app"
   },
   {
     "key": "appAboutUs",
-    "value": "https://www.baidu.com",
+    "value": "https://ffmark.nuokwan.com/about",
     "title": "关于我们",
     "root": "app"
   },
   {
     "key": "appUserAgreement",
-    "value": "https://www.baidu.com",
+    "value": "https://ffmark.nuokwan.com/agreement",
     "title": "用户协议页",
     "root": "app"
   },
   {
     "key": "appPrivacy",
-    "value": "https://www.baidu.com",
+    "value": "https://ffmark.nuokwan.com/private",
     "title": "隐私条款页",
     "root": "app"
   },
