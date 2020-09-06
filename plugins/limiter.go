@@ -113,7 +113,7 @@ func (this *limiterImpl) Boot() {
 }
 
 func (this *limiterImpl) getCache() cache.Cache {
-		var cacheInstance, _ = cache.NewCache("memory", `{"interval":20}`)
+		var cacheInstance, _ = cache.NewCache("memory", `{"interval":10}`)
 		return cacheInstance
 }
 
@@ -241,11 +241,11 @@ func (this *tokenLimiterProviderImpl) limitByToken(token string) *LimitResult {
 				err = this.storage.Incr(keyTime)
 
 		} else {
-				err = this.storage.Put(keyTime, 1, time.Minute)
+				err = this.storage.Put(keyTime, 1, this.timeInterval)
 		}
 		this.logs(err)
 		// 更新访问时间
-		err = this.storage.Put(keyLastAt, timestampNow, time.Minute)
+		err = this.storage.Put(keyLastAt, timestampNow, this.timeInterval)
 		this.logs(err)
 		if pass {
 				return &LimitResult{
