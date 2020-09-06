@@ -50,9 +50,9 @@ func (this *appRepository) Apply() common.ResponseJson {
 		)
 		data.UserId = userId
 		data.Date = models.GetDate()
-		data.Content = this.ctx.GetString("content")
-		data.Target = this.ctx.GetString("target")
 		data.Title = this.ctx.GetString("title")
+		data.Target = this.ctx.GetString("target")
+		data.Content = this.ctx.GetString("content")
 		data.Type = this.ctx.GetString("type", models.ApplyTypeReport)
 		data.Images = getImages(extras)
 		if len(extras) > 0 {
