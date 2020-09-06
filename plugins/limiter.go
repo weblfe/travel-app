@@ -2,6 +2,7 @@ package plugins
 
 import (
 		"context"
+		"fmt"
 		"github.com/astaxie/beego/cache"
 		"github.com/astaxie/beego/logs"
 		"os"
@@ -134,7 +135,7 @@ func NewContextLimit() ContextLimit {
 
 func newCtx() ContextLimit {
 		var impl = new(contextLimitImpl)
-		impl.timeout = 60 * time.Second
+		impl.timeout = 2 * time.Second
 		impl.ctx, impl.cancel = context.WithTimeout(context.Background(), impl.timeout)
 		return impl
 }
@@ -255,11 +256,14 @@ func (this *tokenLimiterProviderImpl) limitByToken(token string) *LimitResult {
 
 // 访问间隔判断
 func (this *tokenLimiterProviderImpl) timeAccessLimit(now, last int64) bool {
-		var long = int64(this.timeInterval)
-		if now > last && now-last >= long {
+		var (
+			long = int64(this.timeInterval)
+			sub = now-last
+		)
+		if now > last && sub >= long {
 				return false
 		}
-		logs.Info("limit timer ")
+		logs.Info(fmt.Sprintf("limit timer : %d ",sub))
 		return true
 }
 
