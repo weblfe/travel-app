@@ -264,7 +264,7 @@ func (this *tokenLimiterProviderImpl) timeAccessLimit(now, last int64) bool {
 				min = int64(this.timeInterval)
 				sub = now - last
 		)
-		logs.Info(fmt.Sprintf("limit timer : %s , statand: %s, more : %s ", time.Duration(sub), time.Duration(min), time.Duration(sub-min)))
+		logs.Info(fmt.Sprintf("limit timer : %s , statand: %s, more : %s ,last : %d", time.Duration(sub), time.Duration(min), time.Duration(sub-min),last))
 		if now > last && sub >= min {
 				return false
 		}
