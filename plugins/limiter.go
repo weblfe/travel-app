@@ -10,12 +10,14 @@ import (
 )
 
 const (
-		LimiterPlugin      = "limiter"
-		LimiterTokenPolicy = "token"
-		PolicyKey          = "policy"
-		GlobalPolicyEnvKey = "LIMIT_POLICY"
-		TokenCtxValueKey   = "token"
-		MacCtxValueKey     = "mac"
+		LimiterPlugin         = "limiter"
+		LimiterTokenPolicy    = "token"
+		PolicyKey             = "policy"
+		GlobalPolicyEnvKey    = "LIMIT_POLICY"
+		TokenCtxValueKey      = "token"
+		MacCtxValueKey        = "mac"
+		MaxAccessTimeInterval = 150 * time.Millisecond // api 访问时间间隔
+		MaxAccessTimes        = 100                     // api 最大访问次数
 )
 
 type LimitResult struct {
@@ -107,7 +109,7 @@ func (this *limiterImpl) PluginName() string {
 }
 
 func (this *limiterImpl) Boot() {
-		this.SetProvider(LimiterTokenPolicy, NewTokenLimiterProvider(this.getCache(), 100, 1*time.Second).Handler)
+		this.SetProvider(LimiterTokenPolicy, NewTokenLimiterProvider(this.getCache(), MaxAccessTimes, MaxAccessTimeInterval).Handler)
 }
 
 func (this *limiterImpl) getCache() cache.Cache {
@@ -222,7 +224,8 @@ func (this *tokenLimiterProviderImpl) limitByToken(token string) *LimitResult {
 		)
 		// 计数器 重置,过期, 第一次
 		if lastTime == nil {
-				err = this.storage.Put(keyTime, 0, time.Minute)
+				times = 0
+				err = this.storage.Put(keyTime, times, time.Minute)
 				this.logs(err)
 		}
 		// 访问时间间隔检查
@@ -257,13 +260,13 @@ func (this *tokenLimiterProviderImpl) limitByToken(token string) *LimitResult {
 // 访问间隔判断
 func (this *tokenLimiterProviderImpl) timeAccessLimit(now, last int64) bool {
 		var (
-			long = int64(this.timeInterval)
-			sub = now-last
+				long = int64(this.timeInterval)
+				sub  = now - last
 		)
 		if now > last && sub >= long {
 				return false
 		}
-		logs.Info(fmt.Sprintf("limit timer : %d ",sub))
+		logs.Info(fmt.Sprintf("limit timer : %d , statand: %d, more : %d ", sub, long, sub-long))
 		return true
 }
 
@@ -272,7 +275,7 @@ func (this *tokenLimiterProviderImpl) accessTimesLimit(times int) bool {
 		if this.maxTimes >= times {
 				return false
 		}
-		logs.Info("limit times ")
+		logs.Info(fmt.Sprintf("limit times %d, more: %d", times, times-this.maxTimes))
 		return true
 }
 
