@@ -16,7 +16,7 @@ const (
 		GlobalPolicyEnvKey    = "LIMIT_POLICY"
 		TokenCtxValueKey      = "token"
 		MacCtxValueKey        = "mac"
-		MinAccessTimeInterval = 50 * time.Millisecond // api 访问时间间隔
+		MinAccessTimeInterval = 30 * time.Millisecond // api 访问时间间隔
 		MaxAccessTimes        = 100                   // api 最大访问次数
 )
 
@@ -242,11 +242,11 @@ func (this *tokenLimiterProviderImpl) limitByToken(token string) *LimitResult {
 		if times != nil {
 				err = this.storage.Incr(keyTime)
 		} else {
-				err = this.storage.Put(keyTime, 1, this.timeInterval)
+				err = this.storage.Put(keyTime, 1, time.Second)
 		}
 		this.logs(err)
 		// 更新访问时间
-		err = this.storage.Put(keyLastAt, timestampNow, this.timeInterval)
+		err = this.storage.Put(keyLastAt, timestampNow, time.Second)
 		this.logs(err)
 		if pass {
 				return &LimitResult{
