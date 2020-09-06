@@ -16,8 +16,8 @@ const (
 		GlobalPolicyEnvKey    = "LIMIT_POLICY"
 		TokenCtxValueKey      = "token"
 		MacCtxValueKey        = "mac"
-		MaxAccessTimeInterval = 300 * time.Millisecond // api 访问时间间隔
-		MaxAccessTimes        = 150                     // api 最大访问次数
+		MinAccessTimeInterval = 10 * time.Millisecond // api 访问时间间隔
+		MaxAccessTimes        = 100                     // api 最大访问次数
 )
 
 type LimitResult struct {
@@ -109,7 +109,7 @@ func (this *limiterImpl) PluginName() string {
 }
 
 func (this *limiterImpl) Boot() {
-		this.SetProvider(LimiterTokenPolicy, NewTokenLimiterProvider(this.getCache(), MaxAccessTimes, MaxAccessTimeInterval).Handler)
+		this.SetProvider(LimiterTokenPolicy, NewTokenLimiterProvider(this.getCache(), MaxAccessTimes, MinAccessTimeInterval).Handler)
 }
 
 func (this *limiterImpl) getCache() cache.Cache {
@@ -260,13 +260,13 @@ func (this *tokenLimiterProviderImpl) limitByToken(token string) *LimitResult {
 // 访问间隔判断
 func (this *tokenLimiterProviderImpl) timeAccessLimit(now, last int64) bool {
 		var (
-				long = int64(this.timeInterval)
+				min = int64(this.timeInterval)
 				sub  = now - last
 		)
-		if now > last && sub >= long {
+		if now > last && sub >= min {
 				return false
 		}
-		logs.Info(fmt.Sprintf("limit timer : %d , statand: %d, more : %d ", sub, long, sub-long))
+		logs.Info(fmt.Sprintf("limit timer : %d , statand: %d, more : %d ", sub, min, sub-min))
 		return true
 }
 
