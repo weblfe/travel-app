@@ -6,6 +6,7 @@
     "content": "#项目核心功能上线",
     "forcedUpdate": 0,
     "appBuild" : 1,
+    "appName" : "萤火虫游迹",
     "remark" : "第一个ios版本",
     "publishTime": "2020-07-28 10:00:00"
   },
@@ -16,6 +17,7 @@
     "content": "#项目核心功能上线",
     "forcedUpdate": true,
     "appBuild" : 1,
+    "appName": "萤火虫游迹",
     "remark" : "第一个android版本",
     "publishTime": "2020-07-28 10:00:00"
   }
