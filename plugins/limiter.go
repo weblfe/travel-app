@@ -16,7 +16,7 @@ const (
 		GlobalPolicyEnvKey    = "LIMIT_POLICY"
 		TokenCtxValueKey      = "token"
 		MacCtxValueKey        = "mac"
-		MinAccessTimeInterval = 10 * time.Millisecond // api 访问时间间隔
+		MinAccessTimeInterval = 50 * time.Millisecond // api 访问时间间隔
 		MaxAccessTimes        = 100                     // api 最大访问次数
 )
 
@@ -263,10 +263,10 @@ func (this *tokenLimiterProviderImpl) timeAccessLimit(now, last int64) bool {
 				min = int64(this.timeInterval)
 				sub  = now - last
 		)
+		logs.Info(fmt.Sprintf("limit timer : %s , statand: %s, more : %s ", time.Duration(sub), time.Duration(min), time.Duration(sub-min)))
 		if now > last && sub >= min {
 				return false
 		}
-		logs.Info(fmt.Sprintf("limit timer : %d , statand: %d, more : %d ", sub, min, sub-min))
 		return true
 }
 
