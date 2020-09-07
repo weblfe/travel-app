@@ -1,11 +1,11 @@
 package common
 
 import (
-		"encoding/json"
 		"fmt"
 		"github.com/astaxie/beego"
 		"github.com/astaxie/beego/config/env"
 		"github.com/globalsign/mgo/bson"
+		jsonApi "github.com/json-iterator/go"
 		"strings"
 		"sync"
 )
@@ -50,11 +50,11 @@ type SetterEntry interface {
 }
 
 func (this *ResponseImpl) UnJson(bytes []byte) error {
-		return json.Unmarshal(bytes, this)
+		return _json().Unmarshal(bytes, this)
 }
 
 func (this *ResponseImpl) Json() ([]byte, error) {
-		return json.Marshal(this)
+		return _json().Marshal(this)
 }
 
 func (this *ResponseImpl) GetCode() int {
@@ -71,6 +71,11 @@ func (this *ResponseImpl) GetError() Errors {
 
 func (this *ResponseImpl) GetData() interface{} {
 		return this.Data
+}
+
+// json
+func _json() jsonApi.API {
+		return jsonApi.ConfigCompatibleWithStandardLibrary
 }
 
 func (this *ResponseImpl) Get(key string, defaults ...interface{}) interface{} {
@@ -313,7 +318,7 @@ func (this *ResponseImpl) init(args ...interface{}) {
 }
 
 func (this *ResponseImpl) String() string {
-		if data, err := json.Marshal(this); err == nil {
+		if data, err := _json().Marshal(this); err == nil {
 				return string(data)
 		}
 		return fmt.Sprintf(
@@ -426,12 +431,12 @@ func NewFailedResp(code int, args ...interface{}) ResponseJson {
 				res.Set("msg", args[1])
 		}
 		if !res.Has("error") {
-				res.Set("error",NewErrors(res.Get("code"),res.Get("msg")))
+				res.Set("error", NewErrors(res.Get("code"), res.Get("msg")))
 		}
 		return res
 }
 
-// 请求参数异常
+// 开发中....
 // err Errors
 // msg  string
 // code int
@@ -462,6 +467,34 @@ func NewPermissionResp(args ...interface{}) ResponseJson {
 		}
 		if !resp.Has("msg") {
 				resp.Set("msg", PermissionError)
+		}
+		return resp
+}
+
+// 未找到 对应记录
+// err Errors
+// msg  string
+// code int
+// data interface{}
+func NewNotFoundResp(args ...interface{}) ResponseJson {
+		var resp = NewResponse(args...)
+		resp.Set("code", NotFound)
+		if !resp.Has("msg") {
+				resp.Set("msg", NotFoundError)
+		}
+		return resp
+}
+
+// 参数验证失败
+// err Errors
+// msg  string
+// code int
+// data interface{}
+func NewVerifyErrorResp(args ...interface{}) ResponseJson {
+		var resp = NewResponse(args...)
+		resp.Set("code", ParamVerifyFailed)
+		if !resp.Has("msg") {
+				resp.Set("msg", ParamVerifyFailedError)
 		}
 		return resp
 }

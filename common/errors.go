@@ -68,10 +68,16 @@ func (this *ErrorImpl) Parent() Errors {
 }
 
 func (this *ErrorImpl) Code() int {
+		if this.ErrCode == 0 && this.parent != nil {
+				return this.parent.Code()
+		}
 		return this.ErrCode
 }
 
 func (this *ErrorImpl) Msg() string {
+		if this.ErrMsg == "" && this.parent != nil {
+				return this.parent.Msg()
+		}
 		return this.ErrMsg
 }
 

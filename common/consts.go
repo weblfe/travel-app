@@ -12,9 +12,11 @@ const (
 		EmptyParamCode            = 1002
 		InvalidParametersCode     = 4101
 		ServiceFailed             = 4041
+		ParamVerifyFailed         = 4020
 		Error                     = "error"
 		Success                   = "success"
 		UnLoginError              = "please login!"
+		NotFoundError             = "not found!"
 		PermissionError           = "Permission denied!"
 		LimitError                = "access api too frequently!"
 		InvalidParametersError    = "invalid parameters"
@@ -32,6 +34,7 @@ const (
 		AppTokenCookie            = "authorization"
 		DevelopCodeError          = "developing"
 		ServiceFailedError        = "server failed!"
+		ParamVerifyFailedError    = "param verify error!"
 		RecordNotFoundError       = "empty"
 		Page                      = 1  // 默认页
 		Count                     = 20 // 默认分页量
