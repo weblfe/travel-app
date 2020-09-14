@@ -38,9 +38,10 @@ type cache struct {
 
 // 基础用户信息
 type BaseUser struct {
-		UserId     string  `json:"userId"`   // 用户ID
-		Nickname   string  `json:"nickname"` // 用户昵称
-		AvatarInfo *Avatar `json:"avatar"`   // 用户头像
+		UserId      string  `json:"userId"`      // 用户ID
+		Nickname    string  `json:"nickname"`    // 用户昵称
+		AvatarInfo  *Avatar `json:"avatar"`      // 用户头像
+		UpdatedTime int64   `json:"updatedTime"` // 更新时间
 }
 
 // 简单用户信息
@@ -96,7 +97,7 @@ func GetDtoRepository() *DtoRepository {
 
 func newDto() *DtoRepository {
 		var dto = new(DtoRepository)
-		dto._Cache = make(beego.M,100)
+		dto._Cache = make(beego.M, 100)
 		dto._Table = make([]*cache, 2)
 		dto._Table = dto._Table[:0]
 		dto._MaxCacheItemNum = DefaultMaxCacheItemNum
@@ -142,6 +143,7 @@ func (this *DtoRepository) GetUserById(id string) *BaseUser {
 		user.UserId = data.Id.Hex()
 		user.Nickname = data.NickName
 		user.AvatarInfo = this.GetAvatar(data.AvatarId, data.Gender)
+		user.UpdatedTime = data.UpdatedAt.Unix()
 		return user
 }
 
@@ -153,6 +155,7 @@ func (this *DtoRepository) GetBaseUser(data *models.User) *BaseUser {
 		user.UserId = data.Id.Hex()
 		user.Nickname = data.NickName
 		user.AvatarInfo = this.GetAvatar(data.AvatarId, data.Gender)
+		user.UpdatedTime = data.UpdatedAt.Unix()
 		return user
 }
 
@@ -170,6 +173,12 @@ func (this *DtoRepository) GetBaseUserByMapper(data map[string]interface{}) *Bas
 				}
 				if str, ok := v.(string); ok && key == "nickname" {
 						user.Nickname = str
+				}
+				if t, ok := v.(int64); ok && key == "updatedTime" {
+						user.UpdatedTime = t
+				}
+				if t, ok := v.(time.Time); ok && key == "updatedTime" {
+						user.UpdatedTime = t.Unix()
 				}
 				if str, ok := v.(string); ok && key == "avatarId" {
 						gender := data["gender"]
@@ -226,6 +235,7 @@ func (this *DtoRepository) GetSimpleUserDetail(data interface{}) *SimpleUser {
 				user.Intro = _user.Intro
 				user.Role = _user.Role
 				user.RoleDesc = this.getRoleDesc(user.Role)
+				user.UpdatedTime = _user.UpdatedAt.Unix()
 		case beego.M:
 				return this.GetUserByMapper(data.(beego.M))
 		case map[string]interface{}:
@@ -256,6 +266,7 @@ func (this *DtoRepository) GetPrivacyUser(data interface{}) *PrivacyUser {
 				user.AvatarInfo = this.GetAvatar(_user.AvatarId, _user.Gender)
 				user.Birthday = _user.Birthday
 				user.GenderDesc = models.GenderText(_user.Gender)
+				user.UpdatedTime = _user.UpdatedAt.Unix()
 		case bson.M:
 				var _user = data.(bson.M)
 				return this.GetPrivacyUserByMapper(_user)
@@ -298,6 +309,12 @@ func (this *DtoRepository) GetPrivacyUserByMapper(data map[string]interface{}) *
 				}
 				if roleDesc, ok := v.(string); ok && key == "roleDesc" {
 						user.RoleDesc = roleDesc
+				}
+				if t, ok := v.(int64); ok && key == "updatedTime" {
+						user.UpdatedTime = t
+				}
+				if t, ok := v.(time.Time); ok && key == "updatedTime" {
+						user.UpdatedTime = t.Unix()
 				}
 				if str, ok := v.(string); ok && key == "avatarId" {
 						gender := data["gender"]
@@ -343,6 +360,12 @@ func (this *DtoRepository) GetUserByMapper(data beego.M) *SimpleUser {
 								gender = 0
 						}
 						user.AvatarInfo = this.GetAvatar(str, gender.(int))
+				}
+				if t, ok := v.(int64); ok && key == "updatedTime" {
+						user.UpdatedTime = t
+				}
+				if t, ok := v.(time.Time); ok && key == "updatedTime" {
+						user.UpdatedTime = t.Unix()
 				}
 		}
 		if user.Role != 0 && user.RoleDesc == "" {
@@ -451,6 +474,16 @@ func (this *DtoRepository) Cache(key string, v interface{}, alive ...time.Durati
 		return this
 }
 
+func (this *DtoRepository) Flash() *DtoRepository {
+		this._locker.Lock()
+		this.check()
+		this._Len = 0
+		this._Table.FlashALL()
+		this._Cache = make(beego.M, 10)
+		this._locker.Unlock()
+		return this
+}
+
 // 获取cdn url
 func (this *DtoRepository) getCdnUrl(url string, ty ...libs.OssUrlType) string {
 		if len(ty) == 0 {
@@ -528,7 +561,7 @@ func (this *DtoRepository) expireGc(table cacheTable) {
 				}
 		}
 		if len(deleteKeys) > 0 {
-				logs.Info(fmt.Sprintf("回收数据：%v",deleteKeys))
+				logs.Info(fmt.Sprintf("回收数据：%v", deleteKeys))
 				this.GC(deleteKeys...)
 		}
 }
@@ -610,6 +643,10 @@ func (this cacheTable) Less(i, j int) bool {
 
 func (this cacheTable) Swap(i, j int) {
 		this[i], this[j] = this[j], this[i]
+}
+
+func (this cacheTable) FlashALL() cacheTable {
+		return this[:0]
 }
 
 // 检查和更新访问

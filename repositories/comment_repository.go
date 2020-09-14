@@ -117,6 +117,7 @@ func (this *commentRepository) Detail() common.ResponseJson {
 		if comment == nil {
 				return common.NewErrorResp(common.NewErrors(common.RecordNotFound, common.RecordNotFoundError), "评论不存在")
 		}
+		defer this.GetDto().Flash()
 		return common.NewSuccessResp(comment.M(this.getTransports()), "获取评论详情成功")
 }
 
@@ -138,6 +139,7 @@ func (this *commentRepository) Lists() common.ResponseJson {
 		if comments == nil || meta == nil {
 				return common.NewErrorResp(common.NewErrors(common.NotFound, common.RecordNotFoundError), "获取列表失败")
 		}
+		defer this.GetDto().Flash()
 		return common.NewSuccessResp(beego.M{"items": this.each(comments), "meta": meta}, "发布成功")
 }
 
@@ -193,7 +195,7 @@ func (this *commentRepository) appendUser(m beego.M, dto *DtoRepository) beego.M
 						id   = userId.(string)
 				)
 				if id != "" {
-						key = dto.Key(key)
+						key = dto.Key(id)
 				}
 				if key == "" {
 						return m

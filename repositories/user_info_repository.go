@@ -81,6 +81,7 @@ func (this *UserInfoRepositoryImpl) GetUserInfo() common.ResponseJson {
 				return common.NewErrorResp(common.NewErrors(common.PermissionCode, "账号禁用状态"))
 		}
 		data := user.M(getBaseUserInfoTransform())
+
 		return common.NewSuccessResp(beego.M{"user": data}, "获取成功")
 }
 
