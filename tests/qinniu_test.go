@@ -49,7 +49,7 @@ func TestOSSPlugin_Upload(t *testing.T) {
 		)
 		fmt.Println(file)
 		Convey("test QinNiu OSS", t, func() {
-				var uploader = plugins.GetOSS().CreateUploader(plugins.OssParams{
+				var uploader = plugins.GetOSS().CreateUploader(&plugins.OssParams{
 						TypeName: plugins.QinNiuBucketImg,
 						File:     file,
 						Key:      key,

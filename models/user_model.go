@@ -251,7 +251,7 @@ func (this *User) GetNickName() string {
 		if this.NickName != "" {
 				return this.NickName
 		}
-		return this.UserName + "_nick"
+		return libs.RandomNickName(16)
 }
 
 func (this *User) GetInviteCode(refresh ...bool) string {
