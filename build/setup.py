@@ -30,8 +30,13 @@ def get_default_name():
 
 
 def init_env(password=None):
-    if password == "":
-        password = input("please set mysql root password ")
+    if password == "" or len(password) <= 7:
+        while len(password) <= 7:
+            print("please input mysql root password less 8 word!\n")
+            password = input("please set mysql root password ")
+        fs = open("build.log", "w+")
+        fs.write("mysql_password : " + password + "\n")
+        fs.close()
     os.putenv("MY_ROOT_PASSWORD", password)
 
 

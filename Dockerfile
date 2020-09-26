@@ -9,7 +9,7 @@ RUN  go env -w GOPROXY=https://goproxy.io \
     && go env -w GOPRIVATE=*.gitlab.com,*.gitee.com \
     && go build -ldflags="-s -w" -o /data/www/app/api
 
-FROM alpine
+FROM ffmpeg:4.1-alpine
 
 WORKDIR /data/www/app
 

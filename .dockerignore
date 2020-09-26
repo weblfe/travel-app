@@ -11,3 +11,7 @@ build
 .gitignore
 .git
 .svn
+.pro.env
+.test.env
+.dev.env
+

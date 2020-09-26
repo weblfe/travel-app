@@ -12,3 +12,6 @@ static/storage/*
 *.memprof
 data
 venv
+.pro.env
+.test.env
+.dev.env
