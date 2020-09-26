@@ -147,6 +147,7 @@ func (this *initDataServiceImpl) append(fs string) {
 }
 
 func (this *initDataServiceImpl) Load(file string, loaderNames ...string) error {
+		logs.Info("loading database file " + file)
 		if len(loaderNames) == 0 {
 				ext := filepath.Ext(file)
 				name := filepath.Base(file)
