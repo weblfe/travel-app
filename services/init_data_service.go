@@ -88,6 +88,7 @@ func (this *initDataServiceImpl) SetInit(path ...string) LoaderDataService {
 		for _, fs := range path {
 				state, err := os.Stat(fs)
 				if err != nil {
+						logs.Error(err)
 						continue
 				}
 				if state.IsDir() {

@@ -7,7 +7,7 @@ COPY . ./
 RUN  go env -w GOPROXY=https://goproxy.io \
     && export GO111MODULE=on && export GOPROXY=https://goproxy.io \
     && go env -w GOPRIVATE=*.gitlab.com,*.gitee.com \
-    && go build -ldflags="-s -w" -o /data/www/app/api main.go
+    && go build -ldflags="-s -w" -o /data/www/app/api main.go bootstrap.go
 
 FROM jrottenberg/ffmpeg:4.1-alpine
 
