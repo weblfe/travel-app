@@ -3,33 +3,33 @@ version: '3'
 services:
 
   api:
+    hostname: api-server
     build:
       context: .
       dockerfile: Dockerfile
     container_name: apiserver
     restart: always
-    ports:
-      - 28800:8080
     volumes:
-      - ./.env:/data/www/app/.env
+      - ./data/conf:/data/www/app/conf:rw
+      - ./data/view:/data/www/app/view:rw
+      - ./data/.pro.env:/data/www/app/.env
       - ./static:/data/www/app/static:rw
+    ports:
+    - 18000:8080
     environment:
-      - "REDIS_HOST=redis-server"
-      - "MONGO_HOST=mongo-server"
-      - "MYSQL_HOST=mysql-server"
-      - "NATS_HOST=nats-server"
-      - "DB_HOST=mongo-server:27017"
-      - "DB_DRIVER=mongodb"
-      - "NATS_URL=nats-server:4222"
-
+      REDIS_HOST: redis-server
+      MONGO_HOST: mongo-server
+      MYSQL_HOST: mysql-server
+      NATS_HOST: nats-server
+      REDIS_URL: redis-server:6379
+      DB_HOST: mongo-server:27017
+      DB_DRIVER: mongodb
+      NATS_URL: nats-server:4222
     depends_on:
       - redis
       - mongodb
       - mysql
       - nats
-    networks:
-      - backend
-      - forntend
 
   redis:
     hostname: redis-server
@@ -38,9 +38,11 @@ services:
     restart: always
     ports:
       - 26379:6379
-    networks:
-      - backend
-      - forntend
+    volumes:
+    - ./data/redis/redis.conf:/usr/local/etc/redis/redis.conf
+    - ./data/redis/run:/var/run:rw
+    - ./data/redis/data:/data:rw
+    entrypoint: ["redis-server","/usr/local/etc/redis/redis.conf"]
 
   mongodb:
     hostname: mongo-server
@@ -48,41 +50,31 @@ services:
     container_name: mongodbserver
     restart: always
     volumes:
-      - ./data/mongodb/db:/data
+      - ./data/mongodb:/data:rw
     ports:
       - 37017:27017
-    networks:
-      - backend
-      - forntend
 
   mysql:
     hostname: mysql-server
     image: mariadb:10.5.5-focal
     container_name: mysqlserver
     restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MY_ROOT_PASSWORD}
+    env_file:
+      - ./data/.env
     volumes:
       - ./data/mysql/db:/var/lib/mysql
+      - ./data/mysql/conf.d:/etc/mysql/mariadb.conf.d:rw
     ports:
       - 13306:3306
-    networks:
-      - backend
 
   nats:
     hostname: nats-server
     image: nats:2.1.7-alpine3.11
     container_name: natsserver
     restart: always
+    volumes:
+    - ./data/nats/nats-server.conf:/etc/nats/nats-server.conf:rw
     ports:
-      - 18442:4222
-      - 18222:8222
-    networks:
-      - backend
-      - forntend
-
-networks:
-  backend:
-    driver: bridge
-  forntend:
-    driver: bridge
+      - 24442:4222
+      - 28222:8222
+      - 26222:6222
