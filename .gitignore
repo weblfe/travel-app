@@ -15,3 +15,5 @@ venv
 .pro.env
 .test.env
 .dev.env
+.DS_Store
+app/

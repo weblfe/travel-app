@@ -4,15 +4,14 @@ services:
 
   api:
     hostname: api-server
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: weblinuxgame/travel-app:v1
     container_name: apiserver
     restart: always
+    env_file:
+      - ./data/.pro.env
     volumes:
-      - ./data/conf:/data/www/app/conf:rw
+      - ./data/conf:/data/www/app/conf
       - ./data/view:/data/www/app/view:rw
-      - ./data/.pro.env:/data/www/app/.env
       - ./static:/data/www/app/static:rw
     ports:
     - 18000:8080
