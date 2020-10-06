@@ -4,6 +4,7 @@ import (
 		"encoding/gob"
 		"github.com/astaxie/beego"
 		"github.com/astaxie/beego/config/env"
+		"github.com/astaxie/beego/logs"
 		_ "github.com/astaxie/beego/session/redis"
 		_ "github.com/go-sql-driver/mysql"
 		"github.com/joho/godotenv"
@@ -19,7 +20,9 @@ import (
 
 // 载入引导逻辑
 func init() {
+		logs.Info("bootstrap start")
 		bootstrap()
+		logs.Info("bootstrap end...")
 }
 
 // 引导逻辑
@@ -45,6 +48,7 @@ func bootstrap() {
 // 配置 session
 func initSession() {
 		if libs.InArray(beego.AppConfig.String("session_on"), []string{"on", "1", "true", "yes"}) {
+				logs.Info("init session")
 				beego.BConfig.WebConfig.Session.SessionOn = true
 				beego.BConfig.WebConfig.Session.SessionProvider = beego.AppConfig.DefaultString("session_driver", "redis")
 				beego.BConfig.WebConfig.Session.SessionProviderConfig = beego.AppConfig.DefaultString("session_config", "127.0.0.1:6379")
@@ -54,6 +58,7 @@ func initSession() {
 // 初始 swagger
 func initSwagger() {
 		if beego.BConfig.RunMode == "dev" {
+				logs.Info("init swagger")
 				beego.BConfig.WebConfig.DirectoryIndex = true
 				beego.BConfig.WebConfig.StaticDir["/static/swagger"] = "swagger"
 		}
@@ -62,14 +67,22 @@ func initSwagger() {
 // 初始化数据库
 func initDatabase() {
 		mode := beego.BConfig.RunMode
-		if database, err := beego.AppConfig.GetSection(mode + ".database"); err == nil {
+		database, err := beego.AppConfig.GetSection(mode + ".database")
+		if err == nil {
 				if driver, ok := database["db_driver"]; ok && driver == "mongodb" {
 						initMongodb(database)
 				}
 		}
+		initMigration()
+		logs.Info("init database")
+}
+
+// 初始化数据迁移
+func initMigration() {
 		service := services.GetInitDataServiceInstance()
 		service.SetInit("./static/database")
 		service.Init()
+		logs.Info("init database migration")
 }
 
 // 初始 mongodb
@@ -77,21 +90,25 @@ func initMongodb(data map[string]string) {
 		for key, v := range data {
 				models.SetProfile(key, v)
 		}
+		logs.Info("init database profiles")
 		initMongoIndex()
+		logs.Info("init database index create")
 }
 
 // 初始化 数据索引
-func initMongoIndex()  {
+func initMongoIndex() {
 		models.UserModelOf().CreateIndex(true)
 		models.PostsModelOf().CreateIndex(true)
 		models.ConfigModelOf().CreateIndex(true)
 		models.ThumbsUpModelOf().CreateIndex(true)
 		models.SensitiveWordsModelOf().CreateIndex(true)
 		models.UserRolesConfigModelOf().CreateIndex(true)
+		logs.Info("init database index")
 }
 
 // 注册环境变量
 func initRegisterEnv() {
+		logs.Info("init env")
 		pwd, _ := os.Getwd()
 		envFile := env.Get("ENV_FILE", path.Join(pwd, "/.env"))
 		if envFile == "" {
@@ -148,6 +165,7 @@ func SetConfGlobalScope(key string) string {
 
 // 初始middleware
 func initMiddleware() {
+		logs.Info("init middleware")
 		manger := middlewares.GetMiddlewareManger()
 		// 注册路由中间件
 		manger.Router(middlewares.CorsMiddlewareName, "*", beego.BeforeExec)
@@ -180,13 +198,13 @@ func initMiddleware() {
 		manger.Router(middlewares.RoleMiddleware, "/posts/all", beego.BeforeRouter)
 		manger.Router(middlewares.RoleMiddleware, "/posts/video/cover", beego.BeforeRouter)
 
-
 		// 启用中间
 		manger.Boot()
 }
 
 // 注册结构体
 func registerGob() {
+		logs.Info("init gob")
 		gob.Register(beego.M{})
 		gob.Register(models.Tag{})
 		gob.Register(models.User{})
@@ -200,6 +218,7 @@ func registerGob() {
 
 // 注册插件
 func registerPlugins() {
+		logs.Info("init plugins")
 		plugins.GetOSS().Register()
 		plugins.GetQrcode().Register()
 		plugins.GetNatsPlugin().Register()
@@ -208,6 +227,7 @@ func registerPlugins() {
 
 // 注册全局服务
 func registerServices() {
+		logs.Info("init services")
 		// 注册
 		services.RegisterUrlService()
 }

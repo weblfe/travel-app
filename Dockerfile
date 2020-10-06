@@ -1,15 +1,25 @@
-FROM jrottenberg/ffmpeg:4.1-alpine
+FROM library/golang
 
-WORKDIR /data/www/app
+# 启用 Go Modules 功能
+ENV GO111MODULE on
 
-ADD ./app/api .
-ADD ./conf  ./conf
+# 配置 GOPROXY 环境变量
+ENV GOPROXY https://goproxy.io
 
-RUN apk update --no-cache && apk add --no-cache ca-certificates && apk add --no-cache tzdata
-ENV TZ Asia/Shanghai
+# Recompile the standard library without CGO
+RUN CGO_ENABLED=0 go install -a std
 
-VOLUME /data/www/app/static
+# go path
+ENV APP_DIR $GOPATH/src/github.com/weblfe/travel-app
+RUN mkdir -p $APP_DIR
+
+
+ADD . $APP_DIR
+
+# Compile the binary and statically link
+RUN cd $APP_DIR && CGO_ENABLED=0 go build -ldflags '-d -w -s'
 
 EXPOSE 8080
 
-ENTRYPOINT [ "/data/www/app/api" ]
+# Set the entrypoint
+ENTRYPOINT (cd $APP_DIR && ./travel-app)

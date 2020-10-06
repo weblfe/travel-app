@@ -4,7 +4,7 @@ services:
 
   api:
     hostname: api-server
-    image: weblinuxgame/travel-app:v1
+    image: weblinuxgame/travel-app:v3
     container_name: apiserver
     restart: always
     env_file:
