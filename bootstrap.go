@@ -13,9 +13,12 @@ import (
 		"github.com/weblfe/travel-app/models"
 		"github.com/weblfe/travel-app/plugins"
 		"github.com/weblfe/travel-app/services"
+		"math"
+		"math/rand"
 		"os"
 		"path"
 		"strings"
+		"time"
 )
 
 // 载入引导逻辑
@@ -153,6 +156,43 @@ func reloadEnv() {
 				splits := strings.Split(e, "=")
 				env.Set(splits[0], os.Getenv(splits[0]))
 		}
+
+		var (
+				on       = env.Get("CONFIGURE_CENTER_ON", "")
+				provider = env.Get("CONFIGURE_CENTER_PROVIDER", "etcd")
+				appId    = env.Get("CONFIGURE_CENTER_APPID", "travel-app")
+		)
+		// 是否加载 配置中心
+		if on != "" && on != "0" && on != "false" {
+				var manger = plugins.GetConfigureCentreRepositoryMangerInstance()
+				manger.Boot()
+				providerIns := manger.Get(provider)
+				if providerIns == nil {
+						return
+				}
+				var ticket = time.Second
+				for {
+						data, err := providerIns.Pull(appId)
+						if err != nil {
+								logs.Error(err)
+						}
+						if len(data) != 0 {
+								err = services.ConfigServiceOf().Update(data)
+								if err != nil {
+										logs.Error(err)
+								}
+								break
+						}
+						logs.Info("waiting for  travel app config from configure center")
+						time.Sleep(ticket)
+						if ticket.Seconds() >= time.Hour.Seconds() {
+								logs.Error("time out to waiting configure center pull config")
+								break
+						}
+						ticket = ticket + 10 * time.Second
+				}
+				return
+		}
 }
 
 // 全局
@@ -230,4 +270,15 @@ func registerServices() {
 		logs.Info("init services")
 		// 注册
 		services.RegisterUrlService()
+}
+
+// 随机
+func random(min,max int) int  {
+		rand.Seed(time.Now().UnixNano())
+		min, max = int(math.Max(float64(min), float64(max))), int(math.Min(float64(min), float64(max)))
+		var n = rand.Intn(max) + min
+		if n > max {
+				return max
+		}
+		return n
 }

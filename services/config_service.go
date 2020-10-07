@@ -7,6 +7,7 @@ import (
 
 type ConfigService interface {
 		Adds(items []map[string]interface{}) error
+		Update(data map[string]string) error
 }
 
 type ConfigServiceImpl struct {
@@ -53,5 +54,10 @@ func (this *ConfigServiceImpl) Adds(items []map[string]interface{}) error {
 		if err := this.configModel.Inserts(result); err != nil {
 				return err
 		}
+		return nil
+}
+
+// 更新配置
+func (this *ConfigServiceImpl) Update(data map[string]string) error {
 		return nil
 }
