@@ -162,12 +162,14 @@ func reloadEnv() {
 				provider = env.Get("CONFIGURE_CENTER_PROVIDER", "etcd")
 				appId    = env.Get("CONFIGURE_CENTER_APPID", "travel-app")
 		)
+		logs.Info("CONFIGURE_CENTER_ON:"+on)
 		// 是否加载 配置中心
 		if on != "" && on != "0" && on != "false" {
 				var manger = plugins.GetConfigureCentreRepositoryMangerInstance()
-				manger.Boot()
+				manger.InitDef().Boot()
 				providerIns := manger.Get(provider)
 				if providerIns == nil {
+						logs.Error("ConfigureCentre Provider :"+provider+" miss")
 						return
 				}
 				var ticket = time.Second
