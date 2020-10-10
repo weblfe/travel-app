@@ -4,6 +4,7 @@ README.md
 deploy.sh
 lastupdate.tmp
 docker-compose.yaml
+dockerfile.yml
 Dockerfile
 data
 build
@@ -14,4 +15,5 @@ build
 .pro.env
 .test.env
 .dev.env
+.env
 

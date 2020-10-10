@@ -1,0 +1,28 @@
+FROM golang:1.13-alpine AS builder
+
+WORKDIR /data/www/app
+
+COPY . ./
+
+RUN  go env -w GOPROXY=https://goproxy.io \
+    && export GO111MODULE=on && export GOPROXY=https://goproxy.io \
+    && go env -w GOPRIVATE=*.gitlab.com,*.gitee.com \
+    && export CGO_ENABLED=0 \
+    && CGO_ENABLED=0 GOOS=linux GOARCH=amd64  go build main.go
+
+# CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build build  -o app.exe
+
+FROM jrottenberg/ffmpeg:4.1-alpine
+
+WORKDIR /data/www/app
+
+RUN apk update --no-cache && apk add --no-cache ca-certificates && apk add --no-cache tzdata
+ENV TZ Asia/Shanghai
+
+COPY --from=builder /data/www/app/api    /data/www/app/api
+COPY --from=builder /data/www/app/conf    /data/www/app/conf
+
+VOLUME /data/www/app/.env
+VOLUME /data/www/app/static
+
+ENTRYPOINT [ "/data/www/app/api" ]

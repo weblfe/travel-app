@@ -62,7 +62,7 @@ def docker():
 def build():
     docker_cmd("stop")
     start()
-    docker()
+    docker_cmd(" up -d --build")
 
 
 def help_menu():
@@ -78,6 +78,7 @@ def main(argv):
     try:
         opts, args = getopt.getopt(argv[1:], "ht:v:i:f:", ["help", "tag=", "version=", "image=", "file="])
     except getopt.GetoptError:
+        print("msg:" + getopt.GetoptError.msg, "code:" + getopt.GetoptError.opt)
         help_menu()
         sys.exit(2)
     opt_num = len(opts)
