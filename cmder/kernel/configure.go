@@ -27,6 +27,7 @@ type ConfigureCmder interface {
 		Init() ConfigureCmder
 		Boot()
 		Exec()
+		Loader(loaders...func(cmder ConfigureCmder,args *ConfigureArgs))
 }
 
 type configureCmderImpl struct {
@@ -114,6 +115,12 @@ func (this *configureCmderImpl) getConfigFileData() map[string]string {
 				this.readDir(file, prefix)
 		}
 		return this.readFile(file, prefix)
+}
+
+func (this *configureCmderImpl) Loader(loaders...func(cmder ConfigureCmder,args *ConfigureArgs))  {
+		for _,loader:=range loaders {
+				loader(this,this.GetProperty())
+		}
 }
 
 func (this *configureCmderImpl) readFile(filename string, prefix string) map[string]string {

@@ -18,6 +18,7 @@ type DockerServiceRegister interface {
 		Register(host string, args ...Args)
 		CreateService(host string, serName string)
 		Query(args Args) (map[string]string, error)
+		Loader(loaders...func(serviceRegister DockerServiceRegister,info *DockerInfo))
 }
 
 // docker 注册信息
@@ -76,6 +77,31 @@ func NewDockerInfo() *DockerInfo {
 		info.init()
 		return info
 }
+
+func (this *dockerServiceRegisterImpl) Get(name string) string {
+		panic("implement me")
+}
+
+func (this *dockerServiceRegisterImpl) Host(name string) string {
+		panic("implement me")
+}
+
+func (this *dockerServiceRegisterImpl) DelService(serName string) {
+		panic("implement me")
+}
+
+func (this *dockerServiceRegisterImpl) Register(host string, args ...Args) {
+		panic("implement me")
+}
+
+func (this *dockerServiceRegisterImpl) CreateService(host string, serName string) {
+		panic("implement me")
+}
+
+func (this *dockerServiceRegisterImpl) Query(args Args) (map[string]string, error) {
+		panic("implement me")
+}
+
 
 func (this EntryArr) GetInt(key string, defaults int) int {
 		for _, it := range this {
@@ -161,6 +187,12 @@ func (this *dockerServiceRegisterImpl) GetRegistry() *clientv3.Client {
 				log.Fatal(err)
 		}
 		return this.registry
+}
+
+func (this *dockerServiceRegisterImpl) Loader(loaders...func(serviceRegister DockerServiceRegister,info *DockerInfo)) {
+		for _, loader := range loaders {
+				loader(this,this.info)
+		}
 }
 
 func (this *dockerServiceRegisterImpl) GetDocker() *docker.Client {
