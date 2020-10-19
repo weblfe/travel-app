@@ -9,7 +9,11 @@ import (
 		"github.com/spf13/viper"
 )
 
-var cfgFile string
+var (
+		endpoints string
+		cfgFile   string
+		timeout   int64
+)
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -38,8 +42,8 @@ func init() {
 		// will be global for your application.
 
 		rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.cmder.yaml)")
-		rootCmd.PersistentFlags().String("registry_endpoints", "", "etcd endpoints")
-		rootCmd.PersistentFlags().Int("dial_timeout", 5, "etcd dial timeout")
+		rootCmd.PersistentFlags().StringVar(&endpoints, "registry_endpoints", "", "etcd endpoints")
+		rootCmd.PersistentFlags().Int64Var(&timeout, "dial_timeout", 5, "etcd dial timeout")
 
 		// Cobra also supports local flags, which will only run
 		// when this action is called directly.

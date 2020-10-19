@@ -1,15 +1,15 @@
 package cmd
 
 import (
-		"fmt"
-
 		"github.com/spf13/cobra"
+		"github.com/weblfe/travel-app/cmder/kernel"
+		"log"
 )
 
 var (
-		file     *string
-		prefix   *string
-		excludes *[]string
+		file     string
+		prefix   string
+		excludes []string
 )
 
 // configureCmd represents the configure command
@@ -18,16 +18,16 @@ var configureCmd = &cobra.Command{
 		Short: "configure for app",
 		Long:  `sync config data to etcd configure center`,
 		Run: func(cmd *cobra.Command, args []string) {
-				fmt.Println("configure called")
-				fmt.Println(*file)
-				fmt.Println(*prefix)
-				fmt.Println(*excludes)
+				logic := kernel.InvokerConfigure(file, prefix, excludes,endpoints,timeout)
+				if err := logic.Exec(); err != nil {
+						log.Fatal(err)
+				}
 		},
 }
 
 func init() {
-		file = configureCmd.PersistentFlags().String("file", "", "action config file path")
-		prefix = configureCmd.PersistentFlags().String("prefix", "", "action config prefix")
-		excludes = configureCmd.PersistentFlags().StringArray("excludes", []string{}, "action config prefix")
+		configureCmd.PersistentFlags().StringVar(&file, "file", "", "action config file path")
+		configureCmd.PersistentFlags().StringVar(&prefix, "prefix", "", "action config prefix")
+		configureCmd.PersistentFlags().StringArrayVar(&excludes, "excludes", []string{}, "action config prefix")
 		rootCmd.AddCommand(configureCmd)
 }

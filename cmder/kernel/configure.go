@@ -9,13 +9,15 @@ import (
 		"os"
 		"path/filepath"
 		"strings"
+		"time"
 )
 
 // 配置逻辑参数
 type ConfigureArgs struct {
-		File    string // 配置文件
-		Prefix  string // 配置前缀
-		EtcdCnf Etcd   // etcd 配置
+		File     string   // 配置文件
+		Prefix   string   // 配置前缀
+		Excludes []string // 排除
+		EtcdCnf  Etcd     // etcd 配置
 }
 
 // etcd 配置
@@ -23,11 +25,13 @@ type Etcd struct {
 		clientv3.Config
 }
 
+var loaders []func(cmder ConfigureCmder, args *ConfigureArgs)
+
 type ConfigureCmder interface {
 		Init() ConfigureCmder
 		Boot()
-		Exec()
-		Loader(loaders...func(cmder ConfigureCmder,args *ConfigureArgs))
+		Exec() error
+		Loader(loaders ...func(cmder ConfigureCmder, args *ConfigureArgs))
 }
 
 type configureCmderImpl struct {
@@ -42,6 +46,31 @@ func newConfigureCmderImpl() *configureCmderImpl {
 		return ins
 }
 
+func AddLoader(loader func(cmder ConfigureCmder, args *ConfigureArgs)) {
+		loaders = append(loaders, loader)
+}
+
+func GetLoaders() []func(cmder ConfigureCmder, args *ConfigureArgs) {
+		return loaders
+}
+
+func GetConfigureIns() *configureCmderImpl {
+		return newConfigureCmderImpl()
+}
+
+func InvokerConfigure(file string, prefix string, excludes []string, endpoints string, timeout int64) *configureCmderImpl {
+		var ins = GetConfigureIns()
+		AddLoader(func(cmder ConfigureCmder, args *ConfigureArgs) {
+				args.File = file
+				args.Prefix = prefix
+				args.Excludes = excludes
+				args.EtcdCnf.Endpoints = strings.Split(endpoints, ",")
+				args.EtcdCnf.DialTimeout = time.Second * time.Duration(timeout)
+		})
+		ins.Boot()
+		return ins
+}
+
 func (this *configureCmderImpl) Init() ConfigureCmder {
 		if this.property == nil {
 				this.property = newConfigureArgs()
@@ -53,21 +82,26 @@ func (this *configureCmderImpl) Init() ConfigureCmder {
 }
 
 func (this *configureCmderImpl) Boot() {
+		for _, loader := range GetLoaders() {
+				loader(this, this.GetProperty())
+		}
 		this.property.Boot()
 }
 
-func (this *configureCmderImpl) Exec() {
+func (this *configureCmderImpl) Exec() error {
 		var ins = this.getProvider()
 		// 推送配置
 		data := this.getData()
 		if len(data) == 0 {
 				log.Println("empty configure data push!")
-				return
+				return errors.New("empty configure data push")
 		}
 		if err := push(*ins, this.getData()); err != nil {
 				log.Fatal(err)
+				return err
 		} else {
 				log.Println("push config file <" + this.GetProperty().File + "> success")
+				return errors.New("push config file <" + this.GetProperty().File + "> success")
 		}
 }
 
@@ -117,9 +151,9 @@ func (this *configureCmderImpl) getConfigFileData() map[string]string {
 		return this.readFile(file, prefix)
 }
 
-func (this *configureCmderImpl) Loader(loaders...func(cmder ConfigureCmder,args *ConfigureArgs))  {
-		for _,loader:=range loaders {
-				loader(this,this.GetProperty())
+func (this *configureCmderImpl) Loader(loaders ...func(cmder ConfigureCmder, args *ConfigureArgs)) {
+		for _, loader := range loaders {
+				loader(this, this.GetProperty())
 		}
 }
 

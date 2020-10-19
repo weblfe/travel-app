@@ -18,13 +18,15 @@ type DockerServiceRegister interface {
 		Register(host string, args ...Args)
 		CreateService(host string, serName string)
 		Query(args Args) (map[string]string, error)
-		Loader(loaders...func(serviceRegister DockerServiceRegister,info *DockerInfo))
+		Loader(loaders ...func(serviceRegister DockerServiceRegister, info *DockerInfo))
+		Exec() error
 }
 
 // docker 注册信息
 type DockerInfo struct {
-		data  EntryArr
-		Hosts *HostInfo
+		data      EntryArr
+		Hosts     *HostInfo
+		CmderArgs map[string]interface{}
 }
 
 // 状态值
@@ -54,6 +56,8 @@ type Entry struct {
 }
 
 type EntryArr []*Entry
+
+var dockerLoaders []func(serviceRegister DockerServiceRegister, info *DockerInfo)
 
 // args
 type Args struct {
@@ -102,6 +106,13 @@ func (this *dockerServiceRegisterImpl) Query(args Args) (map[string]string, erro
 		panic("implement me")
 }
 
+func RegisterLoader(loader func(serviceRegister DockerServiceRegister, info *DockerInfo)) {
+		dockerLoaders = append(dockerLoaders, loader)
+}
+
+func GetDockerLoaders() []func(serviceRegister DockerServiceRegister, info *DockerInfo) {
+		return dockerLoaders
+}
 
 func (this EntryArr) GetInt(key string, defaults int) int {
 		for _, it := range this {
@@ -130,6 +141,7 @@ func (this *DockerInfo) init() {
 		this.Hosts = NewHostInfo()
 		this.data = make(EntryArr, 10)
 		this.data = this.data[:0]
+		this.CmderArgs = make(map[string]interface{})
 }
 
 func (this *DockerInfo) Init(handlers ...func(data *EntryArr, info *HostInfo)) {
@@ -167,12 +179,32 @@ func newDockerServiceRegister() *dockerServiceRegisterImpl {
 		return ins.init()
 }
 
+func GetDockerService() *dockerServiceRegisterImpl {
+		var ins = newDockerServiceRegister()
+		ins.Boot()
+		return ins
+}
+
+func InvokerDockerService(dockerHosts []string, service string, lists bool, query string, endpoints string, timeout int64) *dockerServiceRegisterImpl {
+		var ins = GetDockerService()
+		RegisterLoader(func(serviceRegister DockerServiceRegister, info *DockerInfo) {
+				info.CmderArgs["dockerHosts"] = dockerHosts
+				info.CmderArgs["service"] = service
+				info.CmderArgs["lists"] = lists
+				info.CmderArgs["query"] = query
+				info.CmderArgs["endpoints"] = strings.Split(endpoints, ",")
+				info.CmderArgs["dialTimeout"] = time.Second * time.Duration(timeout)
+		})
+		return ins
+}
+
 func (this *dockerServiceRegisterImpl) init() *dockerServiceRegisterImpl {
 		this.info = NewDockerInfo()
 		return this
 }
 
 func (this *dockerServiceRegisterImpl) Boot() {
+		this.Loader(GetDockerLoaders()...)
 		this.GetDocker()
 		this.GetRegistry()
 		this.Check()
@@ -189,9 +221,9 @@ func (this *dockerServiceRegisterImpl) GetRegistry() *clientv3.Client {
 		return this.registry
 }
 
-func (this *dockerServiceRegisterImpl) Loader(loaders...func(serviceRegister DockerServiceRegister,info *DockerInfo)) {
+func (this *dockerServiceRegisterImpl) Loader(loaders ...func(serviceRegister DockerServiceRegister, info *DockerInfo)) {
 		for _, loader := range loaders {
-				loader(this,this.info)
+				loader(this, this.info)
 		}
 }
 
@@ -204,6 +236,10 @@ func (this *dockerServiceRegisterImpl) GetDocker() *docker.Client {
 				log.Fatal(err)
 		}
 		return this.client
+}
+
+func (this *dockerServiceRegisterImpl) Exec() error {
+		return nil
 }
 
 func (this *dockerServiceRegisterImpl) getRegistryCnf() clientv3.Config {
