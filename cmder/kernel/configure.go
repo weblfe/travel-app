@@ -7,7 +7,6 @@ import (
 		"github.com/spf13/viper"
 		"log"
 		"os"
-		"path/filepath"
 		"strings"
 		"time"
 )
@@ -146,7 +145,7 @@ func (this *configureCmderImpl) getConfigFileData() map[string]string {
 				return map[string]string{}
 		}
 		if stat.IsDir() {
-				this.readDir(file, prefix)
+				return this.readDir(file, prefix)
 		}
 		return this.readFile(file, prefix)
 }
@@ -179,12 +178,21 @@ func (this *configureCmderImpl) getLoader() *viper.Viper {
 		return viper.New()
 }
 
-func (this *configureCmderImpl) readDir(file string, prefix string) map[string]string {
-		var data = map[string]string{}
-		filepath.Walk(file, func(path string, info os.FileInfo, err error) error {
-
-				return err
-		})
+func (this *configureCmderImpl) readDir(dir string, prefix string) map[string]string {
+		var (
+			data = map[string]string{}
+		 loader = this.getLoader()
+		)
+		loader.AddConfigPath(dir)
+		loader.SetConfigType("conf")
+		loader.SetConfigFile("main.conf")
+		if err := loader.ReadInConfig();err!=nil {
+				log.Fatal(err)
+				return nil
+		}
+		for _,k:=range loader.AllKeys() {
+				data[k] = loader.GetString(k)
+		}
 		return data
 }
 
