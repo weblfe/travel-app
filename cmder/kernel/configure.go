@@ -57,7 +57,7 @@ func GetConfigureIns() *configureCmderImpl {
 		return newConfigureCmderImpl()
 }
 
-func InvokerConfigure(file string, prefix string, excludes []string, endpoints string, timeout int64) *configureCmderImpl {
+func InvokerConfigureService(file string, prefix string, excludes []string, endpoints string, timeout int64) *configureCmderImpl {
 		var ins = GetConfigureIns()
 		AddLoader(func(cmder ConfigureCmder, args *ConfigureArgs) {
 				args.File = file

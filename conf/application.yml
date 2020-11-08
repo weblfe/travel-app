@@ -1,0 +1,70 @@
+# application 应用相关依赖 服务
+
+services:
+  # 服务驱动器
+  drivers:
+
+    mysql:
+      host: ['127.0.0.1:3306']
+      providers: [db]
+      username:
+      password:
+      conn_pool: 1000
+      enable: false
+      update_provider: registry
+      env_vars:
+        - host: DB_HOST
+        - username: DB_USERNAME
+        - password: DB_PASSWORD
+        - conn_pool: DB_CONN_POOL
+
+    mongodb:
+      host: ['127.0.0.1:27017']
+      providers: [db,cache]
+      username:
+      password:
+      enable: true
+      pool_limit: 1000
+      update_provider: registry
+      env_vars:
+        - host: DB_HOST
+        - username: DB_USERNAME
+        - password: DB_PASSWORD
+        - pool_limit: DB_POOL_LIMIT
+
+    etcd:
+      host: [127.0.0.1]
+      providers: [registry,configure]
+      enable: true
+      env_vars:
+        - host: ETCD_HOST
+        - username: DB_USERNAME
+        - password: DB_PASSWORD
+
+    redis:
+      host: [127.0.0.1]
+      port: 2379
+      providers: [cache,queue]
+      enable: true
+      update_provider: registry
+      env_vars:
+        - host: REDIS_HOST
+        - port: REDIS_HOST
+
+    nats:
+      host: [127.0.0.1]
+      port: 2379
+      providers: [cache,queue]
+      env_vars:
+        - host: REDIS_HOST
+        - port: REDIS_HOST
+
+    rocketMq:
+      host: [127.0.0.1]
+        port: 2379
+        providers: [queue,mq]
+        enable: true
+        update_provider: registry
+        env_vars:
+          - host: ROCKET_MQ_HOST
+          - port: ROCKET_MQ_PORT

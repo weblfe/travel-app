@@ -19,8 +19,8 @@ var dockerCmd = &cobra.Command{
 		Short: "docker service",
 		Long:  `query server docker info, docker service ,auto register docker and register docker service`,
 		Run: func(cmd *cobra.Command, args []string) {
-				logic := kernel.InvokerDockerService(dockerHosts, service, lists, query,endpoints,timeout)
-				if err:=logic.Exec();err!=nil {
+				handler := kernel.InvokerDockerService(dockerHosts, service, lists, query, endpoints, timeout)
+				if err := handler.Exec(); err != nil {
 						log.Fatal(err)
 				}
 		},

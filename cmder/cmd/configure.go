@@ -18,8 +18,8 @@ var configureCmd = &cobra.Command{
 		Short: "configure for app",
 		Long:  `sync config data to etcd configure center`,
 		Run: func(cmd *cobra.Command, args []string) {
-				logic := kernel.InvokerConfigure(file, prefix, excludes,endpoints,timeout)
-				if err := logic.Exec(); err != nil {
+				handler := kernel.InvokerConfigureService(file, prefix, excludes,endpoints,timeout)
+				if err := handler.Exec(); err != nil {
 						log.Fatal(err)
 				}
 		},
