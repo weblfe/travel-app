@@ -294,6 +294,7 @@ func (this *BaseModel) getServer(serverName string) *mgo.Session {
 }
 
 func (this *BaseModel) connection(server string) *mgo.Session {
+		logs.Info("%v",this.getConnOptions(server))
 		var sess, err = mgo.DialWithInfo(this.getConnOptions(server))
 		if err != nil {
 				panic(err)

@@ -11,6 +11,7 @@ services:
       - ./data/.docker-pro.env
     volumes:
       - ./data/conf:/data/www/app/conf
+      - ./data/envs/.pro.env:/data/www/app/.env
       - ./data/view:/data/www/app/view:rw
       - ./static:/data/www/app/static:rw
     ports:
