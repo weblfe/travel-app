@@ -12,16 +12,20 @@ import (
 )
 
 const (
-		EntryPoints    = "entryPoints"
-		Username       = "username"
-		Password       = "password"
-		TimeOut        = "timeout"
-		HostName       = "host"
-		HostSchema     = "127.0.0.1:2380"
-		DotDiv         = ","
-		CnfFile        = "file"
-		DefaultTimeOut = 10 * time.Second
+		EntryPoints      = "entryPoints"
+		Username         = "username"
+		Password         = "password"
+		TimeOut          = "timeout"
+		HostName         = "host"
+		HostSchema       = "127.0.0.1:2380"
+		DotDiv           = ","
+		CnfFile          = "file"
+		DefaultTimeOut   = 10 * time.Second
 		WatchEventPrefix = "watcher."
+)
+
+var (
+		EmptyGet = errors.New("empty get")
 )
 
 type Option interface {
@@ -29,6 +33,19 @@ type Option interface {
 		V() string
 		Value() interface{}
 		Copy() Option
+}
+
+// 接口
+type ApiContext interface {
+		GetContext() context.Context
+		GetOptions() []clientv3.OpOption
+}
+
+// 参数上下文
+type ApiContextImpl struct {
+		Ctx           context.Context
+		CancelHandler context.CancelFunc
+		Opts          []clientv3.OpOption
 }
 
 type Registry interface {
@@ -40,12 +57,12 @@ type Registry interface {
 }
 
 type Storage interface {
-		Del(keys []string) error
+		Del(keys []string, apiContext ...ApiContext) error
 		SetOptions(options ...Option)
-		Get(key string) (string, error)
-		Set(key string, value string) error
+		Get(key string, apiContext ...ApiContext) (string, error)
+		Set(key string, value string, apiContext ...ApiContext) error
 		GetWatcher() clientv3.Watcher
-		Pull(keys []string) (map[string]string, error)
+		Pull(keys []string, apiContext ...ApiContext) (map[string]string, error)
 }
 
 type RegistryImpl struct {
@@ -53,7 +70,35 @@ type RegistryImpl struct {
 		entryPort string
 		storage   Storage
 		container *viper.Viper
-		handlers  map[string]func(*viper.Viper,Storage)error
+		handlers  map[string]func(*viper.Viper, Storage) error
+}
+
+func (this *ApiContextImpl) GetContext() context.Context {
+		if this.Ctx == nil {
+				this.Ctx, this.CancelHandler = context.WithTimeout(context.Background(), 10*time.Second)
+		}
+		return this.Ctx
+}
+
+func (this *ApiContextImpl) SetContext(ctx context.Context, fn ...context.CancelFunc) ApiContext {
+		if this.Ctx == nil {
+				this.Ctx = ctx
+		}
+		if len(fn) != 0 {
+				this.CancelHandler = fn[0]
+		}
+		return this
+}
+
+func (this *ApiContextImpl) SetOptions(option ...clientv3.OpOption) ApiContext {
+		if len(option) != 0 {
+				this.Opts = append(this.Opts, option...)
+		}
+		return this
+}
+
+func (this *ApiContextImpl) GetOptions() []clientv3.OpOption {
+		return this.Opts
 }
 
 func (this *RegistryImpl) GetWatcher() clientv3.Watcher {
@@ -129,7 +174,7 @@ func (this *EtcdStorageImpl) init() {
 		this.Options = make([]Option, 2)
 }
 
-func (this *EtcdStorageImpl) GetWatcher()clientv3.Watcher {
+func (this *EtcdStorageImpl) GetWatcher() clientv3.Watcher {
 		return this.ApiClient
 }
 
@@ -195,7 +240,8 @@ func (this *EtcdStorageImpl) setOptions(key, value string) Storage {
 		return this
 }
 
-func (this *EtcdStorageImpl) Del(keys []string) error {
+func (this *EtcdStorageImpl) Del(keys []string, apiContext ...ApiContext) error {
+		// ctx := this.getApiContext(apiContext...)
 		for _, key := range keys {
 				ctx, fn := this.getRequestCtx()
 				resp, err := this.getClient().Delete(ctx, key)
@@ -223,16 +269,48 @@ func (this *EtcdStorageImpl) getTimeOut() time.Duration {
 		return DefaultTimeOut
 }
 
-func (this *EtcdStorageImpl) Get(key string) (string, error) {
-		panic("implement me")
+func (this *EtcdStorageImpl) getApiContext(apiContext ...ApiContext) ApiContext {
+		return nil
 }
 
-func (this *EtcdStorageImpl) Set(key string, value string) error {
-		panic("implement me")
+func (this *EtcdStorageImpl) Get(key string, apiCtx ...ApiContext) (string, error) {
+		ctx := this.getApiContext(apiCtx...)
+		rep, err := this.getClient().Get(ctx.GetContext(), key, ctx.GetOptions()...)
+		if err != nil {
+				return "", err
+		}
+		for _, value := range rep.Kvs {
+				return string(value.Value), nil
+		}
+		return "", EmptyGet
 }
 
-func (this *EtcdStorageImpl) Pull(keys []string) (map[string]string, error) {
-		panic("implement me")
+func (this *EtcdStorageImpl) Set(key string, value string, apiContext ...ApiContext) error {
+		ctx := this.getApiContext(apiContext...)
+		_, err := this.getClient().Put(ctx.GetContext(), key, value, ctx.GetOptions()...)
+		if err != nil {
+				return err
+		}
+		return nil
+}
+
+func (this *EtcdStorageImpl) Pull(keys []string, apiContext ...ApiContext) (map[string]string, error) {
+		var (
+				lastErr error
+				data    = make(map[string]string, len(keys))
+		)
+		ctx := this.getApiContext(apiContext...)
+		for _, key := range keys {
+				res, err := this.getClient().Get(ctx.GetContext(), key, ctx.GetOptions()...)
+				if err != nil {
+						lastErr = err
+						continue
+				}
+				for _, v := range res.Kvs {
+						data[string(v.Key)] = string(v.Value)
+				}
+		}
+		return data, lastErr
 }
 
 func NewRegistry() *RegistryImpl {
@@ -291,7 +369,7 @@ func (this *RegistryImpl) Boot() error {
 		if this.storage == nil {
 				this.storage = this.getStorageProvider()
 		}
-		this.handlers = make(map[string]func(*viper.Viper,Storage)error)
+		this.handlers = make(map[string]func(*viper.Viper, Storage) error)
 		return nil
 }
 
@@ -314,33 +392,74 @@ func (this *RegistryImpl) SetEntryPort(host string, options ...Option) {
 		this.storage.SetOptions(options...)
 }
 
-func (this *RegistryImpl)Watch()  {
-		for  {
+func (this *RegistryImpl) Watch() {
+		for {
 				this.storage.GetWatcher()
-				select {
-
-				}
+				select {}
 		}
 }
 
-func (this *RegistryImpl)On(name string,handler func(config *viper.Viper,storage Storage)error)  {
+func (this *RegistryImpl) On(name string, handler func(config *viper.Viper, storage Storage) error) {
 		this.handlers[name] = handler
 }
 
-func (this *RegistryImpl) Del(keys []string) error {
-		return this.storage.Del(keys)
+func (this *RegistryImpl) Del(keys []string, apiContext ...ApiContext) error {
+		return this.storage.Del(keys, apiContext...)
 }
 
-func (this *RegistryImpl) Get(key string) (string, error) {
-		return this.storage.Get(key)
+func (this *RegistryImpl) Get(key string, apiContext ...ApiContext) (string, error) {
+		return this.storage.Get(key, apiContext...)
 }
 
-func (this *RegistryImpl) Set(key string, value string) error {
-		return this.storage.Set(key, value)
+func (this *RegistryImpl) Set(key string, value string, apiContext ...ApiContext) error {
+		return this.storage.Set(key, value, apiContext...)
 }
 
-func (this *RegistryImpl) Pull(keys []string) (map[string]string, error) {
-		return this.storage.Pull(keys)
+func (this *RegistryImpl) Pull(keys []string, apiContext ...ApiContext) (map[string]string, error) {
+		return this.storage.Pull(keys, apiContext...)
+}
+
+// 注册环境变量
+func (this *RegistryImpl) RegisterEnv(object map[string]string) int {
+		if len(object) == 0 {
+				return 0
+		}
+		var count = 0
+		for key, v := range object {
+				value, err := this.Get(key)
+				if err != nil {
+						log.Printf("%v\n", err)
+						continue
+				}
+				// 自动注册发现资源
+				value = this.resource(value)
+				err = os.Setenv(v, value)
+				if err != nil {
+						log.Printf("%v\n", err)
+				} else {
+						count++
+				}
+		}
+		return count
+}
+
+// 发现资源
+func (this *RegistryImpl) resource(value string) string {
+		var (
+				r   string
+				err error
+		)
+		if strings.Contains(value, "docker://") {
+				r, err = this.Get(strings.Replace(value, "docker://", "", 1))
+		}
+		if strings.Contains(value, "${") && strings.Contains(value, "}") {
+				tmp := strings.Replace(strings.Replace(value, "${", "", 1), "}", "", 1)
+				r, err = this.Get(tmp)
+		}
+		if err == nil && r != "" {
+				return this.resource(r)
+		}
+		return value
 }
 
 func (this *RegistryImpl) Save(file string, handlers ...func(fs *os.File, storage Storage) error) error {
@@ -364,18 +483,18 @@ func (this *RegistryImpl) Save(file string, handlers ...func(fs *os.File, storag
 				fs, err = os.OpenFile(file, os.O_RDWR|os.O_CREATE, os.ModePerm)
 		}
 		if len(handlers) == 0 {
-				handlers = append(handlers,this.updateConfigFile)
+				handlers = append(handlers, this.updateConfigFile)
 		}
-		for _,handler:=range handlers{
-				err = handler(fs,this.storage)
-				if err!=nil {
+		for _, handler := range handlers {
+				err = handler(fs, this.storage)
+				if err != nil {
 						return err
 				}
 		}
 		return nil
 }
 
-func (this *RegistryImpl)updateConfigFile(fs *os.File,storage Storage) error  {
+func (this *RegistryImpl) updateConfigFile(fs *os.File, storage Storage) error {
 
 		return nil
 }
