@@ -4,7 +4,7 @@ services:
 
   api:
     hostname: api-server
-    image: weblinuxgame/travel-app:v3
+    image: weblinuxgame/travel-app:v3.15
     container_name: apiserver
     restart: always
     env_file:
@@ -41,6 +41,7 @@ services:
     restart: always
     volumes:
       - ./data/mongodb:/data:rw
+      - ./data/mongodb/config/mongodb.conf:/etc/mongod.conf.orig
     ports:
       - 37017:27017
 
