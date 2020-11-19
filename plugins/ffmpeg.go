@@ -3,6 +3,7 @@ package plugins
 import (
 	"context"
 	"fmt"
+	"github.com/astaxie/beego/logs"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -290,6 +291,7 @@ func (this *ffmpeg) Clear() {
 }
 
 func (this *ffmpeg) commander(bin string, args ...string) (*exec.Cmd, *CContext) {
+	logs.Info("ffmpeg-> %s %s",bin,strings.Join(args," "))
 	// 穿件上下文,和取消函数
 	var (
 		ctxParent, timeOutCancelFn = context.WithTimeout(context.TODO(), time.Minute*3)
