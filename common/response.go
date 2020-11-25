@@ -318,6 +318,9 @@ func (this *ResponseImpl) init(args ...interface{}) {
 }
 
 func (this *ResponseImpl) String() string {
+		if this.Code == NotFound {
+			this.Code = SuccessCode
+		}
 		if data, err := _json().Marshal(this); err == nil {
 				return string(data)
 		}
