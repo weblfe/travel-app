@@ -90,7 +90,7 @@ const (
 		AttachTypeAudio       = "audio"
 		UrlTicketParam        = "ticket"
 		UrlServerFaced        = "UrlAccessService"
-		DefaultAliveTime      = int64(30 * time.Minute)
+		DefaultAliveTime      = int64(30*24 * time.Hour)
 )
 
 // 字符串数组
