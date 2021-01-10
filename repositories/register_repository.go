@@ -4,7 +4,8 @@ import (
 		"github.com/astaxie/beego"
 		"github.com/astaxie/beego/logs"
 		"github.com/weblfe/travel-app/common"
-		"github.com/weblfe/travel-app/models"
+	"github.com/weblfe/travel-app/libs"
+	"github.com/weblfe/travel-app/models"
 		"github.com/weblfe/travel-app/services"
 		"github.com/weblfe/travel-app/transforms"
 		"github.com/weblfe/travel-app/transports"
@@ -132,7 +133,7 @@ func (this *UserRegisterRepositoryImpl) registerByMobile(mobile string, code str
 				user = models.NewUser()
 				data = beego.M{
 						"mobile":      mobile,
-						"nickname":    "nick_" + mobile,
+						"nickname":    "travelGo_" + libs.RandNumbers(8),
 						"registerWay": "mobile",
 						"username":    mobile,
 						"created_at":  time.Now(),
