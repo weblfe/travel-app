@@ -8,7 +8,8 @@ import (
 		"github.com/globalsign/mgo"
 		"github.com/globalsign/mgo/bson"
 		"github.com/weblfe/travel-app/transforms"
-		"sync"
+	"os"
+	"sync"
 		"time"
 )
 
@@ -416,6 +417,9 @@ func (this *dfaLogic) ChangeSensitiveWords(txt string, sensitives ...map[string]
 				str    = []rune(txt)
 				nowMap map[string]interface{}
 		)
+		if os.Getenv("SENSITIVE_WORD_ON") != "1" {
+			return word
+		}
 		if len(sensitives) <= 0 {
 				sensitives = append(sensitives, this.sensitiveWord)
 		}
