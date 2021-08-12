@@ -217,8 +217,6 @@ github.com/subosito/gotenv
 github.com/tuotoo/qrcode
 # github.com/willf/bitset v1.1.10
 ## explicit
-# go.etcd.io/etcd v0.0.0-20191023171146-3cf2f69b5738 => github.com/etcd-io/etcd v0.0.0-20191023171146-3cf2f69b5738
-## explicit
 # golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a
 ## explicit
 golang.org/x/crypto/acme
@@ -322,4 +320,3 @@ gopkg.in/ini.v1
 ## explicit
 # gopkg.in/yaml.v2 v2.3.0
 gopkg.in/yaml.v2
-# go.etcd.io/etcd v0.0.0-20191023171146-3cf2f69b5738 => github.com/etcd-io/etcd v0.0.0-20191023171146-3cf2f69b5738
