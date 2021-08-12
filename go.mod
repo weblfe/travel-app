@@ -1,6 +1,6 @@
 module github.com/weblfe/travel-app
 
-go 1.13
+go 1.16
 
 require (
 	github.com/aliyun/alibaba-cloud-sdk-go v1.61.279
@@ -37,7 +37,6 @@ require (
 	github.com/spf13/viper v1.7.1
 	github.com/tuotoo/qrcode v0.0.0-20190222102259-ac9c44189bf2
 	github.com/willf/bitset v1.1.10 // indirect
-	go.etcd.io/etcd v0.0.0-20191023171146-3cf2f69b5738
 	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a // indirect
 	golang.org/x/net v0.0.0-20200927032502-5d4f70055728 // indirect
 	golang.org/x/sys v0.0.0-20200929083018-4d22bbb62b3c // indirect
@@ -45,5 +44,3 @@ require (
 	gopkg.in/ini.v1 v1.61.0 // indirect
 	gopkg.in/tomb.v2 v2.0.0-20161208151619-d5d1b5820637 // indirect
 )
-
-replace go.etcd.io/etcd v3.3.25+incompatible => github.com/etcd-io/etcd v3.3.25+incompatible

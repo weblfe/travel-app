@@ -197,7 +197,7 @@ func reloadEnv() {
 		}
 }
 
-// 全局
+// SetConfGlobalScope 全局
 func SetConfGlobalScope(key string) string {
 		if strings.Contains(key, "::") {
 				return key

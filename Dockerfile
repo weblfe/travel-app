@@ -1,4 +1,4 @@
-FROM golang:1.13-alpine AS builder
+FROM golang:1.16-alpine AS builder
 
 # 启用 Go Modules 功能
 ENV GO111MODULE on

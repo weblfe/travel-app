@@ -11,7 +11,7 @@ import (
 		"time"
 )
 
-// 配置逻辑参数
+// ConfigureArgs 配置逻辑参数
 type ConfigureArgs struct {
 		File     string   // 配置文件
 		Prefix   string   // 配置前缀
@@ -19,7 +19,7 @@ type ConfigureArgs struct {
 		EtcdCnf  Etcd     // etcd 配置
 }
 
-// etcd 配置
+// Etcd etcd 配置
 type Etcd struct {
 		clientv3.Config
 }
