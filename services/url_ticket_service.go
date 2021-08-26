@@ -36,7 +36,7 @@ func UrlTicketServiceOf() UrlTicketService {
 		return newUrlTicketService()
 }
 
-// 注册url 服务
+// RegisterUrlService 注册url 服务
 func RegisterUrlService()  {
 		newUrlTicketService().register()
 }
@@ -69,7 +69,7 @@ func (this *urlTicketServiceImpl) register() {
 		libs.Container().Register(this.Class(), this.Invoker())
 }
 
-// 通过 ticket 获取 url
+// GetUrl 通过 ticket 获取 url
 func (this *urlTicketServiceImpl) GetUrl(ticket string) string {
 		var data, err = this.GetTicketInfo(ticket)
 		if err != nil {
@@ -78,7 +78,7 @@ func (this *urlTicketServiceImpl) GetUrl(ticket string) string {
 		return data["url"].(string)
 }
 
-// 统计
+// Incr 统计
 func (this *urlTicketServiceImpl) Incr(ticket string) int {
 		var key = this.getUrlHash(ticket)
 		if key == "" {
@@ -90,7 +90,7 @@ func (this *urlTicketServiceImpl) Incr(ticket string) int {
 		return 0
 }
 
-// 统计访问次数key
+// IncrKey 统计访问次数key
 func (this *urlTicketServiceImpl) IncrKey(key string) string {
 		if strings.Contains(key, _IncrPrefix) {
 				return key
@@ -112,7 +112,7 @@ func (this *urlTicketServiceImpl) getUrlHash(ticket string) string {
 		return libs.Md5(data.Url)
 }
 
-// 获取访问url
+// GetAccessUrl 获取访问url
 func (this *urlTicketServiceImpl) GetAccessUrl(ticket string) string {
 		var url = this.GetUrl(ticket)
 		if url != "" {
@@ -121,7 +121,7 @@ func (this *urlTicketServiceImpl) GetAccessUrl(ticket string) string {
 		return url
 }
 
-// 获取访问的mediaId
+// GetAccessMediaId 获取访问的mediaId
 func (this *urlTicketServiceImpl) GetAccessMediaId(ticket string) string {
 		var url = this.GetUrl(ticket)
 		if url != "" {
@@ -130,7 +130,7 @@ func (this *urlTicketServiceImpl) GetAccessMediaId(ticket string) string {
 		return url
 }
 
-// 是否过期
+// Expired 是否过期
 func (this *urlTicketServiceImpl) Expired(s string) bool {
 		if !this.ticketServiceImpl.Expired(s) {
 				return false
@@ -139,7 +139,7 @@ func (this *urlTicketServiceImpl) Expired(s string) bool {
 		return true
 }
 
-// 获取media
+// GetMediaId 获取media
 func (this *urlTicketServiceImpl) GetMediaId(ticket string) string {
 		var data, err = this.GetTicketInfo(ticket)
 		if err != nil {
@@ -148,7 +148,7 @@ func (this *urlTicketServiceImpl) GetMediaId(ticket string) string {
 		return data["mediaId"].(string)
 }
 
-// 获取media ticket
+// GetMediaTicket 获取media ticket
 func (this *urlTicketServiceImpl) GetMediaTicket(mediaId string) string {
 		var attach = this.attachmentService.Get(mediaId)
 		return this.GetTicketUrlByAttach(attach)
@@ -162,7 +162,7 @@ func (this *urlTicketServiceImpl) getAttachmentService() AttachmentService {
 		return this.attachmentService
 }
 
-// 获取 访问ticket
+// GetTicketUrlByAttach 获取 访问ticket
 func (this *urlTicketServiceImpl) GetTicketUrlByAttach(attach *models.Attachment) string {
 		if attach == nil || attach.DeletedAt != 0 {
 				return ""
@@ -178,7 +178,7 @@ func (this *urlTicketServiceImpl) GetTicketUrlByAttach(attach *models.Attachment
 		return strings.Replace(url, attach.Id.Hex(), ticket, -1)
 }
 
-// 获取简单数据对象通过 ticket
+// GetTicketInfoToSimple 获取简单数据对象通过 ticket
 func (this *urlTicketServiceImpl) GetTicketInfoToSimple(ticket string) *SimpleUrlAttach {
 		var data, err = this.GetTicketInfo(ticket)
 		if err != nil {

@@ -37,7 +37,7 @@ func (this *LoginRepositoryImpl) init() {
 		this.authService = services.AuthServiceOf()
 }
 
-// 登录逻辑总汇
+// Login 登录逻辑总汇
 func (this *LoginRepositoryImpl) Login() common.ResponseJson {
 		var (
 				typ     string
