@@ -24,7 +24,7 @@ const (
 		LoginOk                    = "_loginPass"
 )
 
-// 获取附件防盗链中间键
+// GetAttachTicketMiddleware 获取附件防盗链中间键
 func GetAttachTicketMiddleware() *AttachTicketMiddleware {
 		if attachTicketMiddlewareInstance == nil {
 				getLock(AttachTicket).Do(newAttachTicketWare)

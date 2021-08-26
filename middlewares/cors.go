@@ -20,7 +20,7 @@ const (
 		CorsMiddlewareName = "api.cors"
 )
 
-// 垮域中间件
+// GetCorsMiddleware 垮域中间件
 func GetCorsMiddleware() *CorsMiddleware {
 		if corsMiddlewareInstance == nil {
 				getLock(Cors).Do(newCorsMiddleware)

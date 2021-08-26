@@ -23,7 +23,7 @@ func InArray(value string, array []string, fold ...bool) bool {
 		return false
 }
 
-// 创建hash
+// NewHashMapper 创建hash
 func NewHashMapper(v ...interface{}) []interface{} {
 		if len(v) == 0 {
 				return nil
@@ -35,7 +35,7 @@ func NewHashMapper(v ...interface{}) []interface{} {
 		return arr
 }
 
-// 创建hash
+// NewIntegerArray 创建hash
 func NewIntegerArray(v ...interface{}) []int {
 		var arr []int
 		for _, n := range v {
@@ -48,7 +48,7 @@ func NewIntegerArray(v ...interface{}) []int {
 		return arr
 }
 
-// 整型
+// Integer 整型
 func Integer(v interface{}) (int, bool) {
 		switch v.(type) {
 		case int:
@@ -68,7 +68,7 @@ func Integer(v interface{}) (int, bool) {
 		return 0, false
 }
 
-// 字符串数组第一个元素
+// ArrayFirst 字符串数组第一个元素
 func ArrayFirst(arr []string, defaults ...string) string {
 		if len(defaults) == 0 {
 				defaults = append(defaults, "")
