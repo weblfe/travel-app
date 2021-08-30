@@ -35,13 +35,13 @@ type Option interface {
 		Copy() Option
 }
 
-// 接口
+// ApiContext 接口
 type ApiContext interface {
 		GetContext() context.Context
 		GetOptions() []clientv3.OpOption
 }
 
-// 参数上下文
+// ApiContextImpl 参数上下文
 type ApiContextImpl struct {
 		Ctx           context.Context
 		CancelHandler context.CancelFunc
@@ -419,7 +419,7 @@ func (this *RegistryImpl) Pull(keys []string, apiContext ...ApiContext) (map[str
 		return this.storage.Pull(keys, apiContext...)
 }
 
-// 注册环境变量
+// RegisterEnv 注册环境变量
 func (this *RegistryImpl) RegisterEnv(object map[string]string) int {
 		if len(object) == 0 {
 				return 0

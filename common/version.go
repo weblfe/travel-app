@@ -6,7 +6,7 @@ import (
 		"strings"
 )
 
-// 版本号协议 ：https://semver.org/lang/zh-CN/
+// Version 版本号协议 ：https://semver.org/lang/zh-CN/
 //  X.Y.Z
 // 主版本号、次版本号及修订号以数值比较，例如：1.0.0 < 2.0.0 < 2.1.0 < 2.1.1
 // 范例：1.0.0-alpha < 1.0.0-alpha.1 < 1.0.0-alpha.beta < 1.0.0-beta < 1.0.0-beta.2 < 1.0.0-beta.11 < 1.0.0-rc.1 < 1.0.0。

@@ -16,7 +16,7 @@ var (
 		_loaders        = initLoaders()
 )
 
-// url-loader
+// UrlLoader url-loader
 type UrlLoader struct {
 		Name    string
 		Match   func(*url.URL) bool
@@ -35,7 +35,7 @@ func initLoaders() []*UrlLoader {
 		return loaders
 }
 
-// 加载
+// Import 加载
 func Import(source string, force ...bool) bool {
 		if len(force) == 0 {
 				force = append(force, false)
@@ -87,7 +87,7 @@ func checkUrl(obj *url.URL) error {
 		return nil
 }
 
-// 获取 config App
+// GetConfigApp 获取 config App
 func GetConfigApp() *viper.Viper {
 		if _viper == nil {
 				_configSyncLock.Do(newViper)

@@ -7,7 +7,7 @@ import (
 		"strings"
 )
 
-// 循环变量
+// VariableParse 循环变量
 func VariableParse(varStr string, i ...int) string {
 		if len(i) <= 0 {
 				i = append(i, 0)

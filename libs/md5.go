@@ -10,14 +10,14 @@ const (
 		PasswordAPPKey="71e920133ebb7d0a94b9daed8f6c2d9a"
 )
 
-// md5
+// Md5 md5
 func Md5(str string) string {
 		var ins = md5.New()
 		ins.Write([]byte(str))
 		return hex.EncodeToString(ins.Sum(nil))
 }
 
-// 加密密码
+// PasswordHash 加密密码
 func PasswordHash(pass string, salt ...string) string {
 		var (
 				saltKey string
@@ -34,7 +34,7 @@ func PasswordHash(pass string, salt ...string) string {
 		return hex.EncodeToString(ins.Sum(nil))
 }
 
-// 密码验证
+// PasswordVerify 密码验证
 func PasswordVerify(encodePass string, pass string, salt ...string) bool {
 		return encodePass == PasswordHash(pass, salt...)
 }

@@ -10,7 +10,7 @@ func Json() jsonApi.API {
 		return jsonApi.ConfigCompatibleWithStandardLibrary
 }
 
-// 编码
+// JsonEncode 编码
 func JsonEncode(v interface{}) []byte {
 		var (
 				data, err = Json().Marshal(v)
@@ -21,7 +21,7 @@ func JsonEncode(v interface{}) []byte {
 		return data
 }
 
-// json 解码
+// JsonDecode json 解码
 func JsonDecode(data []byte, bindTo ...interface{}) interface{} {
 		if len(bindTo) == 0 {
 				var d = map[string]interface{}{}
@@ -36,12 +36,12 @@ func JsonDecode(data []byte, bindTo ...interface{}) interface{} {
 		return bindTo[0]
 }
 
-// 解码
+// JsonDecodeBy 解码
 func JsonDecodeBy(str string, bindTo ...interface{}) interface{} {
 		return JsonDecode([]byte(str), bindTo...)
 }
 
-// 获取 异常
+// GetLastJsonErr 获取 异常
 func GetLastJsonErr() error  {
 		defer func() {
 				_JsonErr = nil

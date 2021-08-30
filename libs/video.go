@@ -23,7 +23,7 @@ type BoxHeader struct {
 	Size64   uint64
 }
 
-// 获取mp4 时长
+// GetMp4FileDuration 获取mp4 时长
 func GetMp4FileDuration(fileName string) (time.Duration, error) {
 	var (
 		fd, err = os.Open(fileName)

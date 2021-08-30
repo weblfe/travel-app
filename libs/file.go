@@ -74,7 +74,7 @@ func IsExits(file string) bool {
 		return true
 }
 
-// 文件大小格式化
+// FormatFileSize 文件大小格式化
 func FormatFileSize(fileSize int64) string {
 		if fileSize <= 0 {
 				return "0B"
@@ -112,7 +112,7 @@ func (this FileSize) Parse(size string) int64 {
 		return FileSizeTans(strings.Replace(size, unit, "", 1), unit)
 }
 
-// 文件大小字符串转换
+// FileSizeTans 文件大小字符串转换
 func FileSizeTans(size string, unit string) int64 {
 		num, err := strconv.ParseFloat(size, 64)
 		if err != nil {
@@ -126,7 +126,7 @@ func FileSizeTans(size string, unit string) int64 {
 		return 0
 }
 
-// 获取文件类型
+// GetFileType 获取文件类型
 func GetFileType(file string) string {
 		var ext = filepath.Ext(file)
 		if ext != "" && strings.Contains(ext, ".") {
@@ -143,7 +143,7 @@ func GetFileType(file string) string {
 		return ext
 }
 
-// 唯一名文件
+// UniqueFile 唯一名文件
 func UniqueFile(file string, root ...string) string {
 		var ext, base = filepath.Ext(file), filepath.Base(file)
 		var name = strings.Replace(base,ext,"",-1)
