@@ -38,6 +38,12 @@ func (starter *appBootstrap) SetAppPath(appPath string) *appBootstrap {
 		return starter
 	}
 	starter.appPath = appPath
+	if !filepath.IsAbs(starter.appPath) {
+		starter.appPath, _ = filepath.Abs(starter.appPath)
+	}
+	if !strings.HasSuffix(starter.appPath, "/") {
+		starter.appPath = starter.appPath + "/"
+	}
 	return starter
 }
 
@@ -240,6 +246,7 @@ func (starter *appBootstrap) initMiddleware() {
 	manger.Router(middlewares.HeaderMiddleWareName, "*", beego.AfterExec)
 	// 登陆中间
 	manger.Router(middlewares.AuthMiddlewareName, "/user/info", beego.BeforeRouter)
+
 	manger.Router(middlewares.AuthMiddlewareName, "/attachment/*", beego.BeforeRouter)
 	manger.Router(middlewares.AttachTicketMiddlewareName, "/attachments/*", beego.BeforeRouter)
 	// 检查认证
@@ -322,6 +329,12 @@ func random(min, max int) int {
 }
 
 func StartUp(appPath ...string) {
-	appPath = append(appPath, "")
+	_path, _ := os.Getwd()
+	appPath = append(appPath, _path)
 	_starter.SetAppPath(appPath[0]).Startup()
+}
+
+func Run() {
+	logs.Info("api server start....")
+	beego.Run()
 }

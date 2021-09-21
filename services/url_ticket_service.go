@@ -1,210 +1,218 @@
 package services
 
 import (
-		"github.com/weblfe/travel-app/libs"
-		"github.com/weblfe/travel-app/models"
-		"strings"
-		"time"
+	"github.com/astaxie/beego"
+	"github.com/weblfe/travel-app/libs"
+	"github.com/weblfe/travel-app/models"
+	"strings"
 )
 
 type UrlTicketService interface {
-		TicketService
-		GetUrl(string) string
-		Incr(string) int
-		GetAccessUrl(string) string
-		GetTicketUrlByAttach(*models.Attachment) string
-		GetTicketInfoToSimple(ticket string) *SimpleUrlAttach
+	TicketService
+	GetUrl(string) string
+	Incr(string) int
+	GetAccessUrl(string) string
+	GetTicketUrlByAttach(*models.Attachment) string
+	GetTicketInfoToSimple(ticket string) *SimpleUrlAttach
 }
 
 const (
-		_IncrPrefix          = "incr_"
-		UrlTicketServerClass = "UrlAccessService"
+	_IncrPrefix          = "incr_"
+	UrlTicketServerClass = "UrlAccessService"
 )
 
 type urlTicketServiceImpl struct {
-		ticketServiceImpl
-		attachmentService AttachmentService
+	ticketServiceImpl
+	attachmentService AttachmentService
 }
 
 type SimpleUrlAttach struct {
-		Url     string `json:"url"`
-		MediaId string `json:"mediaId"`
-		Path    string `json:"path"`
+	Url     string `json:"url"`
+	MediaId string `json:"mediaId"`
+	Path    string `json:"path"`
 }
 
 func UrlTicketServiceOf() UrlTicketService {
-		return newUrlTicketService()
+	return newUrlTicketService()
 }
 
 // RegisterUrlService 注册url 服务
-func RegisterUrlService()  {
-		newUrlTicketService().register()
+func RegisterUrlService() {
+	newUrlTicketService().register()
 }
 
 func newUrlTicketService() *urlTicketServiceImpl {
-		var service = new(urlTicketServiceImpl)
-		service.Init()
-		return service
+	var service = new(urlTicketServiceImpl)
+	service.Init()
+	return service
 }
 
 func NewSimpleUrlAttach(data ...map[string]interface{}) *SimpleUrlAttach {
-		var attach = new(SimpleUrlAttach)
-		attach.Load(data[0])
-		return attach
+	var attach = new(SimpleUrlAttach)
+	attach.Load(data[0])
+	return attach
 }
 
 func (this *urlTicketServiceImpl) Init() {
-		this.ticketServiceImpl.Init()
-		this.Constructor = func(args ...interface{}) interface{} {
-				return UrlTicketServiceOf()
-		}
+	this.ticketServiceImpl.Init()
+	this.Constructor = func(args ...interface{}) interface{} {
+		return UrlTicketServiceOf()
+	}
 }
 
 func (this *urlTicketServiceImpl) Class() string {
-		return UrlTicketServerClass
+	return UrlTicketServerClass
 }
 
 // 注册服务
 func (this *urlTicketServiceImpl) register() {
-		libs.Container().Register(this.Class(), this.Invoker())
+	libs.Container().Register(this.Class(), this.Invoker())
 }
 
 // GetUrl 通过 ticket 获取 url
 func (this *urlTicketServiceImpl) GetUrl(ticket string) string {
-		var data, err = this.GetTicketInfo(ticket)
-		if err != nil {
-				return ""
-		}
-		return data["url"].(string)
+	var data, err = this.GetTicketInfo(ticket)
+	if err != nil {
+		return ""
+	}
+	return data["url"].(string)
 }
 
 // Incr 统计
 func (this *urlTicketServiceImpl) Incr(ticket string) int {
-		var key = this.getUrlHash(ticket)
-		if key == "" {
-				return 0
-		}
-		if err := this.GetStorageProvider().Incr(this.IncrKey(key)); err == nil {
-				return 1
-		}
+	var key = this.getUrlHash(ticket)
+	if key == "" {
 		return 0
+	}
+	if err := this.GetStorageProvider().Incr(this.IncrKey(key)); err == nil {
+		return 1
+	}
+	return 0
 }
 
 // IncrKey 统计访问次数key
 func (this *urlTicketServiceImpl) IncrKey(key string) string {
-		if strings.Contains(key, _IncrPrefix) {
-				return key
-		}
-		return _IncrPrefix + key
+	if strings.Contains(key, _IncrPrefix) {
+		return key
+	}
+	return _IncrPrefix + key
 }
 
 // 获取url hash 值
 func (this *urlTicketServiceImpl) getUrlHash(ticket string) string {
-		var data = this.GetTicketInfoToSimple(ticket)
-		if data == nil {
-				return ""
-		}
-		// 使用 mediaId 作为唯一访问统计 incr
-		if data.MediaId != "" {
-				return data.MediaId
-		}
-		// 未记录的资源使用 url hash
-		return libs.Md5(data.Url)
+	var data = this.GetTicketInfoToSimple(ticket)
+	if data == nil {
+		return ""
+	}
+	// 使用 mediaId 作为唯一访问统计 incr
+	if data.MediaId != "" {
+		return data.MediaId
+	}
+	// 未记录的资源使用 url hash
+	return libs.Md5(data.Url)
 }
 
 // GetAccessUrl 获取访问url
 func (this *urlTicketServiceImpl) GetAccessUrl(ticket string) string {
-		var url = this.GetUrl(ticket)
-		if url != "" {
-				go this.Incr(ticket)
-		}
-		return url
+	var url = this.GetUrl(ticket)
+	if url != "" {
+		go this.Incr(ticket)
+	}
+	return url
 }
 
 // GetAccessMediaId 获取访问的mediaId
 func (this *urlTicketServiceImpl) GetAccessMediaId(ticket string) string {
-		var url = this.GetUrl(ticket)
-		if url != "" {
-				go this.Incr(ticket)
-		}
-		return url
+	var url = this.GetUrl(ticket)
+	if url != "" {
+		go this.Incr(ticket)
+	}
+	return url
 }
 
 // Expired 是否过期
 func (this *urlTicketServiceImpl) Expired(s string) bool {
-		if !this.ticketServiceImpl.Expired(s) {
-				return false
-		}
-		this.Incr(s)
-		return true
+	if !this.ticketServiceImpl.Expired(s) {
+		return false
+	}
+	this.Incr(s)
+	return true
 }
 
 // GetMediaId 获取media
 func (this *urlTicketServiceImpl) GetMediaId(ticket string) string {
-		var data, err = this.GetTicketInfo(ticket)
-		if err != nil {
-				return ""
-		}
-		return data["mediaId"].(string)
+	var data, err = this.GetTicketInfo(ticket)
+	if err != nil {
+		return ""
+	}
+	return data["mediaId"].(string)
 }
 
 // GetMediaTicket 获取media ticket
 func (this *urlTicketServiceImpl) GetMediaTicket(mediaId string) string {
-		var attach = this.attachmentService.Get(mediaId)
-		return this.GetTicketUrlByAttach(attach)
+	var attach = this.attachmentService.Get(mediaId)
+	return this.GetTicketUrlByAttach(attach)
 }
 
 // 获取附件 服务
 func (this *urlTicketServiceImpl) getAttachmentService() AttachmentService {
-		if this.attachmentService == nil {
-				this.attachmentService = AttachmentServiceOf()
-		}
-		return this.attachmentService
+	if this.attachmentService == nil {
+		this.attachmentService = AttachmentServiceOf()
+	}
+	return this.attachmentService
 }
 
 // GetTicketUrlByAttach 获取 访问ticket
 func (this *urlTicketServiceImpl) GetTicketUrlByAttach(attach *models.Attachment) string {
-		if attach == nil || attach.DeletedAt != 0 {
-				return ""
+	if attach == nil || attach.DeletedAt != 0 {
+		return ""
+	}
+	var url = attach.CdnUrl
+	if url != "" {
+		return attach.GetUrl()
+	}
+	if url == "" && attach.Url != "" {
+		url = attach.Url
+	}
+	var (
+		data   = beego.M{
+			"url": url,
+			"mediaId": attach.Id.Hex(),
+			"path": attach.Path,
+			"expire" : this.getExpire(),
 		}
-		var url = attach.CdnUrl
-		if url!= "" {
-				return attach.GetUrl()
-		}
-		if url == "" && attach.Url != "" {
-				url = attach.Url
-		}
-		var ticket = this.CreateTicket(30*time.Minute, map[string]interface{}{"url": url, "mediaId": attach.Id.Hex(), "path": attach.Path})
-		return strings.Replace(url, attach.Id.Hex(), ticket, -1)
+		ticket = this.CreateTicket(data)
+	)
+	return strings.Replace(url, attach.Id.Hex(), ticket, -1)
 }
 
 // GetTicketInfoToSimple 获取简单数据对象通过 ticket
 func (this *urlTicketServiceImpl) GetTicketInfoToSimple(ticket string) *SimpleUrlAttach {
-		var data, err = this.GetTicketInfo(ticket)
-		if err != nil {
-				return nil
-		}
-		return NewSimpleUrlAttach(data)
+	var data, err = this.GetTicketInfo(ticket)
+	if err != nil {
+		return nil
+	}
+	return NewSimpleUrlAttach(data)
 }
 
 func (this *SimpleUrlAttach) Load(data map[string]interface{}) *SimpleUrlAttach {
-		if data == nil {
-				return this
-		}
-		for key, v := range data {
-				this.Set(key, v)
-		}
+	if data == nil {
 		return this
+	}
+	for key, v := range data {
+		this.Set(key, v)
+	}
+	return this
 }
 
 func (this *SimpleUrlAttach) Set(key string, v interface{}) *SimpleUrlAttach {
-		switch key {
-		case "url":
-				this.Url = v.(string)
-		case "mediaId":
-				this.MediaId = v.(string)
-		case "path":
-				this.Path = v.(string)
-		}
-		return this
+	switch key {
+	case "url":
+		this.Url = v.(string)
+	case "mediaId":
+		this.MediaId = v.(string)
+	case "path":
+		this.Path = v.(string)
+	}
+	return this
 }
