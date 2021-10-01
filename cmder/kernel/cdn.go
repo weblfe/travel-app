@@ -37,7 +37,8 @@ func (domain *cdnDomain) SetDomainUrl(url string) int64 {
 			newUrl    = domain.replaceDomainUrl(fmt.Sprintf("%v", cdnUrl), url)
 		)
 		fmt.Println(fmt.Sprintf("update: id:%v", doc["_id"]))
-		if err := collection.Update(bson.M{"_id": doc["_id"]}, bson.M{"cdnUrl": newUrl}); err != nil {
+		doc["cdnUrl"] = newUrl
+		if err := collection.Update(bson.M{"_id": doc["_id"]}, doc); err != nil {
 			fmt.Println("error:", err.Error())
 		}
 		result++
