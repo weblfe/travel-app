@@ -3,6 +3,9 @@ version: '3'
 services:
 
   api:
+    build:
+      context: .
+      dockerfile: Dockerfile
     hostname: api-server
     image: weblinuxgame/travel-app:v3.15
     container_name: apiserver
