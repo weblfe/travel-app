@@ -10,6 +10,7 @@ require (
 	github.com/coreos/etcd v3.3.25+incompatible
 	github.com/docker/docker v17.12.0-ce-rc1.0.20200505174321-1655290016ac+incompatible // indirect
 	github.com/fsouza/go-dockerclient v1.6.3
+	github.com/globalsign/mgo v0.0.0-20181015135952-eeefdecb41b8
 	github.com/golang/protobuf v1.4.3 // indirect
 	github.com/google/go-cmp v0.5.2 // indirect
 	github.com/google/uuid v1.1.2 // indirect

@@ -10,7 +10,7 @@ import (
 		"time"
 )
 
-// docker 服务自动发信
+// DockerServiceRegister docker 服务自动发信
 type DockerServiceRegister interface {
 		Get(name string) string
 		Host(name string) string
@@ -22,14 +22,14 @@ type DockerServiceRegister interface {
 		Exec() error
 }
 
-// docker 注册信息
+// DockerInfo docker 注册信息
 type DockerInfo struct {
 		data      EntryArr
 		Hosts     *HostInfo
 		CmderArgs map[string]interface{}
 }
 
-// 状态值
+// State 状态值
 type State int
 
 const (
@@ -40,7 +40,7 @@ const (
 		FlagService          = "service"
 )
 
-// host 信息
+// HostInfo host 信息
 type HostInfo struct {
 		HostName string
 		Ipv4     string
@@ -49,7 +49,7 @@ type HostInfo struct {
 		Status   State
 }
 
-// 配置键
+// Entry 配置键
 type Entry struct {
 		Key   string
 		Value string
@@ -59,7 +59,7 @@ type EntryArr []*Entry
 
 var dockerLoaders []func(serviceRegister DockerServiceRegister, info *DockerInfo)
 
-// args
+// Args args
 type Args struct {
 		K string
 		V interface{}

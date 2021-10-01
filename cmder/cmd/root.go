@@ -17,9 +17,9 @@ var (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-		Use:   "cmder",
-		Short: "travel-app deploy cli",
-		Long:  `travel-app deploy for app, config deploy  etcd configure center , docker server register`,
+		Use:   "travel-cli",
+		Short: "travel-cli deploy cli",
+		Long:  `travel-cli deploy for app, config deploy  etcd configure center , docker server register`,
 		// Uncomment the following line if your bare application
 		// has an action associated with it:
 		//	Run: func(cmd *cobra.Command, args []string) { },

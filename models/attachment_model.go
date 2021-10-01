@@ -54,7 +54,7 @@ type Attachment struct {
 		DeletedAt     int64         `json:"deletedAt" bson:"deletedAt"`                             // 删除时间
 }
 
-// 图片
+// Image 图片
 type Image struct {
 		MediaId  string `json:"mediaId" bson:"mediaId"`   // id
 		Url      string `json:"url" bson:"url"`           // url
@@ -64,7 +64,7 @@ type Image struct {
 		Height   int    `json:"height" bson:"height"`     // 高
 }
 
-// 视频
+// Video 视频
 type Video struct {
 		MediaId      string        `json:"mediaId" bson:"mediaId"`           // ID
 		Url          string        `json:"url" bson:"url"`                   // url
@@ -576,7 +576,7 @@ func (this *AttachmentModel) GetByMediaId(id string) (*Attachment, error) {
 		return nil, err
 }
 
-// 获取图片
+// GetImageById 获取图片
 func (this *AttachmentModel) GetImageById(id string) *Image {
 		var attach = NewAttachment()
 		if err := this.GetById(id, attach); err != nil || attach == nil {
@@ -617,7 +617,7 @@ func (this *AttachmentModel) getExpiredAt() int64 {
 		return time.Now().Unix() + DefaultAliveTime
 }
 
-// 获取视频对象
+// GetVideoById 获取视频对象
 func (this *AttachmentModel) GetVideoById(id string) *Video {
 		var attach = NewAttachment()
 		if err := this.GetById(id, attach); err != nil || attach == nil {

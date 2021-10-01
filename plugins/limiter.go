@@ -38,7 +38,7 @@ type contextLimitImpl struct {
 		timeout time.Duration
 }
 
-// 限流器
+// Limiter 限流器
 type Limiter interface {
 		Get(name string, ctx ContextLimit) func() *LimitResult
 		New(ContextLimit) func(ctx ContextLimit) *LimitResult
@@ -77,7 +77,7 @@ func (this *limiterImpl) defaults() func(ctx ContextLimit) *LimitResult {
 		}
 }
 
-// 限流策略注册器
+// SetProvider 限流策略注册器
 func (this *limiterImpl) SetProvider(name string, provider func(ctx ContextLimit) *LimitResult) {
 		if _, ok := this.Providers[name]; ok {
 				return
@@ -86,7 +86,7 @@ func (this *limiterImpl) SetProvider(name string, provider func(ctx ContextLimit
 		return
 }
 
-// 获取限流处理
+// Get 获取限流处理
 func (this *limiterImpl) Get(name string, ctx ContextLimit) func() *LimitResult {
 		if _, ok := this.Providers[name]; !ok {
 				return func() *LimitResult {

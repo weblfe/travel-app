@@ -106,12 +106,12 @@ func (this *OssPlugin) getInfoKey() string {
 		return fmt.Sprintf("%s|%s|%v", this.GetAccessKey(), this.GetAccessKey(), this.GetPolicy())
 }
 
-// 获取锁
+// Lock 获取锁
 func (this *OssPlugin) Lock() {
 
 }
 
-// 解锁
+// UnLock 解锁
 func (this *OssPlugin) UnLock() {
 
 }
@@ -163,7 +163,7 @@ func (this *OssPlugin) PluginName() string {
 		return OssPluginName
 }
 
-// 构建上传函数
+// CreateUploader 构建上传函数
 func (this *OssPlugin) CreateUploader(params *OssParams, configures ...func(*storage.Config)) func(
 		context.Context, ...func(*storage.PutExtra)) (interface{}, error) {
 
