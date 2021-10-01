@@ -36,7 +36,7 @@ func (domain *cdnDomain) SetDomainUrl(url string) int64 {
 			cdnUrl, _ = doc["cdnUrl"]
 			newUrl    = domain.replaceDomainUrl(fmt.Sprintf("%v", cdnUrl), url)
 		)
-		fmt.Println(fmt.Sprintf("update: id:%v", doc["_id"]))
+		// fmt.Println(fmt.Sprintf("update: id:%v", doc["_id"]))
 		doc["cdnUrl"] = newUrl
 		if err := collection.Update(bson.M{"_id": doc["_id"]}, doc); err != nil {
 			fmt.Println("error:", err.Error())
@@ -54,6 +54,6 @@ func (domain *cdnDomain) replaceDomainUrl(url string, newDomainUrl string) strin
 		arr    = strings.Split(url, "/storage")
 		newUrl = strings.Replace(url, arr[0], newDomainUrl, 1)
 	)
-	fmt.Println(fmt.Sprintf("oldUrl:%s, newUrl:%s", url, newUrl))
+	// fmt.Println(fmt.Sprintf("oldUrl:%s, newUrl:%s", url, newUrl))
 	return newUrl
 }
