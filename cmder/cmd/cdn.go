@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
+	"github.com/weblfe/travel-app/cmder/kernel"
 )
 
 // dockerCmd represents the docker command
@@ -15,6 +16,8 @@ var cdnCmd = &cobra.Command{
 			cmd.Println("域名为空,无法更新")
 			return
 		}
+		var domain = kernel.NewCdnDomain()
+		domain.SetDomainUrl(cdnDomain)
 	},
 }
 var cdnDomain string
