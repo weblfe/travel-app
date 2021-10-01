@@ -78,6 +78,5 @@ services:
       - travel
 
 networks:
-  travelnet:
+  travel:
     external: true
-    name: travel
