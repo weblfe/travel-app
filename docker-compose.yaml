@@ -7,7 +7,7 @@ services:
       context: .
       dockerfile: Dockerfile
     hostname: api-server
-    image: weblinuxgame/travel-app:v3.15
+    image: weblinuxgame/travel-app:${IMG_VERSION:-v3.18}
     container_name: apiserver
     restart: always
     env_file:
