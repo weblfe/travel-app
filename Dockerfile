@@ -4,7 +4,7 @@ FROM golang:1.16-alpine AS builder
 ENV GO111MODULE on
 
 # 配置 GOPROXY 环境变量
-ENV GOPROXY https://goproxy.io
+ENV GOPROXY "https://goproxy.cn,direct"
 
 # set GOPATH
 ENV GOPATH /go
