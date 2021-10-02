@@ -390,6 +390,9 @@ func (this *BaseModel) conn(servers ...string) *mgo.Session {
 		info      = this.getConnOptions(server)
 		sess, err = mgo.DialWithInfo(info)
 	)
+	if info != nil {
+		logs.Info("server:%s, options: %s", server, fmt.Sprintf("%v", info))
+	}
 	if err != nil {
 		panic(err)
 	}
