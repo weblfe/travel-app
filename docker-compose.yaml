@@ -23,8 +23,8 @@ services:
     depends_on:
       - redis
       - mongodb
-      - mysql
-      - nats
+      #- mysql
+      #- nats
 
   redis:
     hostname: redis-traval
