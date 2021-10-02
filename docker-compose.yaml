@@ -6,9 +6,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    hostname: api-server
+    hostname: travel-server
     image: weblinuxgame/travel-app:${IMG_VERSION:-v3.18}
-    container_name: apiserver
     restart: always
     env_file:
       - ./data/.docker-pro.env
@@ -28,9 +27,8 @@ services:
       - nats
 
   redis:
-    hostname: redis-server
+    hostname: redis-traval
     image: redis:6.0.6-alpine
-    container_name: redisserver
     restart: always
     ports:
       - 26379:6379
@@ -42,9 +40,8 @@ services:
     entrypoint: ["redis-server","/usr/local/etc/redis/redis.conf"]
 
   mongodb:
-    hostname: mongo-server
+    hostname: mongo-travel
     image: mongo:4.2-bionic
-    container_name: mongodbserver
     restart: always
     volumes:
       - ./data/mongodb:/data:rw
@@ -54,31 +51,19 @@ services:
     networks:
       - travel
 
-  mysql:
-    hostname: mysql-server
-    image: mariadb:10.5.5-focal
-    container_name: mysqlserver
-    restart: always
-    env_file:
-      - ./data/.env
-    volumes:
-      - ./data/mysql/db:/var/lib/mysql
-    ports:
-      - 13306:3306
-    networks:
-      - travel
-
-  nats:
-    hostname: nats-server
-    image: nats:2.1.7-alpine3.11
-    container_name: natsserver
-    restart: always
-    ports:
-      - 24442:4222
-      - 28222:8222
-      - 26222:6222
-    networks:
-      - travel
+ #mysql:
+ #  hostname: mysql-server
+ #  image: mariadb:10.5.5-focal
+ #  container_name: mysqlserver
+ #  restart: always
+ #  env_file:
+ #    - ./data/.env
+ #  volumes:
+ #    - ./data/mysql/db:/var/lib/mysql
+ #  ports:
+ #    - 13306:3306
+ #  networks:
+ #    - travel
 
 networks:
   travel:
