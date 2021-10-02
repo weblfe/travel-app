@@ -16,6 +16,7 @@ services:
       - ./data/envs/.pro.env:/data/www/app/.env
       - ./data/view:/data/www/app/view:rw
       - ./static:/data/www/app/static:rw
+      - /etc/localtime:/etc/localtime:ro
     ports:
       - 18000:8080
     networks:
@@ -35,9 +36,10 @@ services:
     volumes:
       - ./data/redis/redis.conf:/usr/local/etc/redis/redis.conf
       - ./data/redis/run:/var/run:rw
+      - /etc/localtime:/etc/localtime:ro
     networks:
       - travel
-    entrypoint: ["redis-server","/usr/local/etc/redis/redis.conf"]
+    entrypoint: [ "redis-server","/usr/local/etc/redis/redis.conf" ]
 
   mongodb:
     hostname: mongo-travel
@@ -46,24 +48,25 @@ services:
     volumes:
       - ./data/mongodb:/data:rw
       - ./data/mongodb/config/mongod.conf:/etc/mongod.conf.orig
+      - /etc/localtime:/etc/localtime:ro
     ports:
       - 37017:27017
     networks:
       - travel
 
- #mysql:
- #  hostname: mysql-server
- #  image: mariadb:10.5.5-focal
- #  container_name: mysqlserver
- #  restart: always
- #  env_file:
- #    - ./data/.env
- #  volumes:
- #    - ./data/mysql/db:/var/lib/mysql
- #  ports:
- #    - 13306:3306
- #  networks:
- #    - travel
+  #mysql:
+  #  hostname: mysql-server
+  #  image: mariadb:10.5.5-focal
+  #  container_name: mysqlserver
+  #  restart: always
+  #  env_file:
+  #    - ./data/.env
+  #  volumes:
+  #    - ./data/mysql/db:/var/lib/mysql
+  #  ports:
+  #    - 13306:3306
+  #  networks:
+  #    - travel
 
 networks:
   travel:
