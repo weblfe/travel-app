@@ -2,3 +2,4 @@ cmder
 *.exe
 out
 main
+api-cli

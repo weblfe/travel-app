@@ -20,7 +20,7 @@ ADD . $APP_DIR
 
 # Compile the binary and statically link
 RUN cd $APP_DIR  && export version=$(/bin/date "+%Y-%m-%d %H:%M:%s") && CGO_ENABLED=0 GOOS=linux go build -ldflags="-d -w -s" -ldflags="-X 'main.BuildTime=${version}'" -o  travel-app main.go
-RUN cd $APP_DIR  && export version=$(/bin/date "+%Y-%m-%d %H:%M:%s") && CGO_ENABLED=0 GOOS=linux go build -ldflags="-d -w -s" -ldflags="-X 'main.BuildTime=${version}'" -o  travel-cli cmder/main.go
+RUN cd $APP_DIR/cmder  && export version=$(/bin/date "+%Y-%m-%d %H:%M:%s") && CGO_ENABLED=0 GOOS=linux go build -ldflags="-d -w -s" -ldflags="-X 'main.BuildTime=${version}'" -o  travel-tools main.go
 
 FROM jrottenberg/ffmpeg:4.1-alpine
 
@@ -32,7 +32,7 @@ ENV TZ Asia/Shanghai
 ADD ./conf                         /data/www/app/conf
 ADD ./entrypoint-api.sh            /data/www/app/entrypoint.sh
 COPY --from=builder /go/src/github.com/weblfe/travel-app/travel-app    /data/www/app/api-server
-COPY --from=builder /go/src/github.com/weblfe/travel-app/travel-cli    /data/www/app/api-cli
+COPY --from=builder /go/src/github.com/weblfe/travel-app/cmder/travel-tools    /data/www/app/api-cli
 
 VOLUME /data/www/app/static
 VOLUME /data/www/app/views
