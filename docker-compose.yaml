@@ -45,7 +45,7 @@ services:
     restart: always
     volumes:
       - ./data/mongodb:/data:rw
-      - ./data/mongodb/config/mongodb.conf:/etc/mongod.conf.orig
+      - ./data/mongodb/config/mongod.conf:/etc/mongod.conf.orig
     ports:
       - 37017:27017
     networks:
