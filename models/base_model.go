@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/cache"
+	"github.com/astaxie/beego/config/env"
 	"github.com/astaxie/beego/logs"
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 	"github.com/globalsign/mgo/txn"
+	"github.com/weblfe/travel-app/libs"
 	"math"
 	"math/rand"
-	"os"
 	"reflect"
 	"strconv"
 	"strings"
@@ -224,7 +225,8 @@ func (this *BaseModel) getString(key string, defaults ...string) string {
 		}
 	}
 	var envKey = strings.ToUpper(key)
-	if value := os.Getenv(envKey); value != "" {
+	if value := env.Get(envKey, ""); value != "" {
+		value = libs.VariableParse(value)
 		this._Profiles[key] = value
 		logs.Info("load config form env, %s => %s", envKey, value)
 		return value
