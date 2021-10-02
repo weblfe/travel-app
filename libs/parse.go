@@ -19,7 +19,10 @@ func VariableParse(varStr string, i ...int) string {
 	if !reg.Match([]byte(varStr)) {
 		return varStr
 	}
-	var cache = make(map[string]int)
+	var cache = make(map[string]struct {
+		Value string
+		Times int
+	})
 	vars := reg.FindAllString(varStr, -1)
 	for _, it := range vars {
 		def := ""
@@ -29,6 +32,15 @@ func VariableParse(varStr string, i ...int) string {
 			arr := strings.SplitN(key, "|", 2)
 			key = arr[0]
 			def = arr[1]
+		}
+		// 是否有相同 key
+		if v, ok := cache[key]; ok {
+			if v.Times >= 1 && v.Value != "" {
+				varStr = strings.ReplaceAll(varStr, it, v.Value)
+				v.Times++
+				cache[key] = v
+				continue
+			}
 		}
 		varN := env.Get(key, "<nil>")
 		if varN == "<nil>" {
@@ -41,7 +53,7 @@ func VariableParse(varStr string, i ...int) string {
 			}
 		}
 		v, ok := cache[key]
-		if ok && v >= 1 {
+		if ok && v.Times >= 1 {
 			continue
 		}
 		if varN != "" {
@@ -50,7 +62,17 @@ func VariableParse(varStr string, i ...int) string {
 		if varN != it {
 			varStr = strings.ReplaceAll(varStr, it, varN)
 		}
-		cache[key] = 1
+		if varN == "" && def != "" {
+			cache[key] = struct {
+				Value string
+				Times int
+			}{Value: "", Times: 1}
+		} else {
+			cache[key] = struct {
+				Value string
+				Times int
+			}{Value: varN, Times: 1}
+		}
 	}
 	return varStr
 }
