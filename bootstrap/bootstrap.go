@@ -163,6 +163,7 @@ func (starter *appBootstrap) initRegisterEnv() {
 	if len(arr) < 0 {
 		return
 	}
+	logs.Info("load env files: %v", arr)
 	_ = godotenv.Load(arr...)
 	// 重新载入env
 	starter.reloadEnv()
