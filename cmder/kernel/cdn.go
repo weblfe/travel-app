@@ -42,6 +42,37 @@ func (domain *cdnDomain) SetDomainUrl(url string) int64 {
 			fmt.Println("error:", err.Error())
 		}
 		result++
+		doc = make(bson.M)
+	}
+	return result
+}
+
+func (domain *cdnDomain) Replaces(oldUrl string, newUrl string) int64 {
+	var (
+		connection = GetDbMgr().GetDb(domain.conn)
+		db         = connection.DB(domain.db)
+		doc        = make(bson.M)
+		query      = bson.M{}
+		collection = db.C(domain.collection)
+	)
+	var (
+		result int64
+		iter   = collection.Find(query).Batch(10).Iter()
+	)
+	for iter.Next(&doc) {
+		var (
+			cdnUrl, _ = doc["cdnUrl"]
+			strUrl    = fmt.Sprintf("%v", cdnUrl)
+		)
+		if !strings.Contains(strUrl, oldUrl) {
+			continue
+		}
+		doc["cdnUrl"] = strings.Replace(strUrl, oldUrl, newUrl, 1)
+		if err := collection.Update(bson.M{"_id": doc["_id"]}, doc); err != nil {
+			fmt.Println("error:", err.Error())
+		}
+		result++
+		doc = make(bson.M)
 	}
 	return result
 }
