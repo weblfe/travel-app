@@ -76,14 +76,14 @@ type BaseModel struct {
 	_Profiles  map[string]interface{}
 }
 
-// 配置
+// ConnOption 配置
 type ConnOption struct {
 	Db       string `json:"db"`     // 数据库
 	Server   string `json:"server"` // 配置类型
 	Document string `json:"table"`  // 表,文档
 }
 
-// 事务上下文
+// TxnContext 事务上下文
 type TxnContext struct {
 	TxnOps    []txn.Op
 	TxnRunner *txn.Runner
@@ -103,7 +103,7 @@ func newBaseModel() *BaseModel {
 	return base
 }
 
-// 获取相关配置
+// GetModelProfiles 获取相关配置
 func GetModelProfiles() *map[string]interface{} {
 	if _baseProfiles == nil {
 		initLock.Do(func() {
@@ -830,17 +830,17 @@ func (this *BaseModel) IncrBy(query interface{}, incr interface{}) error {
 	return table.Update(query, bson.M{"$inc": incr})
 }
 
-// 记录不存在异常
+// IsNotFound 记录不存在异常
 func (this *BaseModel) IsNotFound(err error) bool {
 	return IsNotFound(err)
 }
 
-// 游标异常
+// IsErrCursor 游标异常
 func (this *BaseModel) IsErrCursor(err error) bool {
 	return IsErrCursor(err)
 }
 
-// 使用软删除查询
+// UseSoftDelete 使用软删除查询
 func (this *BaseModel) UseSoftDelete(status ...int64) {
 	if len(status) == 0 {
 		this.AddScopeQuery(bson.M{"deletedAt": 0})
@@ -859,7 +859,7 @@ func (this *BaseModel) UseSoftDelete(status ...int64) {
 	return
 }
 
-// 移出软删除条件
+// UnUseSoftDel 移出软删除条件
 func (this *BaseModel) UnUseSoftDel() {
 	if this._Scope == nil && len(this._Scope) <= 0 {
 		return
@@ -867,7 +867,7 @@ func (this *BaseModel) UnUseSoftDel() {
 	delete(this._Scope, "deletedAt")
 }
 
-// 是重复异常
+// IsDuplicate 是重复异常
 func (this *BaseModel) IsDuplicate(err error) bool {
 	return IsDuplicate(err)
 }
@@ -914,12 +914,12 @@ func (this *BaseModel) unLocker(name string) bool {
 	return false
 }
 
-// 高级查询
+// Pipe 高级查询
 func (this *BaseModel) Pipe(handler func(pipe *mgo.Pipe) interface{}) interface{} {
 	return handler(this.Document().Pipe(nil))
 }
 
-// 执行事务
+// Txn 执行事务
 // 示例：
 //  ops := []txn.Op{{
 //				C:      "accounts",
@@ -942,7 +942,7 @@ func (this *BaseModel) Txn(handler func(runner *txn.Runner, txnId bson.ObjectId)
 	return handler(runner, txnId)
 }
 
-// 绑定数据对象
+// Bind 绑定数据对象
 func (this *BaseModel) Bind(v interface{}) Model {
 	if v == nil {
 		return this
@@ -953,7 +953,7 @@ func (this *BaseModel) Bind(v interface{}) Model {
 	return this
 }
 
-// 提交事务
+// Commit 提交事务
 func (this *BaseModel) Commit(ctx TxnContext) error {
 	if ctx.TxnRunner == nil {
 		return errors.New("empty txn runner")
@@ -961,7 +961,7 @@ func (this *BaseModel) Commit(ctx TxnContext) error {
 	return ctx.TxnRunner.Run(ctx.TxnOps, ctx.TxnId, ctx.TxnResult)
 }
 
-// 创建事务
+// StartTxn 创建事务
 func (this *BaseModel) StartTxn(docs ...*mgo.Collection) (bson.ObjectId, *txn.Runner) {
 	if len(docs) == 0 {
 		docs = append(docs, this.Document())

@@ -11,7 +11,7 @@ type CommentModel struct {
 		BaseModel
 }
 
-// 评论数据
+// Comment 评论数据
 type Comment struct {
 		Id            bson.ObjectId `json:"id" bson:"_id"`                                  // ID
 		UserId        string        `json:"userId" bson:"userId"`                           // 评论人
