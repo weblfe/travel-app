@@ -16,4 +16,4 @@ build
 .test.env
 .dev.env
 .env
-
+swagger.zip

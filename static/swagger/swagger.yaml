@@ -1,0 +1,212 @@
+basePath: /
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a sample server celler server.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Swagger Example API
+  version: "1.0"
+paths:
+  /:
+    get: {}
+    post: {}
+  /app/about:
+    get: {}
+  /app/agreement:
+    get: {}
+  /app/apply:
+    post: {}
+  /app/config:
+    get: {}
+  /app/contactUs:
+    get: {}
+  /app/privacy:
+    get: {}
+  /apply/:id:
+    post: {}
+  /apply/friends:
+    post: {}
+  /attachment/list:
+    get: {}
+  /attachment/ticket:
+    post: {}
+  /attachment/upload:
+    post: {}
+  /attachment/uploads:
+    post: {}
+  /attachments/:mediaId:
+    get: {}
+  /attachments/download/:mediaId:
+    get: {}
+  /captcha/email:
+    post: {}
+  /captcha/mobile:
+    post: {}
+  /captcha/wechat:
+    post: {}
+  /comment/create:
+    post: {}
+  /comment/list:
+    get: {}
+  /fans:
+    get: {}
+  /fans/:userId:
+    get: {}
+  /follow:
+    delete: {}
+    post: {}
+  /follow/:userId:
+    delete: {}
+    post: {}
+  /follows:
+    get: {}
+  /follows/:userId:
+    get: {}
+  /follows/public:
+    get: {}
+  /friends:
+    get: {}
+  /friends/:userId:
+    get: {}
+  /login:
+    post: {}
+  /logout:
+    delete: {}
+  /message/:id:
+    delete: {}
+  /message/apply/friends/list:
+    get: {}
+  /message/list:
+    get: {}
+  /popularization/channel:
+    post: {}
+  /popularization/info:
+    get: {}
+  /popularization/invite:
+    post: {}
+  /popularization/invite/qrcode:
+    get: {}
+  /popularization/qrcode:
+    get: {}
+  /posts/:id:
+    delete: {}
+    get: {}
+  /posts/address/:address:
+    get: {}
+  /posts/all:
+    get: {}
+  /posts/audit:
+    post: {}
+  /posts/create:
+    post: {}
+  /posts/follow:
+    get: {}
+  /posts/follows:
+    get: {}
+  /posts/likes:
+    get: {}
+  /posts/lists:
+    get: {}
+  /posts/lists/my:
+    get: {}
+  /posts/ranking:
+    get: {}
+  /posts/recommends:
+    get: {}
+  /posts/search:
+    get: {}
+  /posts/update:
+    put: {}
+  /posts/user/likes:
+    get: {}
+  /posts/users/:userId:
+    get: {}
+  /posts/video/cover:
+    post: {}
+  /register:
+    post: {}
+  /reset/password:
+    put: {}
+  /tags:
+    get: {}
+  /task/add:
+    post: {}
+  /task/create:
+    post: {}
+  /task/del:
+    delete: {}
+  /task/hook:
+    post: {}
+  /task/lists:
+    get: {}
+  /task/stop:
+    patch: {}
+  /task/sync/assets:
+    post: {}
+  /task/update:
+    patch: {}
+  /thumbsUp:
+    delete: {}
+    post: {}
+  /thumbsUp/count:
+    get: {}
+  /user/collect/post:
+    delete: {}
+    get: {}
+    post: {}
+  /user/friends:
+    get: {}
+  /user/info:
+    get: {}
+    put: {}
+  /user/info/public:
+    get: {}
+  /user/profile:
+    get: {}
+  /user/search:
+    get: {}
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+  BasicAuth:
+    type: basic
+  OAuth2AccessCode:
+    authorizationUrl: https://example.com/oauth/authorize
+    flow: accessCode
+    scopes:
+      admin: ' Grants read and write access to administrative information'
+    tokenUrl: https://example.com/oauth/token
+    type: oauth2
+  OAuth2Application:
+    flow: application
+    scopes:
+      admin: ' Grants read and write access to administrative information'
+      write: ' Grants write access'
+    tokenUrl: https://example.com/oauth/token
+    type: oauth2
+  OAuth2Implicit:
+    authorizationUrl: https://example.com/oauth/authorize
+    flow: implicit
+    scopes:
+      admin: ' Grants read and write access to administrative information'
+      write: ' Grants write access'
+    type: oauth2
+  OAuth2Password:
+    flow: password
+    scopes:
+      admin: ' Grants read and write access to administrative information'
+      read: ' Grants read access'
+      write: ' Grants write access'
+    tokenUrl: https://example.com/oauth/token
+    type: oauth2
+swagger: "2.0"
+x-extension-openapi:
+  example: value on a json format

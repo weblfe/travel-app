@@ -8,7 +8,7 @@ import (
 		"github.com/weblfe/travel-app/transforms"
 )
 
-// 点赞请求
+// ThumbsUpRequest 点赞请求
 type ThumbsUpRequest struct {
 		Type          string `json:"type"`
 		Id            string `json:"id"`

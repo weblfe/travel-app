@@ -93,11 +93,11 @@ const (
 		DefaultAliveTime      = int64(30*24 * time.Hour)
 )
 
-// 字符串数组
+// StrArray 字符串数组
 type StrArray []string
 
 var (
-		// 类型列表
+	// AttachmentTypes 类型列表
 		AttachmentTypes = []string{
 				AttachTypeImage,
 				AttachTypeImageAvatar,
@@ -106,7 +106,7 @@ var (
 				AttachTypeVideo,
 				AttachTypeAudio,
 		}
-		// 类型匹配器
+	// AttachmentTypesMatcher 类型匹配器
 		AttachmentTypesMatcher = []*StrArrayEntry{
 				{AttachTypeImage, StrArray{".png", ".jpg", ".gif", ".bmp", ".webp", ".svg"}},
 				{AttachTypeImageAvatar, StrArray{".png", ".jpg"}},
@@ -655,17 +655,17 @@ func (this *AttachmentModel) getUrlService() UrlAccessService {
 		return nil
 }
 
-// 图片是否可用
+// ImageOk 图片是否可用
 func (this *AttachmentModel) ImageOk(id string) bool {
 		return this.Exists(bson.M{"_id": bson.ObjectIdHex(id), "status": StatusOk, "fileType": AttachTypeImage})
 }
 
-// 视频是否可用
+// VideoOk 视频是否可用
 func (this *AttachmentModel) VideoOk(id string) bool {
 		return this.Exists(bson.M{"_id": bson.ObjectIdHex(id), "status": StatusOk, "fileType": AttachTypeVideo})
 }
 
-// 类型文件是存在
+// TypeMediaOk 类型文件是存在
 func (this *AttachmentModel) TypeMediaOk(id string, ty string) bool {
 		if !StrArray(AttachmentTypes).Included(ty) {
 				return false
@@ -673,7 +673,7 @@ func (this *AttachmentModel) TypeMediaOk(id string, ty string) bool {
 		return this.Exists(bson.M{"_id": bson.ObjectIdHex(id), "status": StatusOk, "fileType": ty})
 }
 
-// 获取对应类型
+// GetAttachTypes 获取对应类型
 func GetAttachTypes(ty string) []string {
 		for _, it := range AttachmentTypesMatcher {
 				if it.Key == ty {

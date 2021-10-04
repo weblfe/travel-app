@@ -152,7 +152,7 @@ func (this *UserController) Search() {
 }
 
 // GetProfile 用户个人页信息
-//  @router /user/profile
+//  @router /user/profile [get]
 func (this *UserController) GetProfile() {
 	this.Send(repositories.NewUserInfoRepository(this).GetProfile(this.GetString("userId")))
 }

@@ -31,7 +31,7 @@ func (this *appRepository) Init() {
 		this.appApplyService = services.ApplyServiceOf()
 }
 
-// 获取配置
+// GetConfig 获取配置
 func (this *appRepository) GetConfig(driver string) common.ResponseJson {
 		var items = this.service.GetAppInfos(driver)
 		if len(items) == 0 {
@@ -40,7 +40,7 @@ func (this *appRepository) GetConfig(driver string) common.ResponseJson {
 		return common.NewSuccessResp(items, "获取配置成功")
 }
 
-// 申请，举报
+// Apply 申请，举报
 func (this *appRepository) Apply() common.ResponseJson {
 		var (
 				err    error

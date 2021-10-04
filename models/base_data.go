@@ -46,7 +46,7 @@ const (
 		DefaultProvider    = "defaultProvider"
 )
 
-// 保存
+// Save 保存
 func (this *dataClassImpl) Save() error {
 		if this.saver != nil {
 				return this.saver()
@@ -54,7 +54,7 @@ func (this *dataClassImpl) Save() error {
 		return common.NewErrors("miss saver", 2803)
 }
 
-// 是否排除键
+// Excludes 是否排除键
 func (this *dataClassImpl) Excludes(key string) bool {
 		if this.safeKeys == nil || len(this.safeKeys) == 0 {
 				return false
@@ -75,7 +75,7 @@ func (this *dataClassImpl) GetId() bson.ObjectId {
 		return bson.NewObjectId()
 }
 
-// 添加排除键
+// AddExcludeKeys 添加排除键
 func (this *dataClassImpl) AddExcludeKeys(key ...string) {
 		for _, k := range key {
 				k = strings.ToLower(k)
@@ -86,7 +86,7 @@ func (this *dataClassImpl) AddExcludeKeys(key ...string) {
 		}
 }
 
-// 移除排除键
+// RemoveExcludeKeys 移除排除键
 func (this *dataClassImpl) RemoveExcludeKeys(key ...string) {
 		for _, k := range key {
 				k = strings.ToLower(k)
@@ -113,7 +113,7 @@ func (this *dataClassImpl) reset() {
 		return
 }
 
-// 过滤输出数据
+// M 过滤输出数据
 func (this *dataClassImpl) M(filter ...func(m beego.M) beego.M) beego.M {
 		var (
 				data    = this.getData()
@@ -129,7 +129,7 @@ func (this *dataClassImpl) M(filter ...func(m beego.M) beego.M) beego.M {
 		return data
 }
 
-// 时间戳格式
+// GetFormatterTime 时间戳格式
 func (this *dataClassImpl) GetFormatterTime(key string) func(data beego.M) beego.M {
 		return func(data beego.M) beego.M {
 				var value, ok = data[key]
@@ -148,7 +148,7 @@ func (this *dataClassImpl) GetFormatterTime(key string) func(data beego.M) beego
 		}
 }
 
-// 字段过滤器
+// GetKeysFilter 字段过滤器
 func (this *dataClassImpl) GetKeysFilter(keys []string, excludes ...bool) func(data beego.M) beego.M {
 		if len(excludes) == 0 {
 				excludes = append(excludes, true)
@@ -174,7 +174,7 @@ func (this *dataClassImpl) GetKeysFilter(keys []string, excludes ...bool) func(d
 		}
 }
 
-// 字段转换器
+// GetTransformFilterByKey 字段转换器
 func (this *dataClassImpl) GetTransformFilterByKey(key string, trans func(v interface{}) interface{}) func(data beego.M) beego.M {
 		return func(data beego.M) beego.M {
 				if v, ok := data[key]; ok {
@@ -184,7 +184,7 @@ func (this *dataClassImpl) GetTransformFilterByKey(key string, trans func(v inte
 		}
 }
 
-// 字段转换器
+// GetTransformFilter 字段转换器
 func (this *dataClassImpl) GetTransformFilter(transform func(key string, v interface{}, data *beego.M)) func(data beego.M) beego.M {
 		return func(data beego.M) beego.M {
 				for key, v := range data {
@@ -194,14 +194,14 @@ func (this *dataClassImpl) GetTransformFilter(transform func(key string, v inter
 		}
 }
 
-// 设置属性值
+// SetAttributes 设置属性值
 func (this *dataClassImpl) SetAttributes(m map[string]interface{}, safe ...bool) {
 		if this.attributesProvider != nil {
 				this.attributesProvider(m, safe...)
 		}
 }
 
-// 设置服务提供函数
+// SetProvider 设置服务提供函数
 func (this *dataClassImpl) SetProvider(name string, v interface{}) {
 		if reflect.TypeOf(v).Kind() != reflect.Func {
 				return
@@ -226,7 +226,7 @@ func (this *dataClassImpl) SetProvider(name string, v interface{}) {
 		}
 }
 
-// 设置objectId
+// SetObjectId 设置objectId
 func (this *dataClassImpl) SetObjectId(objId *bson.ObjectId, v interface{}) bool {
 		if objId == nil || *objId != "" {
 				return false
@@ -246,7 +246,7 @@ func (this *dataClassImpl) SetObjectId(objId *bson.ObjectId, v interface{}) bool
 		return false
 }
 
-// 设置时间
+// SetTime 设置时间
 func (this *dataClassImpl) SetTime(tObj *time.Time, v interface{}, force ...bool) bool {
 		if tObj == nil {
 				return false
@@ -272,7 +272,7 @@ func (this *dataClassImpl) SetTime(tObj *time.Time, v interface{}, force ...bool
 		return false
 }
 
-// 设置mapper
+// SetMapper 设置mapper
 func (this *dataClassImpl) SetMapper(tObj *beego.M, v interface{}, force ...bool) bool {
 		if tObj == nil {
 				return false
@@ -310,17 +310,17 @@ func (this *dataClassImpl) SetMapper(tObj *beego.M, v interface{}, force ...bool
 		return false
 }
 
-// bson Map 赋值
+// SetBsonMapper bson Map 赋值
 func (this *dataClassImpl) SetBsonMapper(tObj *bson.M, v interface{}, force ...bool) bool {
 		return this.SetMapper((*beego.M)(tObj), v, force...)
 }
 
-//  Map 赋值
+// SetMap Map 赋值
 func (this *dataClassImpl) SetMap(tObj *map[string]interface{}, v interface{}, force ...bool) bool {
 		return this.SetMapper((*beego.M)(tObj), v, force...)
 }
 
-// 数据键集合
+// Keys 数据键集合
 func (this *dataClassImpl) Keys() []string {
 		var keys []string
 		for k, _ := range this.getData() {
@@ -329,7 +329,7 @@ func (this *dataClassImpl) Keys() []string {
 		return keys
 }
 
-// 数据值集合
+// Values 数据值集合
 func (this *dataClassImpl) Values() []interface{} {
 		var values []interface{}
 		for _, v := range this.getData() {
@@ -338,7 +338,7 @@ func (this *dataClassImpl) Values() []interface{} {
 		return values
 }
 
-// 遍历
+// Foreach 遍历
 func (this *dataClassImpl) Foreach(each func(k string, v interface{}) bool) {
 		for k, v := range this.getData() {
 				if !each(k, v) {
@@ -359,7 +359,7 @@ func (this *dataClassImpl) IsEmpty(v interface{}) bool {
 		return false
 }
 
-// 遍历
+// Map 遍历
 func (this *dataClassImpl) Map(each func(k string, v interface{}, result interface{}) interface{}, result ...interface{}) interface{} {
 		var ret = result[0]
 		for k, v := range this.getData() {
@@ -368,12 +368,12 @@ func (this *dataClassImpl) Map(each func(k string, v interface{}, result interfa
 		return ret
 }
 
-// 合并
+// Merger 合并
 func (this *dataClassImpl) Merger(m beego.M, m2 beego.M) beego.M {
 		return Merger(m, m2)
 }
 
-// 设置字符串
+// SetString 设置字符串
 func (this *dataClassImpl) SetString(str *string, v interface{}) bool {
 		if v == nil || str == nil {
 				return false
@@ -408,7 +408,7 @@ func (this *dataClassImpl) SetString(str *string, v interface{}) bool {
 		return true
 }
 
-// 设置数字
+// SetNumInt 设置数字
 func (this *dataClassImpl) SetNumInt(num *int, v interface{}) bool {
 		switch v.(type) {
 		case int:
@@ -437,7 +437,7 @@ func (this *dataClassImpl) SetNumInt(num *int, v interface{}) bool {
 		return false
 }
 
-// 设置数字
+// SetNumIntN 设置数字
 func (this *dataClassImpl) SetNumIntN(num *int64, v interface{}) bool {
 		switch v.(type) {
 		case int:
@@ -470,7 +470,7 @@ func (this *dataClassImpl) SetNumIntN(num *int64, v interface{}) bool {
 		return false
 }
 
-// 设置数字
+// SetBool 设置数字
 func (this *dataClassImpl) SetBool(value *bool, v interface{}) bool {
 		switch v.(type) {
 		case int:
@@ -542,7 +542,7 @@ func (this *dataClassImpl) SetBool(value *bool, v interface{}) bool {
 		return false
 }
 
-// 相同类型赋值
+// SetSameTypeValue 相同类型赋值
 func (this *dataClassImpl) SetSameTypeValue(obj interface{}, v interface{}) bool {
 		if obj == nil || v == nil {
 				return false
@@ -558,7 +558,7 @@ func (this *dataClassImpl) SetSameTypeValue(obj interface{}, v interface{}) bool
 		return false
 }
 
-// 添加过滤器
+// AddFilters 添加过滤器
 func (this *dataClassImpl) AddFilters(filters ...func(m beego.M) beego.M) {
 		if this.filters == nil {
 				this.filters = make([]func(m beego.M) beego.M, 2)
@@ -567,7 +567,7 @@ func (this *dataClassImpl) AddFilters(filters ...func(m beego.M) beego.M) {
 		this.filters = append(this.filters, filters...)
 }
 
-// 初始化默认值
+// InitDefault 初始化默认值
 func (this *dataClassImpl) InitDefault() {
 		if this.defaultProvider == nil {
 				return
@@ -595,7 +595,7 @@ func Merger(m beego.M, m2 beego.M) beego.M {
 		return m
 }
 
-// 是否数字类型
+// IsNumber 是否数字类型
 func IsNumber(v interface{}) bool {
 		switch v.(type) {
 		case int:
@@ -616,7 +616,7 @@ func IsNumber(v interface{}) bool {
 		return false
 }
 
-// 是否为空
+// IsEmpty 是否为空
 func IsEmpty(v interface{}) bool {
 		var getValue = reflect.ValueOf(v)
 		return getValue.IsZero() || getValue.IsNil()

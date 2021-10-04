@@ -14,7 +14,8 @@ func IndexControllerOf() *IndexController {
 }
 
 // Index
-// @router /  [*]
+// @router /  [get]
+// @router /  [post]
 func (this *IndexController) Index() {
 		this.Send(common.NewResponse(beego.M{}, 0, common.Success))
 }

@@ -1,17 +1,305 @@
 {
     "swagger": "2.0",
     "info": {
-        "title": "beego Test API",
-        "description": "api document",
-        "version": "1.0.0",
-        "termsOfService": "http://api.word-server.com/",
+        "description": "This is a sample server celler server.",
+        "title": "Swagger Example API",
+        "termsOfService": "http://swagger.io/terms/",
         "contact": {
-            "email": "weblinuxgame@g126.com"
+            "name": "API Support",
+            "url": "http://www.swagger.io/support",
+            "email": "support@swagger.io"
         },
         "license": {
             "name": "Apache 2.0",
             "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/": {
+            "get": {},
+            "post": {}
+        },
+        "/app/about": {
+            "get": {}
+        },
+        "/app/agreement": {
+            "get": {}
+        },
+        "/app/apply": {
+            "post": {}
+        },
+        "/app/config": {
+            "get": {}
+        },
+        "/app/contactUs": {
+            "get": {}
+        },
+        "/app/privacy": {
+            "get": {}
+        },
+        "/apply/:id": {
+            "post": {}
+        },
+        "/apply/friends": {
+            "post": {}
+        },
+        "/attachment/list": {
+            "get": {}
+        },
+        "/attachment/ticket": {
+            "post": {}
+        },
+        "/attachment/upload": {
+            "post": {}
+        },
+        "/attachment/uploads": {
+            "post": {}
+        },
+        "/attachments/:mediaId": {
+            "get": {}
+        },
+        "/attachments/download/:mediaId": {
+            "get": {}
+        },
+        "/captcha/email": {
+            "post": {}
+        },
+        "/captcha/mobile": {
+            "post": {}
+        },
+        "/captcha/wechat": {
+            "post": {}
+        },
+        "/comment/create": {
+            "post": {}
+        },
+        "/comment/list": {
+            "get": {}
+        },
+        "/fans": {
+            "get": {}
+        },
+        "/fans/:userId": {
+            "get": {}
+        },
+        "/follow": {
+            "post": {},
+            "delete": {}
+        },
+        "/follow/:userId": {
+            "post": {},
+            "delete": {}
+        },
+        "/follows": {
+            "get": {}
+        },
+        "/follows/:userId": {
+            "get": {}
+        },
+        "/follows/public": {
+            "get": {}
+        },
+        "/friends": {
+            "get": {}
+        },
+        "/friends/:userId": {
+            "get": {}
+        },
+        "/login": {
+            "post": {}
+        },
+        "/logout": {
+            "delete": {}
+        },
+        "/message/:id": {
+            "delete": {}
+        },
+        "/message/apply/friends/list": {
+            "get": {}
+        },
+        "/message/list": {
+            "get": {}
+        },
+        "/popularization/channel": {
+            "post": {}
+        },
+        "/popularization/info": {
+            "get": {}
+        },
+        "/popularization/invite": {
+            "post": {}
+        },
+        "/popularization/invite/qrcode": {
+            "get": {}
+        },
+        "/popularization/qrcode": {
+            "get": {}
+        },
+        "/posts/:id": {
+            "get": {},
+            "delete": {}
+        },
+        "/posts/address/:address": {
+            "get": {}
+        },
+        "/posts/all": {
+            "get": {}
+        },
+        "/posts/audit": {
+            "post": {}
+        },
+        "/posts/create": {
+            "post": {}
+        },
+        "/posts/follow": {
+            "get": {}
+        },
+        "/posts/follows": {
+            "get": {}
+        },
+        "/posts/likes": {
+            "get": {}
+        },
+        "/posts/lists": {
+            "get": {}
+        },
+        "/posts/lists/my": {
+            "get": {}
+        },
+        "/posts/ranking": {
+            "get": {}
+        },
+        "/posts/recommends": {
+            "get": {}
+        },
+        "/posts/search": {
+            "get": {}
+        },
+        "/posts/update": {
+            "put": {}
+        },
+        "/posts/user/likes": {
+            "get": {}
+        },
+        "/posts/users/:userId": {
+            "get": {}
+        },
+        "/posts/video/cover": {
+            "post": {}
+        },
+        "/register": {
+            "post": {}
+        },
+        "/reset/password": {
+            "put": {}
+        },
+        "/tags": {
+            "get": {}
+        },
+        "/task/add": {
+            "post": {}
+        },
+        "/task/create": {
+            "post": {}
+        },
+        "/task/del": {
+            "delete": {}
+        },
+        "/task/hook": {
+            "post": {}
+        },
+        "/task/lists": {
+            "get": {}
+        },
+        "/task/stop": {
+            "patch": {}
+        },
+        "/task/sync/assets": {
+            "post": {}
+        },
+        "/task/update": {
+            "patch": {}
+        },
+        "/thumbsUp": {
+            "post": {},
+            "delete": {}
+        },
+        "/thumbsUp/count": {
+            "get": {}
+        },
+        "/user/collect/post": {
+            "get": {},
+            "post": {},
+            "delete": {}
+        },
+        "/user/friends": {
+            "get": {}
+        },
+        "/user/info": {
+            "get": {},
+            "put": {}
+        },
+        "/user/info/public": {
+            "get": {}
+        },
+        "/user/profile": {
+            "get": {}
+        },
+        "/user/search": {
+            "get": {}
         }
     },
-    "paths": null
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        },
+        "BasicAuth": {
+            "type": "basic"
+        },
+        "OAuth2AccessCode": {
+            "type": "oauth2",
+            "flow": "accessCode",
+            "authorizationUrl": "https://example.com/oauth/authorize",
+            "tokenUrl": "https://example.com/oauth/token",
+            "scopes": {
+                "admin": " Grants read and write access to administrative information"
+            }
+        },
+        "OAuth2Application": {
+            "type": "oauth2",
+            "flow": "application",
+            "tokenUrl": "https://example.com/oauth/token",
+            "scopes": {
+                "admin": " Grants read and write access to administrative information",
+                "write": " Grants write access"
+            }
+        },
+        "OAuth2Implicit": {
+            "type": "oauth2",
+            "flow": "implicit",
+            "authorizationUrl": "https://example.com/oauth/authorize",
+            "scopes": {
+                "admin": " Grants read and write access to administrative information",
+                "write": " Grants write access"
+            }
+        },
+        "OAuth2Password": {
+            "type": "oauth2",
+            "flow": "password",
+            "tokenUrl": "https://example.com/oauth/token",
+            "scopes": {
+                "admin": " Grants read and write access to administrative information",
+                "read": " Grants read access",
+                "write": " Grants write access"
+            }
+        }
+    },
+    "x-extension-openapi": {
+        "example": "value on a json format"
+    }
 }
