@@ -5,9 +5,16 @@ import (
 	"github.com/astaxie/beego/context"
 	swag "github.com/weblfe/beego-swagger"
 	"github.com/weblfe/travel-app/docs"
+	"github.com/weblfe/travel-app/libs"
+	"sync"
 )
 
 func SwaggerHandlerOf() func(*context.Context) {
-	docs.SwaggerInfo.Host = env.Get("APP_URL", docs.SwaggerInfo.Host)
-	return swag.Handler
+	var once = sync.Once{}
+	return func(c *context.Context) {
+		once.Do(func() {
+			docs.SwaggerInfo.Host = libs.VariableParse(env.Get("APP_URL", docs.SwaggerInfo.Host))
+		})
+		swag.Handler(c)
+	}
 }
