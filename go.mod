@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/aliyun/alibaba-cloud-sdk-go v1.61.279
-	github.com/astaxie/beego v1.12.2
+	github.com/astaxie/beego v1.12.3
 	github.com/boombuler/barcode v1.0.0
 	github.com/coreos/etcd v3.3.13+incompatible
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
@@ -35,12 +35,14 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.7.1
+	github.com/swaggo/files v0.0.0-20210815190702-a29dd2bc99b2 // indirect
 	github.com/swaggo/swag v1.7.3
 	github.com/tuotoo/qrcode v0.0.0-20190222102259-ac9c44189bf2
+	github.com/weblfe/beego-swagger v0.1.3
 	github.com/willf/bitset v1.1.10 // indirect
 	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a // indirect
-	golang.org/x/net v0.0.0-20210119194325-5f4716e94777 // indirect
-	golang.org/x/sys v0.0.0-20210119212857-b64e53b001e4 // indirect
+	golang.org/x/net v0.0.0-20210805182204-aaa1db679c0d // indirect
+	golang.org/x/sys v0.0.0-20210423082822-04245dca01da // indirect
 	google.golang.org/protobuf v1.25.0 // indirect
 	gopkg.in/ini.v1 v1.61.0 // indirect
 	gopkg.in/tomb.v2 v2.0.0-20161208151619-d5d1b5820637 // indirect

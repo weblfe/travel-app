@@ -15,7 +15,9 @@
 package beego
 
 import (
+	"crypto/tls"
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -65,6 +67,7 @@ type Listen struct {
 	HTTPSCertFile     string
 	HTTPSKeyFile      string
 	TrustCaFile       string
+	ClientAuth        tls.ClientAuthType
 	EnableAdmin       bool
 	AdminAddr         string
 	AdminPort         int
@@ -106,6 +109,7 @@ type SessionConfig struct {
 	SessionEnableSidInHTTPHeader bool // enable store/get the sessionId into/from http headers
 	SessionNameInHTTPHeader      string
 	SessionEnableSidInURLQuery   bool // enable get the sessionId from Url Query params
+	SessionCookieSameSite        http.SameSite
 }
 
 // LogConfig holds Log related config
@@ -150,6 +154,9 @@ func init() {
 		filename = os.Getenv("BEEGO_RUNMODE") + ".app.conf"
 	}
 	appConfigPath = filepath.Join(WorkPath, "conf", filename)
+	if configPath := os.Getenv("BEEGO_CONFIG_PATH"); configPath != "" {
+		appConfigPath = configPath
+	}
 	if !utils.FileExists(appConfigPath) {
 		appConfigPath = filepath.Join(AppPath, "conf", filename)
 		if !utils.FileExists(appConfigPath) {
@@ -231,6 +238,7 @@ func newBConfig() *Config {
 			AdminPort:     8088,
 			EnableFcgi:    false,
 			EnableStdIo:   false,
+			ClientAuth:    tls.RequireAndVerifyClientCert,
 		},
 		WebConfig: WebConfig{
 			AutoRender:             true,
@@ -261,6 +269,7 @@ func newBConfig() *Config {
 				SessionEnableSidInHTTPHeader: false, // enable store/get the sessionId into/from http headers
 				SessionNameInHTTPHeader:      "Beegosessionid",
 				SessionEnableSidInURLQuery:   false, // enable get the sessionId from Url Query params
+				SessionCookieSameSite:        http.SameSiteDefaultMode,
 			},
 		},
 		Log: LogConfig{

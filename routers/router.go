@@ -38,8 +38,7 @@ func init() {
 	beego.Include(controllers.PopularizationControllerOf())
 	// 任务接口
 	beego.Include(controllers.TaskControllerOf())
-
-/*	beego.BConfig.WebConfig.DirectoryIndex = true
-	beego.BConfig.WebConfig.StaticDir["/swagger"] = "swagger"*/
+	// swagger
+	beego.Get("/swagger/*",controllers.SwaggerHandlerOf())
 
 }

@@ -46,4 +46,4 @@ package main
 // @x-extension-openapi {"example": "value on a json format"}
 
 //go:generate swag2 init  -g doc.go -o static/swagger
-//go:generate bee run -gendoc=true
+//go:generate bee run
