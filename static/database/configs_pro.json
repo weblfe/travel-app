@@ -13,25 +13,25 @@
   },
   {
     "key": "appHelpUrl",
-    "value": "https://ffmark.nuokwan.com/contactUs",
+    "value": "https://h5.firefoo.cn/contactUs",
     "title": "联系我们",
     "root": "app"
   },
   {
     "key": "appAboutUs",
-    "value": "https://ffmark.nuokwan.com/about",
+    "value": "https://h5.firefoo.cn/about",
     "title": "关于我们",
     "root": "app"
   },
   {
     "key": "appUserAgreement",
-    "value": "https://ffmark.nuokwan.com/agreement",
+    "value": "https://h5.firefoo.cn/agreement",
     "title": "用户协议页",
     "root": "app"
   },
   {
     "key": "appPrivacy",
-    "value": "https://ffmark.nuokwan.com/private",
+    "value": "https://h5.firefoo.cn/private",
     "title": "隐私条款页",
     "root": "app"
   },
