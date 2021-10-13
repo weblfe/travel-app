@@ -32,7 +32,7 @@ services:
     image: redis:6.0.6-alpine
     restart: always
     ports:
-      - 26379:6379
+      - "26379:6379"
     volumes:
       - ./data/redis/redis.conf:/usr/local/etc/redis/redis.conf
       - ./data/redis/run:/var/run:rw
@@ -50,7 +50,7 @@ services:
       - ./data/mongodb/config/mongod.conf:/etc/mongod.conf.orig
       - /etc/localtime:/etc/localtime:ro
     ports:
-      - 37017:27017
+      - "37017:27017"
     networks:
       - travel
 
