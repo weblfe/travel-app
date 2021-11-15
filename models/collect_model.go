@@ -8,7 +8,7 @@ import (
 		"time"
 )
 
-// 收藏记录
+// Collect  收藏记录
 type Collect struct {
 		Id            bson.ObjectId `json:"id" bson:"_id"`                // ID
 		UserId        string        `json:"userId" bson:"userId"`         // 用户ID
@@ -22,7 +22,7 @@ type Collect struct {
 		dataClassImpl `bson:",omitempty"  json:",omitempty"`              // 工具类
 }
 
-// 收藏记录model
+// CollectModel 收藏记录model
 type CollectModel struct {
 		BaseModel
 }
@@ -196,4 +196,9 @@ func (this *CollectModel) GetByUnique(m beego.M) *Collect {
 				return nil
 		}
 		return data
+}
+
+func (this *CollectModel)GetTravelNote() *TravelNotes {
+
+		return nil
 }

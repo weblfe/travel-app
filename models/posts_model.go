@@ -19,7 +19,7 @@ func PostsModelOf() *PostsModel {
 		return model
 }
 
-// 游记
+// TravelNotes 游记
 type TravelNotes struct {
 		Id          bson.ObjectId `json:"id" bson:"_id"`
 		Title       string        `json:"title" bson:"title"`                       // 标题

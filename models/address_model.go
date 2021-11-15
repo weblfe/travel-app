@@ -18,7 +18,7 @@ type AddressModel struct {
 		BaseModel
 }
 
-// 中国行政区域
+// Address 中国行政区域
 type Address struct {
 		Id            bson.ObjectId `json:"id" bson:"_id"`                // ID
 		Level         int           `json:"level" bson:"level"`           // 行政层级
@@ -73,14 +73,14 @@ var (
 		MissAreaCodeError = errors.New("miss areaCode")
 )
 
-// 新地址
+// NewAddress 新地址
 func NewAddress() *Address {
 		var addr = new(Address)
 		addr.Init()
 		return addr
 }
 
-// 地址模型
+// AddressModelOf 地址模型
 func AddressModelOf() *AddressModel {
 		var addr = new(AddressModel)
 		addr.Bind(addr)
@@ -88,12 +88,12 @@ func AddressModelOf() *AddressModel {
 		return addr
 }
 
-// 文档名
+// TableName 文档名
 func (this *AddressModel) TableName() string {
 		return AddressTableName
 }
 
-// 创建索引
+// CreateIndex 创建索引
 func (this *AddressModel) CreateIndex(force ...bool) {
 		this.createIndex(this.getCreateIndexHandler(), force...)
 }
@@ -113,7 +113,7 @@ func (this *AddressModel) getCreateIndexHandler() func(*mgo.Collection) {
 		}
 }
 
-// 地址查询
+// GetAddress 地址查询
 func (this *AddressModel) GetAddress(query map[string]interface{}) *Address {
 		if query == nil || len(query) == 0 {
 				return nil
@@ -127,7 +127,7 @@ func (this *AddressModel) GetAddress(query map[string]interface{}) *Address {
 		return nil
 }
 
-// 通过json 倒入
+// ImportFromJsonFile 通过json 倒入
 func (this *AddressModel) ImportFromJsonFile(file string) (int, error) {
 		var data = beego.M{}
 		if !utils.FileExists(file) {
@@ -201,7 +201,7 @@ func (this *AddressModel) transformJson(data map[string]interface{}) map[string]
 		return data
 }
 
-// 地址对象初始化
+// Init 地址对象初始化
 func (this *Address) Init() {
 		this.AddFilters(transforms.FilterEmpty)
 		this.SetProvider(DataProvider, this.data)
@@ -254,7 +254,7 @@ func (this *Address) setAttributes(data map[string]interface{}, safe ...bool) {
 		}
 }
 
-// setter
+// Set setter
 func (this *Address) Set(key string, v interface{}) *Address {
 		switch key {
 		case "id":
@@ -353,7 +353,7 @@ func (this *Address) setDefaults() {
 		}
 }
 
-// 默认值填充
+// Defaults 默认值填充
 func (this *Address) Defaults() *Address {
 		this.setDefaults()
 		return this
@@ -374,17 +374,17 @@ func (this *Address) save() error {
 		return model.UpdateById(addr.Id.Hex(), this.M())
 }
 
-// 获取行政区域 文本
+//GetLevelText 获取行政区域 文本
 func GetLevelText(level int) string {
 		return _AddressLevelMapper[level]
 }
 
-// 获取行政区域 描述
+//GetLevelDesc 获取行政区域 描述
 func GetLevelDesc(level int) string {
 		return _AddressLevelDesc[level]
 }
 
-// 是否支持的行政等级
+//InSupportLevel 是否支持的行政等级
 func InSupportLevel(level int) bool {
 		for l, _ := range _AddressLevelDesc {
 				if l == level {
@@ -394,7 +394,7 @@ func InSupportLevel(level int) bool {
 		return false
 }
 
-// 通过表现获取行政等级
+//GetLevelByDesc 通过表现获取行政等级
 func GetLevelByDesc(desc string) int {
 		var descTrim = strings.TrimSpace(desc)
 		for level, d := range _AddressLevelDesc {
