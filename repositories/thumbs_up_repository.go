@@ -36,12 +36,12 @@ func (this *thumbsUpRepositoryImpl) init() {
 		this.service = services.ThumbsUpServiceOf()
 }
 
-// 用户点赞
+// Up 用户点赞
 func (this *thumbsUpRepositoryImpl) Up() common.ResponseJson {
 		return this.Action(ActionUp)
 }
 
-// 点赞行为
+// Action 点赞行为
 func (this *thumbsUpRepositoryImpl) Action(action int) common.ResponseJson {
 		var (
 				request = transports.NewThumbUpRequest()
@@ -77,7 +77,7 @@ func (this *thumbsUpRepositoryImpl) Action(action int) common.ResponseJson {
 		return common.NewErrorResp(common.NewErrors(common.InvalidParametersCode, "请求失败,未知操作"))
 }
 
-// 用户取消点赞
+// Down 用户取消点赞
 func (this *thumbsUpRepositoryImpl) Down() common.ResponseJson {
 		return this.Action(ActionDown)
 }

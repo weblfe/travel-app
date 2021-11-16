@@ -242,7 +242,7 @@ func (this *UserServiceImpl) SearchUserByNickName(nickname string, limit models.
 		// 获取用户列表
 		if err == nil {
 				meta.Size = len(items)
-				meta.Count = limit.Count()
+				meta.C = limit.Count()
 				meta.Total, _ = this.userModel.NewQuery(query).Count()
 				meta.Boot()
 				// 排序
@@ -273,7 +273,7 @@ func getDiffFilter(b beego.M) func(m beego.M) beego.M {
 		}
 }
 
-// 字段更新过滤器
+// getUpdateFilter 字段更新过滤器
 func getUpdateFilter(fields []string, data beego.M) func(m beego.M) beego.M {
 		return func(m beego.M) beego.M {
 				var result = make(beego.M)

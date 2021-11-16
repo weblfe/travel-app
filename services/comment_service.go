@@ -35,7 +35,7 @@ func (this *commentServiceImpl) Init() {
 	}
 }
 
-// 提交保持评论
+// Commit 提交保持评论
 func (this *commentServiceImpl) Commit(data *models.Comment) error {
 	data.Defaults()
 	if data.TargetId == "" {
@@ -81,7 +81,7 @@ func (this *commentServiceImpl) addSuccessAfter(comment *models.Comment) {
 	_ = this.IncrCommentForPost(comment)
 }
 
-// 评论数据增加更新
+// IncrCommentForPost 评论数据增加更新
 func (this *commentServiceImpl) IncrCommentForPost(comment *models.Comment) error {
 	if len(comment.RefersIds) >= 1 && comment.Status == models.StatusAuditPass {
 		// 评论 的评论数统计
@@ -98,7 +98,7 @@ func (this *commentServiceImpl) IncrCommentForPost(comment *models.Comment) erro
 	return nil
 }
 
-// 更新评论 回复数
+// IncrCommentReviews 更新评论 回复数
 func (this *commentServiceImpl) IncrCommentReviews(id string) error {
 	var data = this.GetById(id)
 	if data == nil {
@@ -129,7 +129,7 @@ func (this *commentServiceImpl) resolverRefersId(comment *models.Comment) error 
 	return nil
 }
 
-// 评论列表
+// Lists 评论列表
 func (this *commentServiceImpl) Lists(targetType, targetId string, page models.ListsParams, extras ...beego.M) ([]*models.Comment, *models.Meta) {
 	var (
 		err   error
@@ -148,8 +148,8 @@ func (this *commentServiceImpl) Lists(targetType, targetId string, page models.L
 			query = models.Merger(query, it)
 		}
 	}
-	meta.Count = page.Count()
-	meta.Page = page.Page()
+	meta.C = page.Count()
+	meta.P = page.Page()
 	this.model.UseSoftDelete()
 	listQuery := this.model.ListsQuery(query, page)
 	// desc createdAt
@@ -162,12 +162,12 @@ func (this *commentServiceImpl) Lists(targetType, targetId string, page models.L
 	return nil, meta
 }
 
-// 更新评论 点赞数量
+// IncrThumbsUp 更新评论 点赞数量
 func (this *commentServiceImpl) IncrThumbsUp(id string, incr int) error {
 	return this.model.IncrBy(bson.M{"_id": bson.ObjectIdHex(id)}, bson.M{"thumbsUpNum": incr})
 }
 
-// 通过ID获取
+// GetById 通过ID获取
 func (this *commentServiceImpl) GetById(id string) *models.Comment {
 	var (
 		err     error
@@ -181,7 +181,7 @@ func (this *commentServiceImpl) GetById(id string) *models.Comment {
 	return nil
 }
 
-// 获取评论的所有回复
+// GetReviews 获取评论的所有回复
 func (this *commentServiceImpl) GetReviews(id string) ([]*models.Comment, int) {
 	this.model.UseSoftDelete()
 	var (

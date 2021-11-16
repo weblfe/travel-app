@@ -31,12 +31,12 @@ func (this *TemplateServiceImpl) Init() {
 		this.templateModel = models.MessageTemplateModelOf()
 }
 
-// 添加
+// Add 添加
 func (this *TemplateServiceImpl) Add(temp *models.MessageTemplate) error {
 		return this.templateModel.Add(temp)
 }
 
-// 获取名
+// GetByNameType 获取名
 func (this *TemplateServiceImpl) GetByNameType(name string, typ string) *models.MessageTemplate {
 		var template = models.NewMessageTemplate()
 		if err := this.templateModel.FindOne(bson.M{"name": name, "type": typ}, template); err == nil {
@@ -45,7 +45,7 @@ func (this *TemplateServiceImpl) GetByNameType(name string, typ string) *models.
 		return nil
 }
 
-// 更新
+// UpdateByNameType 更新
 func (this *TemplateServiceImpl) UpdateByNameType(name string, typ string, data map[string]interface{}) bool {
 		template := this.GetByNameType(name, typ)
 		if template == nil {

@@ -35,7 +35,7 @@ func (this *applyServiceImpl) Init() *applyServiceImpl {
 		return this
 }
 
-// 提交举报 ｜ 反馈
+// Commit 提交举报 ｜ 反馈
 func (this *applyServiceImpl) Commit(info *models.ApplyInfo) error {
 		if info.Date == 0 {
 				info.Date = models.GetDate()

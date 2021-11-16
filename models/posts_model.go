@@ -178,7 +178,7 @@ func (this *TravelNotes) removeUpdateExcludes(m beego.M) beego.M {
 		return m
 }
 
-// 获取标签描述
+// GetTagsText 获取标签描述
 func (this *TravelNotes) GetTagsText() []string {
 		if this.Tags == nil || len(this.Tags) == 0 {
 				return []string{}
@@ -359,7 +359,7 @@ func (this *PostsModel) getCreateIndexHandler() func(*mgo.Collection) {
 		}
 }
 
-// 增加
+// Incr 增加
 func (this *PostsModel) Incr(id string, typ string, num ...int) error {
 		if len(num) == 0 {
 				num = append(num, 1)
@@ -372,7 +372,7 @@ func (this *PostsModel) Incr(id string, typ string, num ...int) error {
 		return err
 }
 
-// 自动算分
+// AutoScore 自动算分
 func (this *PostsModel) AutoScore(id string) bool {
 		var locker = this.getLocker(id)
 		defer this.unLocker(locker)
@@ -400,11 +400,14 @@ func (this *PostsModel) calculate(data *TravelNotes) int64 {
 
 // 获取锁
 func (this *PostsModel) getLocker(name string) string {
-		for {
+		var times = 0
+		for times <= 3{
 				id := this.getRedisLocker(name)
 				if id != "" {
 						return id
 				}
 				this.wait()
+				times++
 		}
+		return ""
 }

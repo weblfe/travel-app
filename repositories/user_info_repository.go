@@ -64,7 +64,7 @@ func (this *UserInfoRepositoryImpl) getDto() *DtoRepository {
 		return GetDtoRepository()
 }
 
-// 获取 全部用户信息 [个人]
+// GetUserInfo 获取 全部用户信息 [个人]
 func (this *UserInfoRepositoryImpl) GetUserInfo() common.ResponseJson {
 		var (
 				id string
@@ -121,7 +121,7 @@ func (this *UserInfoRepositoryImpl) ResetPassword() common.ResponseJson {
 		return common.NewFailedResp(common.ServiceFailed, "更新密码失败", err)
 }
 
-// 密码规则检查
+// PasswordCheck 密码规则检查
 func (this *UserInfoRepositoryImpl) PasswordCheck(pass string) common.Errors {
 		if len(pass) < 6 {
 				return common.NewErrors(common.InvalidParametersCode, "密码长度必须不少于6位")
@@ -258,7 +258,7 @@ func (this *UserInfoRepositoryImpl) UpdateUserInfo() common.ResponseJson {
 		return common.NewFailedResp(common.ServiceFailed, err, "更新失败")
 }
 
-// 用户相关数值数据
+// GetUserNumbers 用户相关数值数据
 func (this *UserInfoRepositoryImpl) GetUserNumbers(userId string) *UserNumbersObject {
 		var info = new(UserNumbersObject)
 		if !this.userService.Exists(beego.M{"_id": bson.ObjectIdHex(userId)}) {
@@ -270,7 +270,7 @@ func (this *UserInfoRepositoryImpl) GetUserNumbers(userId string) *UserNumbersOb
 		return info
 }
 
-// 获取用户 公共信息
+// GetUserPublic 获取用户 公共信息
 func (this *UserInfoRepositoryImpl) GetUserPublic(userId string) *UserPublicInfo {
 		var info = new(UserPublicInfo)
 		if !this.userService.Exists(beego.M{"_id": bson.ObjectIdHex(userId)}) {

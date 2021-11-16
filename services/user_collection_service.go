@@ -11,7 +11,7 @@ import (
 type UserCollectionService interface {
 	Add(id, userId string) error
 	Remove(id, userId string) error
-	Lists(userId string, limit models.ListsParams) ([]*models.TravelNotes, *models.Meta)
+	Lists(userId string, limit models.ListsParams) ([]*models.TravelNotes, models.ListsParams)
 }
 
 type userCollectionServiceImpl struct {
@@ -73,13 +73,14 @@ func (this *userCollectionServiceImpl) Remove(id, userId string) error {
 }
 
 // Lists 罗列收藏
-func (this *userCollectionServiceImpl) Lists(userId string, limit models.ListsParams) ([]*models.TravelNotes, *models.Meta) {
+func (this *userCollectionServiceImpl) Lists(userId string, limit models.ListsParams) ([]*models.TravelNotes, models.ListsParams) {
 	var (
 		query = bson.M{
-			"userId": userId,
+			"userId":     userId,
+			"targetType": models.CollectTargetTypePost,
 		}
-		lists      = new([]*models.CollectModel)
-		total, err = this.model.Lists(query, nil, limit)
+		lists      = new([]*models.Collect)
+		total, err = this.model.Lists(query, lists, limit)
 	)
 	if err != nil {
 		return nil, nil
@@ -88,13 +89,23 @@ func (this *userCollectionServiceImpl) Lists(userId string, limit models.ListsPa
 		return nil, models.NewMeta()
 	}
 	var (
-		notes []*models.TravelNotes
+		ids   []string
 		meta  = models.NewMeta()
+		notes []*models.TravelNotes
 	)
 	for _, v := range *lists {
-		notes = append(notes, v.GetTravelNote())
+		if v.TargetType != models.CollectTargetTypePost {
+			continue
+		}
+		ids = append(ids, v.TargetId)
+	}
+	meta.Set("total", total)
+	defer meta.Boot()
+	notes = this.model.GetTravelNotesByIds(ids)
+	if notes == nil {
+		meta.Set("size", 0)
+		return nil, meta
 	}
 	meta.Set("size", len(notes))
-	meta.Set("total", total)
 	return notes, meta
 }

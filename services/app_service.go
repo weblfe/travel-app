@@ -58,7 +58,7 @@ func (this *appServiceImpl) Init() {
 		}
 }
 
-// 获取 App 版本号
+// GetAppVersion 获取 App 版本号
 func (this *appServiceImpl) GetAppVersion(device string) string {
 		var (
 				err error
@@ -71,7 +71,7 @@ func (this *appServiceImpl) GetAppVersion(device string) string {
 		return app.Version
 }
 
-// 获取关于我们
+// GetAboutUs 获取关于我们
 func (this *appServiceImpl) GetAboutUs(defaults ...string) string {
 		var aboutUs = this.configModel.GetString(AppAboutUsKey)
 		if aboutUs == "" {
@@ -80,17 +80,17 @@ func (this *appServiceImpl) GetAboutUs(defaults ...string) string {
 		return aboutUs
 }
 
-// 获取隐私协议
+// GetPrivacy 获取隐私协议
 func (this *appServiceImpl) GetPrivacy() string {
 		return this.configModel.GetString(AppPrivacyKey)
 }
 
-// 获取用户协议
+// GetUserAgreement 获取用户协议
 func (this *appServiceImpl) GetUserAgreement() string {
 		return this.configModel.GetString(AppUserAgreementKey)
 }
 
-// 获取App 客户
+// GetAppCustomers 获取App 客户
 func (this *appServiceImpl) GetAppCustomers() []string {
 		var cnf = this.configModel.Get(AppCustomersKey, ConfigAppScope)
 		if cnf.Value == nil {
@@ -105,7 +105,7 @@ func (this *appServiceImpl) GetAppCustomers() []string {
 		return []string{}
 }
 
-// 获取app 配置信息
+// GetAppInfos 获取app 配置信息
 func (this *appServiceImpl) GetAppInfos(drivers ...string) map[string]interface{} {
 		var (
 				arr     []interface{}
@@ -126,14 +126,14 @@ func (this *appServiceImpl) GetAppInfos(drivers ...string) map[string]interface{
 		return results
 }
 
-// 获取app 基础配置
+// GetAppBaseConfigs 获取app 基础配置
 func (this *appServiceImpl) GetAppBaseConfigs(drivers ...string) *models.AppBaseConfig {
 		var info = new(models.AppBaseConfig)
 		info.Load(drivers...)
 		return info
 }
 
-// 获取构建版本信息内容
+// GetAppBuiltItems 获取构建版本信息内容
 func (this *appServiceImpl) GetAppBuiltItems(drivers ...string) []*models.AppInfo {
 		var (
 				err   error
@@ -152,7 +152,7 @@ func (this *appServiceImpl) GetAppBuiltItems(drivers ...string) []*models.AppInf
 		return items
 }
 
-// 获取配置信息
+// GetConfig 获取配置信息
 func (this *appServiceImpl) GetConfig(typ ...string) beego.M {
 		var (
 				result = beego.M{}
@@ -178,7 +178,7 @@ func (this *appServiceImpl) GetConfig(typ ...string) beego.M {
 		return result
 }
 
-// 获取 App 三端 统一授权码
+// GetAppCode 获取 App 三端 统一授权码
 func (this *appServiceImpl) GetAppCode(defaults ...string) string {
 		var code = this.configModel.GetString(AppCodeKey)
 		if len(defaults) == 0 {
@@ -190,7 +190,7 @@ func (this *appServiceImpl) GetAppCode(defaults ...string) string {
 		return code
 }
 
-// 获取帮助 Url
+// GetHelpUrl 获取帮助 Url
 func (this *appServiceImpl) GetHelpUrl(defaults ...string) string {
 		var url = this.configModel.GetString(AppHelpUrlKey)
 		if len(defaults) == 0 {
@@ -202,7 +202,7 @@ func (this *appServiceImpl) GetHelpUrl(defaults ...string) string {
 		return url
 }
 
-// 获取 申述 邮箱
+// GetAllegeEmail 获取 申述 邮箱
 func (this *appServiceImpl) GetAllegeEmail(defaults ...string) string {
 		var email = this.configModel.GetString(AppAllegeEmail)
 		if len(defaults) == 0 {
@@ -221,7 +221,7 @@ func (this *appServiceImpl) SetAppCode(code string) bool {
 		return false
 }
 
-// 获取缓存存储器
+// GetStore 获取缓存存储器
 func (this *appServiceImpl) GetStore() cache.Cache {
 		if this.store == nil {
 				this.store = GetCacheService().Get(AppCache)
@@ -233,7 +233,7 @@ func (this *appServiceImpl) code() string {
 		return libs.RandomWord(6)
 }
 
-// 设置App Code
+// InitCode 设置App Code
 func (this *appServiceImpl) InitCode() {
 		var code = this.GetAppCode()
 		if code == "" {

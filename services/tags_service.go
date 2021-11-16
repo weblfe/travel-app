@@ -35,9 +35,9 @@ func (this *tagsServiceImpl) GetTags(group string) ([]models.Tag, *models.Meta) 
 				meta  = models.NewMeta()
 		)
 		items = this.model.GetTags(group)
-		meta.Page = 1
-		meta.Count = len(items)
-		meta.Total = meta.Count
-		meta.Size = meta.Count
+		meta.P = 1
+		meta.C = len(items)
+		meta.Total = meta.Count()
+		meta.Size = meta.Count()
 		return items, meta
 }

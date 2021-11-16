@@ -134,10 +134,16 @@ func GetProfile(key string, defaults ...interface{}) interface{} {
 }
 
 func (this *ListsParamImpl) Page() int {
+	if this.page <= 0 {
+		return 1
+	}
 	return this.page
 }
 
 func (this *ListsParamImpl) Count() int {
+	if this.size <= 0 {
+		return 20
+	}
 	return this.size
 }
 
@@ -457,7 +463,7 @@ func (this *BaseModel) waiting(name string) {
 	GlobalMgoSessionContainer.Store(key, n.(int)+1)
 }
 
-// 释放
+// Release 释放
 func (this *BaseModel) Release() {
 	if this.serverName == "" {
 		return
@@ -541,7 +547,7 @@ func (this *BaseModel) GetById(id string, result interface{}, selects ...interfa
 	})).One(result)
 }
 
-// 使用局部查询
+// UseScopeQuery 使用局部查询
 func (this *BaseModel) UseScopeQuery(m bson.M) bson.M {
 	if this._Scope == nil || len(this._Scope) == 0 {
 		return m
@@ -552,7 +558,7 @@ func (this *BaseModel) UseScopeQuery(m bson.M) bson.M {
 	return m
 }
 
-// 添加局部查询
+// AddScopeQuery 添加局部查询
 func (this *BaseModel) AddScopeQuery(m bson.M) {
 	if len(m) == 0 {
 		return
@@ -728,7 +734,7 @@ func (this *BaseModel) FindOne(query interface{}, result interface{}, selects ..
 	return table.Find(query).One(result)
 }
 
-// 查询作用域
+// WrapperScopeQuery 查询作用域
 func (this *BaseModel) WrapperScopeQuery(query interface{}) interface{} {
 	if this._Scope == nil || len(this._Scope) == 0 {
 		return query
@@ -772,6 +778,7 @@ func (this *BaseModel) Count(query interface{}) int {
 	return 0
 }
 
+// Sum 计算和
 // [
 //  '$match' => $map],
 //   [
@@ -872,7 +879,7 @@ func (this *BaseModel) IsDuplicate(err error) bool {
 	return IsDuplicate(err)
 }
 
-// 获取锁
+// getRedisLocker 获取锁
 func (this *BaseModel) getRedisLocker(name string, duration ...time.Duration) string {
 	var (
 		err      error
@@ -907,6 +914,9 @@ func (this *BaseModel) getRedisLocker(name string, duration ...time.Duration) st
 
 // 解锁
 func (this *BaseModel) unLocker(name string) bool {
+	if name == "" {
+			return false
+	}
 	var err = this.getLocker().Delete(name)
 	if err == nil {
 		return true
@@ -1017,7 +1027,7 @@ func (this *BaseModel) getLocker() cache.Cache {
 }
 
 func (this *BaseModel) wait() {
-	var s = float64(randInt(100, 200))
+	var s = float64(randInt(100, 1000))
 	time.Sleep(time.Duration(s) * time.Millisecond)
 }
 

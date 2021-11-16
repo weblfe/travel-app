@@ -376,7 +376,7 @@ func (this *postRepositoryImpl) GetRanking() common.ResponseJson {
 	return common.NewFailedResp(common.RecordNotFound, common.RecordNotFoundError)
 }
 
-// 获取关注列表
+// GetFollows 获取关注列表
 func (this *postRepositoryImpl) GetFollows() common.ResponseJson {
 	var (
 		meta     *models.Meta
@@ -403,7 +403,7 @@ func (this *postRepositoryImpl) GetFollows() common.ResponseJson {
 	return common.NewFailedResp(common.RecordNotFound, common.RecordNotFoundError)
 }
 
-// 通过作品类型获取列表
+// ListsByPostType 通过作品类型获取列表
 func (this *postRepositoryImpl) ListsByPostType(typ string) common.ResponseJson {
 	var (
 		ty       int
@@ -443,7 +443,7 @@ func (this *postRepositoryImpl) AutoVideosCover() common.ResponseJson {
 	return common.NewSuccessResp(bson.M{"count": len(ids), "timestamp": time.Now().Unix()}, "自动截图任务已经下放成功")
 }
 
-// 获取所有
+// GetAll 获取所有
 func (this *postRepositoryImpl) GetAll() common.ResponseJson {
 	var (
 		user     = getUser(this.ctx)

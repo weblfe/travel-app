@@ -234,7 +234,7 @@ func (this *AttachmentServiceImpl) save(reader io.ReadCloser, extras beego.M) *m
 		return nil
 }
 
-// oss 上传器
+// Uploader oss 上传器
 func (this *AttachmentServiceImpl) Uploader(reader io.ReadCloser, extras beego.M) *models.Attachment {
 		var (
 				id  = getId(extras)
@@ -382,8 +382,8 @@ func (this *AttachmentServiceImpl) Lists(page, count int) ([]*models.Attachment,
 				items = make([]*models.Attachment, count)
 		)
 		items = items[:0]
-		meta.Count = count
-		meta.Page = page
+		meta.C = count
+		meta.P = page
 
 		var err = this.model.NewQuery(query).Limit(count).Skip((page - 1) * count).All(&items)
 		if err == nil {
@@ -714,7 +714,7 @@ func isVideo(name string) bool {
 		return false
 }
 
-// 返回数据
+// ReturnBody 返回数据
 type ReturnBody struct {
 		Hash      string `json:"hash"`
 		Size      string `json:"size"`
@@ -732,7 +732,7 @@ type ReturnBody struct {
 		Duration  string `json:"duration,omitempty"`
 }
 
-// 声频 audio
+// ReturnAudio 声频 audio
 type ReturnAudio struct {
 		BitRate    int64       `json:"bit_rate"`
 		Channels   string      `json:"channels"`
@@ -750,7 +750,7 @@ type ReturnAudio struct {
 		Tags       *ReturnTags `json:"tags"`
 }
 
-// 视频 video
+// ReturnVideo 视频 video
 type ReturnVideo struct {
 		BitRate            int64       `json:"bit_rate"`
 		CodeName           string      `json:"code_name"`
@@ -768,7 +768,7 @@ type ReturnVideo struct {
 		Tags               *ReturnTags `json:"tags"`
 }
 
-// 格式
+// ReturnFormat 格式
 type ReturnFormat struct {
 		BitRate        int64       `json:"bit_rate"`
 		Duration       float64     `json:"duration"`
@@ -780,7 +780,7 @@ type ReturnFormat struct {
 		Tags           *ReturnTags `json:"tags"`
 }
 
-// tags
+// ReturnTags tags
 type ReturnTags struct {
 		CreationTime string `json:"creation_time"`
 }

@@ -57,7 +57,7 @@ func (this *ConfigServiceImpl) Adds(items []map[string]interface{}) error {
 		return nil
 }
 
-// 更新配置
+// Update 更新配置
 func (this *ConfigServiceImpl) Update(data map[string]string) error {
 		return nil
 }

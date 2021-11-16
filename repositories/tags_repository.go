@@ -26,7 +26,7 @@ func (this *tagsRepositoryImpl) Init() {
 		this.service = services.TagsServiceOf()
 }
 
-// 获取作品标签
+// GetPostTags 获取作品标签
 func (this *tagsRepositoryImpl) GetPostTags() common.ResponseJson {
 		var tags, meta = this.service.GetTags(services.PostTagGroup)
 		if tags == nil || meta == nil {

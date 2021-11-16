@@ -12,7 +12,7 @@ type TagModel struct {
 		BaseModel
 }
 
-// 标签记录
+// Tag 标签记录
 type Tag struct {
 		Id            bson.ObjectId `json:"id" bson:"_id"`              // ID
 		Name          string        `json:"name" bson:"name"`           // 标签名
@@ -70,7 +70,7 @@ func (this *Tag) setAttributes(data map[string]interface{}, safe ...bool) {
 		}
 }
 
-// setter
+// Set setter
 func (this *Tag) Set(key string, v interface{}) *Tag {
 		switch key {
 		case "id":
@@ -200,7 +200,7 @@ func (this *TagModel) Adds(items []map[string]interface{}) error {
 		return nil
 }
 
-// 通过唯一索引查询
+// GetByUnique 通过唯一索引查询
 func (this *TagModel) GetByUnique(data map[string]interface{}) *Tag {
 		var (
 				info        = NewTag()

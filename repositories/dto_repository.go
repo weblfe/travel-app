@@ -36,7 +36,7 @@ type cache struct {
 		AccessAt int64
 }
 
-// 基础用户信息
+// BaseUser 基础用户信息
 type BaseUser struct {
 		UserId      string  `json:"userId"`      // 用户ID
 		Nickname    string  `json:"nickname"`    // 用户昵称
@@ -44,7 +44,7 @@ type BaseUser struct {
 		UpdatedTime int64   `json:"updatedTime"` // 更新时间
 }
 
-// 简单用户信息
+// SimpleUser 简单用户信息
 type SimpleUser struct {
 		BaseUser
 		InviteCode string `json:"inviteCode"` // 邀请码
@@ -53,7 +53,7 @@ type SimpleUser struct {
 		RoleDesc   string `json:"roleDesc"`   // 账号类型描述
 }
 
-// 用户隐私数据
+// PrivacyUser 用户隐私数据
 type PrivacyUser struct {
 		SimpleUser
 		Gender     int    `json:"gender"`     // 性别
@@ -62,7 +62,7 @@ type PrivacyUser struct {
 		Address    string `json:"address"`    // 地址
 }
 
-// 用户数据
+// User 用户数据
 type User struct {
 		PrivacyUser
 		PasswordHash string    `json:"passwordHash"` // 密码
@@ -386,7 +386,7 @@ func (this *DtoRepository) Stop() {
 		this._Closer <- byte(1)
 }
 
-// 是否已点赞
+// IsThumbsUp 是否已点赞
 func (this *DtoRepository) IsThumbsUp(postId string, userId string, status ...int) bool {
 		if len(status) == 0 {
 				status = append(status, 1)
@@ -400,7 +400,7 @@ func (this *DtoRepository) IsThumbsUp(postId string, userId string, status ...in
 		return this.GetThumbsUpService().Exists(query)
 }
 
-// 回收数据
+// GC 回收数据
 func (this *DtoRepository) GC(key ...string) *DtoRepository {
 		this._locker.Lock()
 		var total = len(this._Cache)
@@ -423,7 +423,7 @@ func (this *DtoRepository) GC(key ...string) *DtoRepository {
 		return this
 }
 
-// 获取缓存对象
+// Get 获取缓存对象
 func (this *DtoRepository) Get(key string) interface{} {
 		this._locker.Lock()
 		defer this._locker.Unlock()
@@ -454,7 +454,7 @@ func (this *DtoRepository) Key(value ...interface{}) string {
 		return hex.EncodeToString(ins.Sum(nil))
 }
 
-// 缓存数据
+// Cache 缓存数据
 func (this *DtoRepository) Cache(key string, v interface{}, alive ...time.Duration) *DtoRepository {
 		this._locker.Lock()
 		this.check()
@@ -523,7 +523,7 @@ func (this *DtoRepository) startGc() {
 		}()
 }
 
-// 缓存数量
+// Len 缓存数量
 func (this *DtoRepository) Len() int {
 		return this._Len
 }
@@ -577,7 +577,7 @@ func (this *DtoRepository) appendFollowStatus(userId string) func(m beego.M) bee
 		}
 }
 
-// 是否已关注
+// IsFollowed 是否已关注
 func (this *DtoRepository) IsFollowed(userId, followerUserId string) bool {
 		return services.UserBehaviorServiceOf().IsFollowed(userId, followerUserId)
 }
@@ -649,7 +649,7 @@ func (this cacheTable) FlashALL() cacheTable {
 		return this[:0]
 }
 
-// 检查和更新访问
+// CheckAndUpdate 检查和更新访问
 func (this cacheTable) CheckAndUpdate(key string) int {
 		var now = time.Now().Unix()
 		for _, it := range this {

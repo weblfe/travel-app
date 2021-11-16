@@ -9,7 +9,7 @@ import (
 		"time"
 )
 
-// 用户相关行为
+// BehaviorRepository 用户相关行为
 type BehaviorRepository interface {
 		FocusOn(ids ...string) common.ResponseJson
 		FocusOff(ids ...string) common.ResponseJson
@@ -42,7 +42,7 @@ func (this *userBehaviorRepositoryImpl) init() {
 		this.behaviorService = services.UserBehaviorServiceOf()
 }
 
-// 取消关注
+// FocusOff 取消关注
 func (this *userBehaviorRepositoryImpl) FocusOff(ids ...string) common.ResponseJson {
 		if len(ids) == 0 {
 				ids = append(ids, "")
@@ -73,7 +73,7 @@ func (this *userBehaviorRepositoryImpl) FocusOff(ids ...string) common.ResponseJ
 		return common.NewFailedResp(common.ServiceFailed, "取关失败")
 }
 
-// 关注
+// FocusOn 关注
 func (this *userBehaviorRepositoryImpl) FocusOn(ids ...string) common.ResponseJson {
 		if len(ids) == 0 {
 				ids = append(ids, "")
@@ -108,7 +108,7 @@ func (this *userBehaviorRepositoryImpl) FocusOn(ids ...string) common.ResponseJs
 		return common.NewFailedResp(common.ServiceFailed, "关注失败")
 }
 
-// 用户粉丝列表
+// GetUserFans 用户粉丝列表
 func (this *userBehaviorRepositoryImpl) GetUserFans(ids ...string) common.ResponseJson {
 		if len(ids) == 0 {
 				ids = append(ids, this.ctx.GetString("id", ""))
@@ -142,7 +142,7 @@ func (this *userBehaviorRepositoryImpl) GetUserFans(ids ...string) common.Respon
 		return common.NewSuccessResp(bson.M{"items": users, "meta": meta}, "获取成功")
 }
 
-// 用户关注列表
+// GetUserFollows 用户关注列表
 func (this *userBehaviorRepositoryImpl) GetUserFollows(ids ...string) common.ResponseJson {
 		if len(ids) == 0 {
 				ids = append(ids, "")

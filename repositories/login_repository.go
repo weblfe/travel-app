@@ -194,7 +194,7 @@ func (this *LoginRepositoryImpl) loginByEmail(email string, password string) com
 		return common.NewSuccessResp(beego.M{"user": data, "token": token}, "登陆成功")
 }
 
-// 登出
+// Logout 登出
 func (this *LoginRepositoryImpl) Logout() common.ResponseJson {
 		var id = getUserId(this.ctx)
 		if id == "" {

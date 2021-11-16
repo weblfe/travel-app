@@ -46,7 +46,7 @@ func (this *AttachmentRepositoryImpl) init() {
 		this.attachmentService = services.AttachmentServiceOf()
 }
 
-// 罗列附件接口
+// List 罗列附件接口
 func (this *AttachmentRepositoryImpl) List() common.ResponseJson {
 		var (
 				data        []interface{}
@@ -59,12 +59,12 @@ func (this *AttachmentRepositoryImpl) List() common.ResponseJson {
 		return common.NewSuccessResp(beego.M{"items": data, "meta": meta}, common.Success)
 }
 
-// 跨站上传ticket
+// Ticket 跨站上传ticket
 func (this *AttachmentRepositoryImpl) Ticket() common.ResponseJson {
 		return common.NewInDevResp(this.ctx.GetActionId())
 }
 
-// 单文件上传
+// Upload 单文件上传
 func (this *AttachmentRepositoryImpl) Upload() common.ResponseJson {
 		var (
 				ctx      = this.ctx.GetParent()
@@ -110,7 +110,7 @@ func (this *AttachmentRepositoryImpl) Upload() common.ResponseJson {
 		return common.NewSuccessResp(data, "上传成功")
 }
 
-// 多文件上传
+// Uploads 多文件上传
 func (this *AttachmentRepositoryImpl) Uploads() common.ResponseJson {
 		var ctx = this.ctx.GetParent()
 		if ctx.Ctx.Input == nil || len(ctx.Ctx.Input.Params()) == 0 {
@@ -192,7 +192,7 @@ func (this *AttachmentRepositoryImpl) Uploads() common.ResponseJson {
 		return common.NewSuccessResp(data, "上传成功")
 }
 
-// 下载文件
+// DownloadByMediaId 下载文件
 func (this *AttachmentRepositoryImpl) DownloadByMediaId(mediaIds ...string) {
 		var (
 				ctx  = this.ctx.GetParent()
@@ -216,7 +216,7 @@ func (this *AttachmentRepositoryImpl) DownloadByMediaId(mediaIds ...string) {
 		return
 }
 
-// 文件服务
+// GetByMediaId 文件服务
 func (this *AttachmentRepositoryImpl) GetByMediaId(mediaIds ...string) {
 		var (
 				ctx  = this.ctx.GetParent()

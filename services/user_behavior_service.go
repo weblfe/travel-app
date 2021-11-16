@@ -37,7 +37,7 @@ func newUserBehaviorServiceInstance() *userBehaviorServiceImpl {
 		return service
 }
 
-// 罗列用户关注的用户列表
+// ListsByUserId 罗列用户关注的用户列表
 func (this *userBehaviorServiceImpl) ListsByUserId(userId string, limit models.ListsParams, extras ...beego.M) ([]*models.UserFollow, *models.Meta) {
 		if len(extras) == 0 {
 				extras = append(extras, beego.M{"status": 1})
@@ -52,16 +52,16 @@ func (this *userBehaviorServiceImpl) ListsByUserId(userId string, limit models.L
 		err := Query.Limit(limit.Count()).Skip(limit.Skip()).All(&items)
 		if err == nil {
 				meta.Size = len(items)
-				meta.Page = limit.Page()
+				meta.P = limit.Page()
 				meta.Total, _ = Query.Count()
-				meta.Count = limit.Count()
+				meta.C = limit.Count()
 				meta.Boot()
 				return items, meta
 		}
 		return nil, meta
 }
 
-// 用户关注
+// Follow 用户关注
 func (this *userBehaviorServiceImpl) Follow(userId string, targetUserId string, extras ...beego.M) error {
 		if len(extras) == 0 {
 				extras = append(extras, beego.M{"status": 1})
@@ -100,7 +100,7 @@ func (this *userBehaviorServiceImpl) Follow(userId string, targetUserId string, 
 		return err
 }
 
-// 用户关注
+// UnFollow 用户关注
 func (this *userBehaviorServiceImpl) UnFollow(userId string, targetUserId string, extras ...beego.M) error {
 		if len(extras) == 0 {
 				extras = append(extras, beego.M{"status": 1})
@@ -123,7 +123,7 @@ func (this *userBehaviorServiceImpl) UnFollow(userId string, targetUserId string
 		return common.NewErrors(common.RecordNotFound, common.RecordNotFoundError)
 }
 
-// 获取用户关注用户
+// GetUserFollowNumber 获取用户关注用户
 func (this *userBehaviorServiceImpl) GetUserFollowNumber(userId string) int64 {
 		var (
 				model = this.getUserFocusModel()
@@ -136,7 +136,7 @@ func (this *userBehaviorServiceImpl) GetUserFollowNumber(userId string) int64 {
 		return 0
 }
 
-// 用户粉丝数量
+// GetUserFansNumber 用户粉丝数量
 func (this *userBehaviorServiceImpl) GetUserFansNumber(userId string) int64 {
 		var (
 				model = this.getUserFocusModel()
@@ -207,7 +207,7 @@ func (this *userBehaviorServiceImpl) success(focus *models.UserFollow) bool {
 		return false
 }
 
-// 获取用户好友列表
+// ListsUserFriends 获取用户好友列表
 func (this *userBehaviorServiceImpl) ListsUserFriends(userId string, limit models.ListsParams, extras ...beego.M) ([]bson.ObjectId, *models.Meta) {
 		if len(extras) == 0 {
 				extras = append(extras, beego.M{})
@@ -231,9 +231,9 @@ func (this *userBehaviorServiceImpl) ListsUserFriends(userId string, limit model
 				for _, it := range items {
 						results = append(results, bson.ObjectIdHex(it.TargetUserId))
 				}
-				meta.Count = limit.Count()
+				meta.C = limit.Count()
 				meta.Size = len(results)
-				meta.Page = limit.Page()
+				meta.P = limit.Page()
 				meta.Total, _ = model.NewQuery(query).Count()
 				meta.Boot()
 				return results, meta
@@ -241,7 +241,7 @@ func (this *userBehaviorServiceImpl) ListsUserFriends(userId string, limit model
 		return nil, meta
 }
 
-// 添加好友
+// AddFriend 添加好友
 func (this *userBehaviorServiceImpl) AddFriend(userId string, targetUserId string, extras ...beego.M) error {
 		var defaults = beego.M{"targetType": models.TargetTypeFriend, "status": models.StatusOk}
 		if len(extras) == 0 {
@@ -252,7 +252,7 @@ func (this *userBehaviorServiceImpl) AddFriend(userId string, targetUserId strin
 		return this.getUserRelation().SaveInfo(userId, targetUserId, extras...)
 }
 
-// 取消好友
+// CancelFriend 取消好友
 func (this *userBehaviorServiceImpl) CancelFriend(userId string, targetUserId string, extras ...beego.M) error {
 		var defaults = beego.M{"targetType": models.TargetTypeFriend, "status": models.StatusCancel}
 		if len(extras) == 0 {
@@ -271,7 +271,7 @@ func (this *userBehaviorServiceImpl) getUserRelation() *models.UserRelationModel
 		return models.UserRelationModelOf()
 }
 
-// 用户被关注列表(粉丝列表)
+// GetFans 用户被关注列表(粉丝列表)
 func (this *userBehaviorServiceImpl) GetFans(userId string, limit models.ListsParams) ([]bson.ObjectId, *models.Meta) {
 		var (
 				err   error
@@ -291,9 +291,9 @@ func (this *userBehaviorServiceImpl) GetFans(userId string, limit models.ListsPa
 				for _, it := range items {
 						results = append(results, it.UserId)
 				}
-				meta.Count = limit.Count()
+				meta.C = limit.Count()
 				meta.Size = len(results)
-				meta.Page = limit.Page()
+				meta.P = limit.Page()
 				meta.Total, _ = model.NewQuery(query).Count()
 				meta.Boot()
 				return results, meta
@@ -301,7 +301,7 @@ func (this *userBehaviorServiceImpl) GetFans(userId string, limit models.ListsPa
 		return nil, meta
 }
 
-// 用户关注列表
+// GetFollows 用户关注列表
 func (this *userBehaviorServiceImpl) GetFollows(userId string, limit models.ListsParams) ([]bson.ObjectId, *models.Meta) {
 		var (
 				err   error
@@ -321,9 +321,9 @@ func (this *userBehaviorServiceImpl) GetFollows(userId string, limit models.List
 				for _, it := range items {
 						results = append(results, it.FocusUserId)
 				}
-				meta.Count = limit.Count()
+				meta.C = limit.Count()
 				meta.Size = len(results)
-				meta.Page = limit.Page()
+				meta.P = limit.Page()
 				meta.Total, _ = model.NewQuery(query).Count()
 				meta.Boot()
 				return results, meta
@@ -331,7 +331,7 @@ func (this *userBehaviorServiceImpl) GetFollows(userId string, limit models.List
 		return nil, meta
 }
 
-// 获取用户关注用户最新作品列表
+// GetFollowPostsLists 获取用户关注用户最新作品列表
 func (this *userBehaviorServiceImpl) GetFollowPostsLists(query bson.M, limit models.ListsParams) ([]*models.TravelNotes, *models.Meta) {
 		var (
 				err   error
@@ -360,7 +360,7 @@ func (this *userBehaviorServiceImpl) GetFollowPostsLists(query bson.M, limit mod
 		return nil, meta
 }
 
-// 是否关注
+// IsFollowed 是否关注
 func (this *userBehaviorServiceImpl) IsFollowed(userId, follower string) bool {
 		if userId == follower || userId == "" || follower == "" {
 				return false
@@ -368,7 +368,7 @@ func (this *userBehaviorServiceImpl) IsFollowed(userId, follower string) bool {
 		return models.UserFocusModelOf().Exists(bson.M{"userId": bson.ObjectIdHex(userId), "focusUserId": bson.ObjectIdHex(follower), "status": models.StatusOk})
 }
 
-// 是朋友
+// IsFriend 是朋友
 func (this *userBehaviorServiceImpl) IsFriend(userId, userId2 string) bool {
 		if userId == userId2 || userId == "" || userId2 == "" {
 				return false

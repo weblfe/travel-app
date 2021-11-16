@@ -37,7 +37,7 @@ func (this *thumbsUpServiceImpl) Init() {
 		}
 }
 
-// 点赞
+// Up 点赞
 func (this *thumbsUpServiceImpl) Up(typ string, typeId string, userId string) int {
 		var (
 				data = bson.M{
@@ -73,7 +73,7 @@ func (this *thumbsUpServiceImpl) Up(typ string, typeId string, userId string) in
 		return this.Count(typ, typeId)
 }
 
-// 取消点赞
+// Down 取消点赞
 func (this *thumbsUpServiceImpl) Down(typ string, typeId string, userId string) int {
 		var (
 				data = bson.M{
@@ -102,7 +102,7 @@ func (this *thumbsUpServiceImpl) Down(typ string, typeId string, userId string) 
 		return this.Count(typ, typeId)
 }
 
-// 获取对于数据点赞数量
+// Count 获取对于数据点赞数量
 func (this *thumbsUpServiceImpl) Count(typ string, typId string, userId ...string) int {
 		var (
 				data = bson.M{
@@ -120,7 +120,7 @@ func (this *thumbsUpServiceImpl) Count(typ string, typId string, userId ...strin
 		return this.model.Sum(data, "count")
 }
 
-// 获取点赞列表
+// Lists 获取点赞列表
 func (this *thumbsUpServiceImpl) Lists(query bson.M, limit models.ListsParams) ([]*models.ThumbsUp, *models.Meta) {
 		var (
 				err   error
@@ -131,9 +131,9 @@ func (this *thumbsUpServiceImpl) Lists(query bson.M, limit models.ListsParams) (
 		Query := this.model.NewQuery(query)
 		err = Query.Limit(limit.Count()).Skip(limit.Skip()).All(&items)
 		if err == nil {
-				meta.Count = limit.Count()
+				meta.C = limit.Count()
 				meta.Size = len(items)
-				meta.Page = limit.Page()
+				meta.P = limit.Page()
 				meta.Total, _ = this.model.NewQuery(query).Count()
 				meta.Boot()
 				return items, meta
@@ -141,7 +141,7 @@ func (this *thumbsUpServiceImpl) Lists(query bson.M, limit models.ListsParams) (
 		return nil, meta
 }
 
-// 获取点赞列表
+// GetUserLikeLists 获取点赞列表
 func (this *thumbsUpServiceImpl) GetUserLikeLists(query bson.M, limit models.ListsParams) ([]*models.TravelNotes, *models.Meta) {
 		var (
 				err     error
@@ -176,7 +176,7 @@ func (this *thumbsUpServiceImpl) GetUserLikeLists(query bson.M, limit models.Lis
 		return nil, meta
 }
 
-// 点赞之后 [log,updateNum]
+// After 点赞之后 [log,updateNum]
 func (this *thumbsUpServiceImpl) After(ty, id, userId string, act int) bool {
 		if ty == "" || id == "" || userId == "" {
 				return false
@@ -216,7 +216,7 @@ func (this *thumbsUpServiceImpl) After(ty, id, userId string, act int) bool {
 		return err == nil
 }
 
-// 是否存在
+// Exists 是否存在
 func (this *thumbsUpServiceImpl) Exists(query bson.M) bool {
 		var n, err = this.model.NewQuery(query).Count()
 		if err != nil {

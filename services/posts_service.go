@@ -64,8 +64,8 @@ func (this *TravelPostServiceImpl) Lists(userId string, page models.ListsParams,
 				meta  = models.NewMeta()
 				query = libs.MapMerge(extras...)
 		)
-		meta.Page = page.Page()
-		meta.Count = page.Count()
+		meta.P = page.Page()
+		meta.C = page.Count()
 		defer this.postModel.Release()
 		this.postModel.UseSoftDelete()
 		listQuery := this.postModel.ListsQuery(query, page)
@@ -92,9 +92,9 @@ func (this *TravelPostServiceImpl) ListByTags(tags []string, page models.ListsPa
 				extras = append(extras, beego.M{"tags": beego.M{"$in": tags}})
 		}
 		query = libs.MapMerge(extras...)
-		meta.Page = page.Page()
+		meta.P = page.Page()
 		meta.Size = page.Count()
-		meta.Count = page.Count()
+		meta.C = page.Count()
 		this.postModel.UseSoftDelete()
 
 		listQuery := this.postModel.ListsQuery(query, page)
@@ -117,9 +117,9 @@ func (this *TravelPostServiceImpl) ListByAddress(address string, page models.Lis
 				meta  = models.NewMeta()
 				query = libs.MapMerge(extras...)
 		)
-		meta.Page = page.Page()
+		meta.P = page.Page()
 		meta.Size = page.Count()
-		meta.Count = page.Count()
+		meta.C = page.Count()
 		this.postModel.UseSoftDelete()
 		listQuery := this.postModel.ListsQuery(query, page)
 		// desc createdAt
@@ -139,9 +139,9 @@ func (this *TravelPostServiceImpl) GetRankingLists(query bson.M, limit models.Li
 				lists []*models.TravelNotes
 				meta  = models.NewMeta()
 		)
-		meta.Page = limit.Page()
+		meta.P = limit.Page()
 		meta.Size = limit.Count()
-		meta.Count = limit.Count()
+		meta.C = limit.Count()
 		this.postModel.UseSoftDelete()
 		listQuery := this.postModel.ListsQuery(query, limit)
 		// 排行版 点赞 ,评论 最多, 发布时间最新
@@ -155,16 +155,16 @@ func (this *TravelPostServiceImpl) GetRankingLists(query bson.M, limit models.Li
 		return nil, meta
 }
 
-// 获取推荐
+// GetRecommendLists 获取推荐
 func (this *TravelPostServiceImpl) GetRecommendLists(query bson.M, limit models.ListsParams) ([]*models.TravelNotes, *models.Meta) {
 		var (
 				err   error
 				lists []*models.TravelNotes
 				meta  = models.NewMeta()
 		)
-		meta.Page = limit.Page()
+		meta.P = limit.Page()
 		meta.Size = limit.Count()
-		meta.Count = limit.Count()
+		meta.C = limit.Count()
 		this.postModel.UseSoftDelete()
 		listQuery := this.postModel.ListsQuery(query, limit)
 		// 打分最高 ,更新时间最新
@@ -184,9 +184,9 @@ func (this *TravelPostServiceImpl) ListsQuery(query bson.M, limit models.ListsPa
 				lists []*models.TravelNotes
 				meta  = models.NewMeta()
 		)
-		meta.Page = limit.Page()
+		meta.P = limit.Page()
 		meta.Size = limit.Count()
-		meta.Count = limit.Count()
+		meta.C = limit.Count()
 		this.postModel.UseSoftDelete()
 		listQuery := this.postModel.ListsQuery(query, limit)
 		if len(sort) != 0 {
@@ -304,8 +304,8 @@ func (this *TravelPostServiceImpl) Search(search beego.M, page models.ListsParam
 		)
 
 		lists = lists[:0]
-		meta.Page = page.Page()
-		meta.Count = page.Count()
+		meta.P = page.Page()
+		meta.C = page.Count()
 
 		search["status"] = models.StatusAuditPass
 		this.postModel.UseSoftDelete()
@@ -434,9 +434,9 @@ func (this *TravelPostServiceImpl) All(query beego.M, limit models.ListsParams, 
 				lists []*models.TravelNotes
 				meta  = models.NewMeta()
 		)
-		meta.Page = limit.Page()
+		meta.P = limit.Page()
 		meta.Size = limit.Count()
-		meta.Count = limit.Count()
+		meta.C = limit.Count()
 		this.postModel.UseSoftDelete()
 		listQuery := this.postModel.ListsQuery(query, limit)
 		if len(sorts) != 0 {

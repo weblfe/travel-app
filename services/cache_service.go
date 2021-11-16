@@ -30,7 +30,7 @@ const (
 		CacheDefaultDriver  = "redis"
 )
 
-// 配置
+// CacheConfig 配置
 type CacheConfig struct {
 		Driver string `json:"driver"`
 		Config string `json:"config"`
@@ -41,7 +41,7 @@ var (
 		cacheServiceInstance *cacheServiceImpl
 )
 
-// 获取
+// GetCacheService 获取
 func GetCacheService() CacheService {
 		if cacheServiceInstance == nil {
 				once.Do(newCacheService)

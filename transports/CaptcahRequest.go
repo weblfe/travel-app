@@ -6,16 +6,14 @@ import (
 		"github.com/weblfe/travel-app/libs"
 )
 
-// 验证码参数
+// MobileRequest 验证码参数
 type MobileRequest struct {
 		Mobile string `json:"mobile"`
 		Type   string `json:"type"`
 		transportImpl `json:",omitempty"`
 }
 
-
-
-// 加载
+// Load 加载
 func (this *MobileRequest) Load(ctx *context.BeegoInput) *MobileRequest {
 		if err := ctx.Bind(&this.Mobile, "mobile"); err != nil || this.Mobile == "" {
 				_ = libs.Json().Unmarshal(ctx.RequestBody, this)

@@ -87,7 +87,7 @@ func (this *SmsCodeServiceAliCloudImpl) CreateClient() *dysmsapi.Client {
 		return nil
 }
 
-// 发送短信
+// Send 发送短信
 func (this *SmsCodeServiceAliCloudImpl) Send(mobile string, content string, extras map[string]string) error {
 		if this.Debug() {
 				return this.mock.Send(mobile, content, extras)
@@ -102,7 +102,7 @@ func (this *SmsCodeServiceAliCloudImpl) Send(mobile string, content string, extr
 		// sdk 发送
 		rep, err := this.client.SendSms(req)
 		// 派发结果
-		this.dispatch(mobile, map[string]interface{}{
+		defer this.dispatch(mobile, map[string]interface{}{
 				"response": rep,
 				"mobile":   mobile,
 				"extras":   extras,
@@ -154,7 +154,7 @@ func (this *SmsCodeServiceAliCloudImpl) dispatch(mobile string, data map[string]
 		logs.Debug("mobile :" + mobile + fmt.Sprintf("result: %v", data))
 }
 
-// 创建请求体
+// CreateSmsRequest 创建请求体
 func (this *SmsCodeServiceAliCloudImpl) CreateSmsRequest(mobile string, extras map[string]string) *dysmsapi.SendSmsRequest {
 		req := dysmsapi.CreateSendSmsRequest()
 		req.PhoneNumbers = mobile

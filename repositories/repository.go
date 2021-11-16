@@ -1,7 +1,6 @@
 package repositories
 
 import (
-		"fmt"
 		"github.com/astaxie/beego"
 		"github.com/astaxie/beego/logs"
 		"github.com/weblfe/travel-app/common"
@@ -10,7 +9,6 @@ import (
 		"github.com/weblfe/travel-app/models"
 		"github.com/weblfe/travel-app/services"
 		"github.com/weblfe/travel-app/transforms"
-		"strconv"
 )
 
 // 获取登录用户ID
@@ -37,7 +35,7 @@ func getUser(request common.BaseRequestContext) *models.User {
 		return services.UserServiceOf().GetById(id)
 }
 
-// 头像图
+// FilterUserAvatarUrl 头像图
 func FilterUserAvatarUrl(m beego.M) beego.M {
 		if url, ok := m["avatarUrl"]; ok && url != nil && url != "" {
 				return m
@@ -54,7 +52,7 @@ func FilterUserAvatarUrl(m beego.M) beego.M {
 		return m
 }
 
-// 背景墙图
+// FilterBackgroundUrl 背景墙图
 func FilterBackgroundUrl(m beego.M) beego.M {
 		if url, ok := m["backgroundCoverUrl"]; ok && url != nil && url != "" {
 				return m
@@ -95,7 +93,7 @@ func appendFollowedLogic(userId string) func(m beego.M) beego.M {
 		}
 }
 
-// 大数转换器
+// TransBigNumberToText 大数转换器
 func TransBigNumberToText(m beego.M, keys ...string) beego.M {
 		if len(keys) == 0 {
 				return m
@@ -110,7 +108,7 @@ func TransBigNumberToText(m beego.M, keys ...string) beego.M {
 		return m
 }
 
-// 大数字装饰器
+// DecorateNumberToText 大数字装饰器
 func DecorateNumberToText(v interface{}) string {
 		switch v.(type) {
 		case string:
@@ -140,15 +138,9 @@ func DecorateNumberToText(v interface{}) string {
 		return "0"
 }
 
-// 大数字转换
+// BigNumberStringer 大数字转换
 func BigNumberStringer(num int64) string {
 		return libs.BigNumberStringer(num)
-}
-
-func Round2(f float64, n int) float64 {
-		floatStr := fmt.Sprintf("%."+strconv.Itoa(n)+"f", f)
-		inst, _ := strconv.ParseFloat(floatStr, 64)
-		return inst
 }
 
 // 对应用户的数据转换器
