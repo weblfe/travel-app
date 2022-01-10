@@ -47,3 +47,4 @@ package main
 
 //go:generate swag2 init  -g doc.go -o static/swagger
 //go:generate bee run
+
