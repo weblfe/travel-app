@@ -7,7 +7,7 @@ services:
       context: .
       dockerfile: Dockerfile
     hostname: travel-server
-    image: weblinuxgame/travel-app:${IMG_VERSION:-v3.18}
+    image: weblinuxgame/travel-app:${IMG_VERSION:-v3.19}
     restart: always
     env_file:
       - ./data/.docker-pro.env
@@ -53,20 +53,6 @@ services:
       - "37017:27017"
     networks:
       - travel
-
-  #mysql:
-  #  hostname: mysql-server
-  #  image: mariadb:10.5.5-focal
-  #  container_name: mysqlserver
-  #  restart: always
-  #  env_file:
-  #    - ./data/.env
-  #  volumes:
-  #    - ./data/mysql/db:/var/lib/mysql
-  #  ports:
-  #    - 13306:3306
-  #  networks:
-  #    - travel
 
 networks:
   travel:

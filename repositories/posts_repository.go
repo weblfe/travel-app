@@ -71,11 +71,11 @@ func (this *postRepositoryImpl) Create() common.ResponseJson {
 	}
 	data.UserId = userId
 	// 自动过滤敏感词
-	if libs.GetEnvBool("SENSITIVE_POST_CONTENT_ON") {
+	if libs.GetEnvBool("SENSITIVE_POST_CONTENT_ON") && data.Content != "" {
 		data.Content = models.GetDfaInstance().ChangeSensitiveWords(data.Content)
 	}
 	// 仅内容时 自动通过
-	if data.Type == models.ContentType {
+	if data.IsAutoAuditType() {
 		data.Status = models.StatusAuditPass
 	}
 	err = this.service.Create(data.Defaults())
@@ -104,12 +104,44 @@ func (this *postRepositoryImpl) Update() common.ResponseJson {
 		id = this.ctx.GetParent().GetString(":id")
 	)
 	if id == "" {
-		return common.NewInvalidParametersResp("游记id缺失")
+		return common.NewInvalidParametersResp("id缺失")
 	}
-	// @todo 更新
-	return common.NewInDevResp(this.ctx.GetActionId())
+	var (
+		ctx = this.ctx.GetParent()
+	)
+	userID := ctx.GetSession(middlewares.AuthUserId)
+	user, ok := userID.(string)
+	if !ok {
+		return common.NewUnLoginResp()
+	}
+	type updateStruct struct {
+		Type   int                    `json:"type"`
+		Values map[string]interface{} `json:"values"`
+	}
+	var jsonData = new(updateStruct)
+	if err := this.ctx.JsonDecode(jsonData); err != nil {
+		return common.NewErrorResp(common.NewErrors(err))
+	}
+	var postData = this.service.GetById(id)
+	if postData == nil {
+		return common.NewNotFoundResp("ID资源不存在")
+	}
+	if postData.UserId != user {
+		return common.NewPermissionResp("权限不足")
+	}
+	if postData.Type != jsonData.Type {
+		return common.NewPermissionResp("类型不匹配")
+	}
+	for k, v := range jsonData.Values {
+		postData.Set(k, v)
+	}
+	if err := postData.Save(); err != nil {
+		return common.NewErrorResp(common.NewErrors(err))
+	}
+	return common.NewSuccessResp(postData.M(this.getPostTransform()), "更新成功")
 }
 
+// Lists 列表
 func (this *postRepositoryImpl) Lists(typ ...string) common.ResponseJson {
 	var (
 		meta     *models.Meta
@@ -123,7 +155,6 @@ func (this *postRepositoryImpl) Lists(typ ...string) common.ResponseJson {
 	if ty == "" && len(typ) != 0 {
 		ty = typ[0]
 	}
-
 	var extras = beego.M{"privacy": models.PublicPrivacy, "status": models.StatusAuditPass}
 	switch ty {
 	case "my":
@@ -156,6 +187,9 @@ func (this *postRepositoryImpl) Lists(typ ...string) common.ResponseJson {
 		items, meta = this.service.Lists(userId, limit, extras)
 	case "search":
 		items, meta = this.service.Search(this.parseSearchQuery(this.ctx.GetString("query")), limit)
+	case "strategy", "post":
+		// 攻略
+		items, meta = this.service.ListsQuery(this.parseQueryWithType(this.ctx.GetString("query")), limit)
 	}
 	if items != nil && len(items) > 0 && meta != nil {
 		var arr []beego.M
@@ -167,6 +201,13 @@ func (this *postRepositoryImpl) Lists(typ ...string) common.ResponseJson {
 	return common.NewFailedResp(common.RecordNotFound, common.RecordNotFoundError)
 }
 
+// 解析
+func (this *postRepositoryImpl) parseQueryWithType(query string) bson.M {
+	var where = this.parseSearchQuery(query)
+	where["type"] = models.StrategyType
+	return bson.M(where)
+}
+
 // 查询解析
 func (this *postRepositoryImpl) parseSearchQuery(query string) beego.M {
 	if query == "" {
@@ -174,8 +215,7 @@ func (this *postRepositoryImpl) parseSearchQuery(query string) beego.M {
 	}
 	var (
 		queryMapper = beego.M{}
-		supportKeys = []string{"address", "content"}
-		// "startAt", "endAt", "nickname",
+		supportKeys = []string{"address", "content", "title", "link_url"}
 	)
 	if !strings.Contains(query, ":") {
 		var or = make([]bson.M, 1)
@@ -292,7 +332,6 @@ func (this *postRepositoryImpl) getPostTransform() func(m beego.M) beego.M {
 			value := dto.IsThumbsUp(id.(string), currentUserId)
 			m["isUp"] = value
 			m["isFollowed"] = services.UserBehaviorServiceOf().IsFollowed(currentUserId, userId.(string))
-			// m["isThumbsUp"] = dto.IsThumbsUp(id.(string),currentUserId)
 		}
 		if !ok {
 			return m
@@ -312,7 +351,7 @@ func (this *postRepositoryImpl) getPostTransform() func(m beego.M) beego.M {
 	}
 }
 
-// 是否作者
+// IsAuthor 是否作者
 func (this *postRepositoryImpl) IsAuthor(postId, userId string) bool {
 	var post = services.PostServiceOf().GetById(postId)
 	if post == nil {
@@ -324,7 +363,7 @@ func (this *postRepositoryImpl) IsAuthor(postId, userId string) bool {
 	return false
 }
 
-// 获取喜欢列表
+// GetLikes 获取喜欢列表
 func (this *postRepositoryImpl) GetLikes(ids ...string) common.ResponseJson {
 	if len(ids) == 0 {
 		ids = append(ids, getUserId(this.ctx))
@@ -349,7 +388,7 @@ func (this *postRepositoryImpl) GetLikes(ids ...string) common.ResponseJson {
 	return common.NewFailedResp(common.RecordNotFound, common.RecordNotFoundError)
 }
 
-// 获取排行榜列表
+// GetRanking 获取排行榜列表
 func (this *postRepositoryImpl) GetRanking() common.ResponseJson {
 	var (
 		meta     *models.Meta

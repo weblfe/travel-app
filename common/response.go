@@ -337,7 +337,7 @@ func NewResponse(args ...interface{}) ResponseJson {
 		return resp
 }
 
-// 构造成功响应体
+// NewSuccessResp 构造成功响应体
 // data interface
 // msg  string
 // code int
@@ -359,7 +359,7 @@ func NewSuccessResp(data interface{}, args ...interface{}) ResponseJson {
 		return res
 }
 
-// 未登陆响应
+// NewUnLoginResp 未登陆响应
 // data interface
 // msg  string
 // code int
@@ -372,7 +372,7 @@ func NewUnLoginResp(data ...interface{}) ResponseJson {
 		return resp
 }
 
-// 访问控制
+// NewAccessLimitResp 访问控制
 // data interface
 // msg  string
 // code int
@@ -385,7 +385,7 @@ func NewAccessLimitResp(data ...interface{}) ResponseJson {
 		return resp
 }
 
-// 请求参数异常
+// NewInvalidParametersResp 请求参数异常
 // data interface
 // msg  string
 // code int
@@ -400,7 +400,7 @@ func NewInvalidParametersResp(data ...interface{}) ResponseJson {
 		return resp
 }
 
-// 请求参数异常
+// NewErrorResp 请求参数异常
 // err Errors
 // msg  string
 // code int
@@ -417,7 +417,7 @@ func NewErrorResp(err Errors, args ...interface{}) ResponseJson {
 		return resp
 }
 
-// 构造成功响应体
+// NewFailedResp 构造成功响应体
 // data interface
 // msg  string
 // code int
@@ -439,7 +439,7 @@ func NewFailedResp(code int, args ...interface{}) ResponseJson {
 		return res
 }
 
-// 开发中....
+// NewInDevResp 开发中....
 // err Errors
 // msg  string
 // code int
@@ -458,7 +458,7 @@ func NewInDevResp(api string, args ...interface{}) ResponseJson {
 		return resp
 }
 
-// 权限异常
+// NewPermissionResp 权限异常
 // err Errors
 // msg  string
 // code int
@@ -474,7 +474,7 @@ func NewPermissionResp(args ...interface{}) ResponseJson {
 		return resp
 }
 
-// 未找到 对应记录
+// NewNotFoundResp 未找到 对应记录
 // err Errors
 // msg  string
 // code int
@@ -488,7 +488,7 @@ func NewNotFoundResp(args ...interface{}) ResponseJson {
 		return resp
 }
 
-// 参数验证失败
+// NewVerifyErrorResp 参数验证失败
 // err Errors
 // msg  string
 // code int

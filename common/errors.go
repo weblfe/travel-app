@@ -16,7 +16,7 @@ type ErrorImpl struct {
 		parent  Errors
 }
 
-// ErrCode string
+// NewErrors ErrCode string
 // ErrMsg  int
 func NewErrors(args ...interface{}) Errors {
 		var err = new(ErrorImpl)
@@ -25,7 +25,7 @@ func NewErrors(args ...interface{}) Errors {
 		return err
 }
 
-// err Errors
+// ErrorWrap err Errors
 // ErrCode string
 // ErrMsg  int
 func ErrorWrap(err Errors, args ...interface{}) Errors {
