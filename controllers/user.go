@@ -169,7 +169,7 @@ func (this *UserController) AddCollect() {
 }
 
 // ListsCollect 罗列 收藏
-// @router /user/collect/post  [get]
+// @router /user/collect/post [get]
 func (this *UserController) ListsCollect() {
 	var userId = this.GetString("userId")
 	var page = this.GetInt("page")

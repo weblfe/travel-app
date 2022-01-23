@@ -32,6 +32,9 @@ func (this *userCollectionRepositoryImpl) Add(id string, userId string) common.R
 	if err == nil {
 		return common.NewSuccessResp(beego.M{"timestamp": time.Now().Unix()}, "收藏成功")
 	}
+	if e,ok:=err.(common.Errors);ok {
+			return common.NewErrorResp(e, "收藏失败")
+	}
 	return common.NewSuccessResp(beego.M{"timestamp": time.Now().Unix(), "id": id, "error": err.Error()}, "收藏失败")
 }
 
