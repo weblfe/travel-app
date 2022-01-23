@@ -46,11 +46,12 @@ const (
 	TravelNotesTable = "travel_posts"
 	PublicPrivacy    = 1
 	OnlySelfPrivacy  = 2
-	ImageType        = 1
-	VideoType        = 2
-	ContentType      = 3
-	StrategyType     = 4
-	PostType         = 5
+
+	ImageType    = 1
+	VideoType    = 2
+	ContentType  = 3
+	StrategyType = 4
+	PostType     = 5
 
 	StatusAuditNotPass = -1
 	StatusWaitAudit    = 0
@@ -59,6 +60,8 @@ const (
 	ImageTypeCode      = "image"
 	VideoTypeCode      = "video"
 	ContentTypeCode    = "content"
+	StrategyTypeCode   = "strategy"
+	PostTypeCode       = "post"
 )
 
 var (

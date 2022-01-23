@@ -38,6 +38,7 @@ const (
 	PostVideoInfoKey  = "videosInfo"
 )
 
+
 func NewPostsRepository(ctx common.BaseRequestContext) PostsRepository {
 	var repository = new(postRepositoryImpl)
 	repository.init()
@@ -443,9 +444,9 @@ func (this *postRepositoryImpl) GetFollows() common.ResponseJson {
 }
 
 // ListsByPostType 通过作品类型获取列表
-func (this *postRepositoryImpl) ListsByPostType(typ string) common.ResponseJson {
+func (this *postRepositoryImpl) ListsByPostType(typeQuery string) common.ResponseJson {
 	var (
-		ty       int
+		types    []int
 		meta     *models.Meta
 		ctx      = this.ctx.GetParent()
 		items    []*models.TravelNotes
@@ -453,17 +454,11 @@ func (this *postRepositoryImpl) ListsByPostType(typ string) common.ResponseJson 
 		count, _ = ctx.GetInt("count", 20)
 		limit    = models.NewListParam(page, count)
 	)
-	switch typ {
-	case models.ImageTypeCode:
-		ty = models.ImageType
-	case models.VideoTypeCode:
-		ty = models.VideoType
-	case models.ContentTypeCode:
-		ty = models.ContentType
-	}
+	// 多类型支持
+	types,_= GetQueryTypesParser().Parse(typeQuery)
 	var extras = bson.M{"privacy": models.PublicPrivacy, "status": models.StatusAuditPass}
-	if ty != 0 {
-		extras["type"] = ty
+	if len(types) != 0 {
+		extras["type"] = bson.M{"$in": types}
 	}
 	items, meta = this.service.GetRecommendLists(extras, limit)
 	if items != nil && len(items) > 0 && meta != nil {
