@@ -314,6 +314,9 @@ func (this *TravelNotes) GetVideos() []*Video {
 		attachModel = AttachmentModelOf()
 	)
 	for _, v := range this.Videos {
+		if v == "" {
+			continue
+		}
 		ids = append(ids, bson.ObjectIdHex(v))
 	}
 	attachArr = attachArr[:0]
