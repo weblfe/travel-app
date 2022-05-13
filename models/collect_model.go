@@ -5,6 +5,7 @@ import (
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 	"github.com/weblfe/travel-app/transforms"
+	"log"
 	"time"
 )
 
@@ -220,17 +221,19 @@ func (this *CollectModel) GetTravelNotesByIds(ids []string) []*TravelNotes {
 	if this == nil || ids == nil || len(ids) <= 0 {
 		return nil
 	}
-		var (
-				model = PostsModelOf()
-				postsArr = new([]*TravelNotes)
-				query = bson.M{
-						"_id": bson.M{
-								"$in":ids,
-						},
-				}
-		)
-		if err := model.Gets(query, postsArr); err == nil {
-				return *postsArr
+	var (
+		model    = PostsModelOf()
+		postsArr = make([]*TravelNotes, 0)
+		query    = bson.M{
+			"_id": bson.M{
+				"$in": ids,
+			},
 		}
+	)
+	err := model.Gets(query, &postsArr)
+	if err == nil {
+		return postsArr
+	}
+	log.Println("error", err)
 	return nil
 }

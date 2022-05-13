@@ -87,14 +87,15 @@ func (this *userCollectionServiceImpl) Lists(userId string, limit models.ListsPa
 			"userId":     userId,
 			"targetType": models.CollectTargetTypePost,
 		}
-		lists      = new([]*models.Collect)
-		total, err = this.model.Lists(query, lists, limit)
+		lists      = make([]*models.Collect, 0)
+		total, err = this.model.Lists(query, &lists, limit)
 	)
 	info, _ := json.Marshal(query)
-	log.Println("query", string(info), "limit", limit, "table", this.model.TableName())
+	log.Println("query", string(info), "limit", limit, "table", this.model.TableName(), "error", err)
 	if err != nil {
-		return nil, nil
+		return nil, models.NewMeta()
 	}
+	log.Println("query", lists)
 	if lists == nil {
 		return nil, models.NewMeta()
 	}
@@ -103,8 +104,11 @@ func (this *userCollectionServiceImpl) Lists(userId string, limit models.ListsPa
 		meta  = models.NewMeta()
 		notes []*models.TravelNotes
 	)
-	for _, v := range *lists {
+	for _, v := range lists {
 		if v.TargetType != models.CollectTargetTypePost {
+			continue
+		}
+		if v.TargetId == "" {
 			continue
 		}
 		ids = append(ids, v.TargetId)
