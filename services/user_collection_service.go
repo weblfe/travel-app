@@ -1,10 +1,12 @@
 package services
 
 import (
+	"encoding/json"
 	"github.com/astaxie/beego"
 	"github.com/globalsign/mgo/bson"
 	"github.com/weblfe/travel-app/common"
 	"github.com/weblfe/travel-app/models"
+	"log"
 	"time"
 )
 
@@ -27,6 +29,12 @@ func UserCollectionServiceOf() UserCollectionService {
 
 // Add 添加收藏
 func (this *userCollectionServiceImpl) Add(id, userId string) error {
+	if id == "" {
+		return common.NewErrors(common.ParamVerifyFailed, "作品ID为空")
+	}
+	if userId == "" {
+		return common.NewErrors(common.ParamVerifyFailed, "用户ID异常")
+	}
 	var collect = models.NewCollect()
 	collect.TargetType = models.CollectTargetTypePost
 	collect.UserId = userId
@@ -82,6 +90,8 @@ func (this *userCollectionServiceImpl) Lists(userId string, limit models.ListsPa
 		lists      = new([]*models.Collect)
 		total, err = this.model.Lists(query, lists, limit)
 	)
+	info, _ := json.Marshal(query)
+	log.Println("query", string(info), "limit", limit, "table", this.model.TableName())
 	if err != nil {
 		return nil, nil
 	}
