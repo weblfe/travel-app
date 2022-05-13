@@ -95,7 +95,6 @@ func (this *userCollectionServiceImpl) Lists(userId string, limit models.ListsPa
 	if err != nil {
 		return nil, models.NewMeta()
 	}
-	log.Println("query", lists)
 	if lists == nil {
 		return nil, models.NewMeta()
 	}
@@ -113,6 +112,7 @@ func (this *userCollectionServiceImpl) Lists(userId string, limit models.ListsPa
 		}
 		ids = append(ids, v.TargetId)
 	}
+	log.Println("ids", ids)
 	meta.Set("total", total)
 	defer meta.Boot()
 	notes = this.model.GetTravelNotesByIds(ids)

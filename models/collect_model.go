@@ -221,16 +221,26 @@ func (this *CollectModel) GetTravelNotesByIds(ids []string) []*TravelNotes {
 	if this == nil || ids == nil || len(ids) <= 0 {
 		return nil
 	}
+	var list []bson.ObjectId
+	for _, v := range ids {
+		if v == "" {
+			continue
+		}
+		list = append(list, bson.ObjectIdHex(v))
+	}
+	if len(list) <= 0 {
+		return nil
+	}
 	var (
 		model    = PostsModelOf()
 		postsArr = make([]*TravelNotes, 0)
 		query    = bson.M{
 			"_id": bson.M{
-				"$in": ids,
+				"$in": list,
 			},
 		}
+		err = model.Gets(query, &postsArr)
 	)
-	err := model.Gets(query, &postsArr)
 	if err == nil {
 		return postsArr
 	}
