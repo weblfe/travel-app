@@ -86,6 +86,7 @@ func (this *userCollectionServiceImpl) Lists(userId string, limit models.ListsPa
 		query = bson.M{
 			"userId":     userId,
 			"targetType": models.CollectTargetTypePost,
+			"status":     models.StatusActivity,
 		}
 		lists      = make([]*models.Collect, 0)
 		total, err = this.model.Lists(query, &lists, limit)
