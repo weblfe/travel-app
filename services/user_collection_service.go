@@ -47,7 +47,10 @@ func (this *userCollectionServiceImpl) Add(id, userId string) error {
 		"targetId":   collect.TargetId,
 	}
 	if this.model.Exists(query) {
-		return nil
+		return this.model.Update(collect, bson.M{
+			"status":    models.StatusActivity,
+			"updatedAt": time.Now().Local(),
+		})
 	}
 	if !PostServiceOf().Exists(bson.M{"_id": bson.ObjectIdHex(id), "status": models.StatusOk}) {
 		return common.NewErrors(common.RecordNotFound, "作品已下架")
