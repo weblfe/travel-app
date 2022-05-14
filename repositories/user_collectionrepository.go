@@ -15,14 +15,16 @@ type UserCollectionRepository interface {
 }
 
 type userCollectionRepositoryImpl struct {
-	ctx     common.BaseRequestContext
-	service services.UserCollectionService
+	ctx      common.BaseRequestContext
+	service  services.UserCollectionService
+	postRepo PostsRepository
 }
 
 func NewUserCollectionRepository(ctx common.BaseRequestContext) UserCollectionRepository {
 	var repository = new(userCollectionRepositoryImpl)
 	repository.ctx = ctx
 	repository.service = services.UserCollectionServiceOf()
+	repository.postRepo = NewPostsRepository(ctx)
 	return repository
 }
 
@@ -32,8 +34,8 @@ func (this *userCollectionRepositoryImpl) Add(id string, userId string) common.R
 	if err == nil {
 		return common.NewSuccessResp(beego.M{"timestamp": time.Now().Unix()}, "收藏成功")
 	}
-	if e,ok:=err.(common.Errors);ok {
-			return common.NewErrorResp(e, "收藏失败")
+	if e, ok := err.(common.Errors); ok {
+		return common.NewErrorResp(e, "收藏失败")
 	}
 	return common.NewSuccessResp(beego.M{"timestamp": time.Now().Unix(), "id": id, "error": err.Error()}, "收藏失败")
 }
@@ -51,7 +53,14 @@ func (this *userCollectionRepositoryImpl) Remove(id string, userId string) commo
 func (this *userCollectionRepositoryImpl) Lists(userId string, page, limit int) common.ResponseJson {
 	var items, meta = this.service.Lists(userId, models.NewListParam(page, limit))
 	if items != nil {
-		return common.NewSuccessResp(beego.M{"items": items, "meta": meta}, "罗列成功")
+		var (
+			lists     []interface{}
+			transform = this.postRepo.GetPostTransform()
+		)
+		for _, v := range items {
+			lists = append(lists, v.M(transform))
+		}
+		return common.NewSuccessResp(beego.M{"items": lists, "meta": meta}, "罗列成功")
 	}
 	return common.NewSuccessResp(nil, "空")
 }

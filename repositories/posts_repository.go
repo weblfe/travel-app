@@ -26,6 +26,7 @@ type PostsRepository interface {
 	AutoVideosCover() common.ResponseJson
 	GetAll() common.ResponseJson
 	ListsByPostType(typ string) common.ResponseJson
+	GetPostTransform() func(m beego.M) beego.M
 }
 
 type postRepositoryImpl struct {
@@ -37,7 +38,6 @@ const (
 	PostImagesInfoKey = "imagesInfo"
 	PostVideoInfoKey  = "videosInfo"
 )
-
 
 func NewPostsRepository(ctx common.BaseRequestContext) PostsRepository {
 	var repository = new(postRepositoryImpl)
@@ -139,7 +139,7 @@ func (this *postRepositoryImpl) Update() common.ResponseJson {
 	if err := postData.Save(); err != nil {
 		return common.NewErrorResp(common.NewErrors(err))
 	}
-	return common.NewSuccessResp(postData.M(this.getPostTransform()), "更新成功")
+	return common.NewSuccessResp(postData.M(this.GetPostTransform()), "更新成功")
 }
 
 // Lists 列表
@@ -193,9 +193,12 @@ func (this *postRepositoryImpl) Lists(typ ...string) common.ResponseJson {
 		items, meta = this.service.ListsQuery(this.parseQueryWithType(this.ctx.GetString("query")), limit)
 	}
 	if items != nil && len(items) > 0 && meta != nil {
-		var arr []beego.M
+		var (
+			arr       []beego.M
+			transform = this.GetPostTransform()
+		)
 		for _, item := range items {
-			arr = append(arr, item.M(this.getPostTransform()))
+			arr = append(arr, item.M(transform))
 		}
 		return common.NewSuccessResp(beego.M{"items": arr, "meta": meta}, "罗列成功")
 	}
@@ -262,7 +265,7 @@ func (this *postRepositoryImpl) GetById(id ...string) common.ResponseJson {
 	if data == nil || data.DeletedAt != 0 {
 		return common.NewFailedResp(common.RecordNotFound, common.RecordNotFoundError)
 	}
-	return common.NewSuccessResp(data.M(this.getPostTransform()), "获取成功")
+	return common.NewSuccessResp(data.M(this.GetPostTransform()), "获取成功")
 }
 
 func (this *postRepositoryImpl) RemoveId(id ...string) common.ResponseJson {
@@ -314,8 +317,8 @@ func (this *postRepositoryImpl) Audit() common.ResponseJson {
 	return common.NewFailedResp(common.ServiceFailed, "审核失败")
 }
 
-// 获取文章内容转换器
-func (this *postRepositoryImpl) getPostTransform() func(m beego.M) beego.M {
+// GetPostTransform 获取文章内容转换器
+func (this *postRepositoryImpl) GetPostTransform() func(m beego.M) beego.M {
 	var dto = this.GetDto()
 	return func(m beego.M) beego.M {
 		m = getMediaInfoTransform()(m)
@@ -382,7 +385,7 @@ func (this *postRepositoryImpl) GetLikes(ids ...string) common.ResponseJson {
 	if items != nil && len(items) > 0 && meta != nil {
 		var arr []beego.M
 		for _, item := range items {
-			arr = append(arr, item.M(this.getPostTransform()))
+			arr = append(arr, item.M(this.GetPostTransform()))
 		}
 		return common.NewSuccessResp(beego.M{"items": arr, "meta": meta}, "罗列成功")
 	}
@@ -409,7 +412,7 @@ func (this *postRepositoryImpl) GetRanking() common.ResponseJson {
 	if items != nil && len(items) > 0 && meta != nil {
 		var arr []beego.M
 		for _, item := range items {
-			arr = append(arr, item.M(this.getPostTransform()))
+			arr = append(arr, item.M(this.GetPostTransform()))
 		}
 		return common.NewSuccessResp(beego.M{"items": arr, "meta": meta}, "罗列成功")
 	}
@@ -436,7 +439,7 @@ func (this *postRepositoryImpl) GetFollows() common.ResponseJson {
 	if items != nil && len(items) > 0 && meta != nil {
 		var arr []beego.M
 		for _, item := range items {
-			arr = append(arr, item.M(this.getPostTransform()))
+			arr = append(arr, item.M(this.GetPostTransform()))
 		}
 		return common.NewSuccessResp(beego.M{"items": arr, "meta": meta}, "罗列成功")
 	}
@@ -455,7 +458,7 @@ func (this *postRepositoryImpl) ListsByPostType(typeQuery string) common.Respons
 		limit    = models.NewListParam(page, count)
 	)
 	// 多类型支持
-	types,_= GetQueryTypesParser().Parse(typeQuery)
+	types, _ = GetQueryTypesParser().Parse(typeQuery)
 	var extras = bson.M{"privacy": models.PublicPrivacy, "status": models.StatusAuditPass}
 	if len(types) != 0 {
 		extras["type"] = bson.M{"$in": types}
@@ -464,7 +467,7 @@ func (this *postRepositoryImpl) ListsByPostType(typeQuery string) common.Respons
 	if items != nil && len(items) > 0 && meta != nil {
 		var arr []beego.M
 		for _, item := range items {
-			arr = append(arr, item.M(this.getPostTransform()))
+			arr = append(arr, item.M(this.GetPostTransform()))
 		}
 		return common.NewSuccessResp(beego.M{"items": arr, "meta": meta}, "罗列成功")
 	}
@@ -524,7 +527,7 @@ func (this *postRepositoryImpl) GetAll() common.ResponseJson {
 	if items != nil && len(items) > 0 && meta != nil {
 		var arr []beego.M
 		for _, item := range items {
-			arr = append(arr, item.M(this.getPostTransform()))
+			arr = append(arr, item.M(this.GetPostTransform()))
 		}
 		return common.NewSuccessResp(beego.M{"items": arr, "meta": meta}, "罗列成功")
 	}
