@@ -51,7 +51,9 @@ func (this *userCollectionRepositoryImpl) Remove(id string, userId string) commo
 
 // Lists 列表
 func (this *userCollectionRepositoryImpl) Lists(userId string, page, limit int) common.ResponseJson {
-	var items, meta = this.service.Lists(userId, models.NewListParam(page, limit))
+	var	param = models.NewListParam(page, limit)
+	param.Order(`updatedAt`,`desc`)
+	var items, meta = this.service.Lists(userId,param)
 	if items != nil {
 		var (
 			lists     []interface{}

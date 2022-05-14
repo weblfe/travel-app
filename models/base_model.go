@@ -44,13 +44,25 @@ type ListsParams interface {
 	More() bool
 }
 
-type ListsParamImpl struct {
-	page  int
-	size  int
-	total int
+type OrderByParam interface {
+	Order(key, order string)
+	ParseOrder(query *mgo.Query)
 }
 
-func NewListParam(page, size int) ListsParams {
+type FullListsParams interface {
+	ListsParams
+
+	OrderByParam
+}
+
+type ListsParamImpl struct {
+	page    int
+	size    int
+	total   int
+	orderBy map[string]string
+}
+
+func NewListParam(page, size int) *ListsParamImpl {
 	var param = new(ListsParamImpl)
 	param.size = size
 	param.page = page
@@ -159,6 +171,30 @@ func (this *ListsParamImpl) SetTotal(total int) ListsParams {
 func (this *ListsParamImpl) More() bool {
 	page := this.total / this.size
 	return page > this.page || this.total%this.size > 0 && page+1 > this.page
+}
+
+func (this *ListsParamImpl) Order(key, order string) {
+	if this == nil || this.orderBy == nil {
+		this.orderBy = make(map[string]string)
+	}
+	this.orderBy[key] = order
+}
+
+func (this *ListsParamImpl) ParseOrder(query *mgo.Query) {
+	if this == nil || this.orderBy == nil || query == nil {
+		return
+	}
+	var sort []string
+	for k, o := range this.orderBy {
+		switch strings.ToLower(o) {
+		case `desc`, `-`, `false`, `降序`, `1`:
+			sort = append(sort, fmt.Sprintf("%s%s", `-`, k))
+		case `asc`, `+`, `true`, `升序`, `0`:
+			sort = append(sort, fmt.Sprintf("%s%s", `+`, k))
+		default:
+			sort = append(sort, fmt.Sprintf("%s%s", `+`, k))
+		}
+	}
 }
 
 func (this *BaseModel) Init() {
@@ -695,10 +731,16 @@ func (this *BaseModel) Lists(query interface{}, result interface{}, limit ListsP
 	if total == 0 {
 		return 0, nil
 	}
-	if len(selects) > 0 {
-		return total, table.Find(query).Select(selects[0]).Limit(size).Skip(skip).All(result)
+	dbQuery:= table.Find(query).Limit(size).Skip(skip)
+	switch limit.(type) {
+	case FullListsParams, OrderByParam:
+		orderBy := limit.(OrderByParam)
+		orderBy.ParseOrder(dbQuery)
 	}
-	return total, table.Find(query).Limit(limit.Count()).Skip(skip).All(result)
+	if len(selects) > 0 {
+		return total, dbQuery.Select(selects[0]).All(result)
+	}
+	return total, dbQuery.All(result)
 }
 
 func (this *BaseModel) ListsQuery(query interface{}, limit ListsParams, selects ...interface{}) *mgo.Query {
@@ -915,7 +957,7 @@ func (this *BaseModel) getRedisLocker(name string, duration ...time.Duration) st
 // 解锁
 func (this *BaseModel) unLocker(name string) bool {
 	if name == "" {
-			return false
+		return false
 	}
 	var err = this.getLocker().Delete(name)
 	if err == nil {
