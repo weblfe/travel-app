@@ -1,16 +1,16 @@
 package repositories
 
 import (
-	"github.com/astaxie/beego"
-	"github.com/globalsign/mgo/bson"
-	"github.com/weblfe/travel-app/common"
-	"github.com/weblfe/travel-app/libs"
-	"github.com/weblfe/travel-app/middlewares"
-	"github.com/weblfe/travel-app/models"
-	"github.com/weblfe/travel-app/services"
-	"strconv"
-	"strings"
-	"time"
+		"github.com/astaxie/beego"
+		"github.com/globalsign/mgo/bson"
+		"github.com/weblfe/travel-app/common"
+		"github.com/weblfe/travel-app/libs"
+		"github.com/weblfe/travel-app/middlewares"
+		"github.com/weblfe/travel-app/models"
+		"github.com/weblfe/travel-app/services"
+		"strconv"
+		"strings"
+		"time"
 )
 
 type PostsRepository interface {
@@ -149,6 +149,7 @@ func (this *postRepositoryImpl) Lists(typ ...string) common.ResponseJson {
 		ctx      = this.ctx.GetParent()
 		items    []*models.TravelNotes
 		ty       = ctx.GetString("type")
+		typesArgs = ctx.GetStrings("types")
 		page, _  = ctx.GetInt("page", 1)
 		count, _ = ctx.GetInt("count", 20)
 		limit    = models.NewListParam(page, count)
@@ -156,7 +157,13 @@ func (this *postRepositoryImpl) Lists(typ ...string) common.ResponseJson {
 	if ty == "" && len(typ) != 0 {
 		ty = typ[0]
 	}
+
 	var extras = beego.M{"privacy": models.PublicPrivacy, "status": models.StatusAuditPass}
+	// 内容类型
+	if len(typesArgs) >0 {
+			extras = models.AppendQueryTypes(extras,typesArgs)
+	}
+
 	switch ty {
 	case "my":
 		id := ctx.GetSession(middlewares.AuthUserId)
@@ -187,11 +194,16 @@ func (this *postRepositoryImpl) Lists(typ ...string) common.ResponseJson {
 		userId := typ[1]
 		items, meta = this.service.Lists(userId, limit, extras)
 	case "search":
-		items, meta = this.service.Search(this.parseSearchQuery(this.ctx.GetString("query")), limit)
+		query:=this.parseSearchQuery(this.ctx.GetString("query"))
+		items, meta = this.service.Search(libs.MapMerge(query,extras), limit)
 	case "strategy", "post":
+		query :=this.parseQueryWithType(this.ctx.GetString("query"))
+		// 优先使用类型
+		delete(extras,"type")
 		// 攻略
-		items, meta = this.service.ListsQuery(this.parseQueryWithType(this.ctx.GetString("query")), limit)
+		items, meta = this.service.ListsQuery(bson.M(libs.MapMerge(beego.M(query),extras)), limit)
 	}
+
 	if items != nil && len(items) > 0 && meta != nil {
 		var (
 			arr       []beego.M
@@ -230,8 +242,8 @@ func (this *postRepositoryImpl) parseSearchQuery(query string) beego.M {
 		queryMapper["$or"] = or
 		return queryMapper
 	}
-	if strings.Contains(query, "&") {
-		items := strings.SplitN(query, "&", -1)
+	if strings.Contains(query, ";") {
+		items := strings.SplitN(query, ";", -1)
 		for _, value := range items {
 			values := strings.SplitN(value, ":", 2)
 			if len(values) < 2 {
@@ -381,6 +393,10 @@ func (this *postRepositoryImpl) GetLikes(ids ...string) common.ResponseJson {
 		limit    = models.NewListParam(page, count)
 	)
 	var query = bson.M{"userId": ids[0]}
+	// 类型
+	if types:=this.ctx.GetStrings("types");len(types) > 0 {
+		query = models.AppendQueryPostsCodesWithKey(query,types,"type")
+	}
 	items, meta = services.ThumbsUpServiceOf().GetUserLikeLists(query, limit)
 	if items != nil && len(items) > 0 && meta != nil {
 		var arr []beego.M
@@ -404,8 +420,13 @@ func (this *postRepositoryImpl) GetRanking() common.ResponseJson {
 		limit    = models.NewListParam(page, count)
 	)
 	var extras = bson.M{"privacy": models.PublicPrivacy, "status": models.StatusAuditPass}
-	if ty == models.ImageType || ty == models.VideoType || ty == models.ContentType {
-		extras["type"] = ty
+	// 单个类型
+	if models.IncludesPostTypes(uint(ty)) {
+	 	extras["type"] = ty
+	}
+	// 多类型自由排序
+	if types:=this.ctx.GetStrings("types");len(types) > 0 {
+			extras = models.AppendQueryTypes(extras,types)
 	}
 	items, meta = this.service.GetRankingLists(extras, limit)
 	// 分页

@@ -44,6 +44,13 @@ type ListsParams interface {
 	More() bool
 }
 
+type ListParamsExtras interface {
+		ListsParams
+
+		SetArg(string,interface{})
+		GetArg(string) interface{}
+}
+
 type OrderByParam interface {
 	Order(key, order string)
 	ParseOrder(query *mgo.Query)
@@ -60,6 +67,7 @@ type ListsParamImpl struct {
 	size    int
 	total   int
 	orderBy map[string]string
+	extras  map[string]interface{}
 }
 
 func NewListParam(page, size int) *ListsParamImpl {
@@ -178,6 +186,20 @@ func (this *ListsParamImpl) Order(key, order string) {
 		this.orderBy = make(map[string]string)
 	}
 	this.orderBy[key] = order
+}
+
+func (this *ListsParamImpl)GetArg(key string) interface{} {
+		if len(this.extras) > 0 {
+				return this.extras[key]
+		}
+		return nil
+}
+
+func (this *ListsParamImpl)SetArg(key string,v interface{})  {
+		if this.extras == nil {
+				this.extras = make(map[string]interface{})
+		}
+		this.extras[key] =v
 }
 
 func (this *ListsParamImpl) ParseOrder(query *mgo.Query) {

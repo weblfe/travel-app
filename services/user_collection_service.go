@@ -11,8 +11,8 @@ import (
 )
 
 type UserCollectionService interface {
-	Add(id, userId string) error
-	Remove(id, userId string) error
+	Add(id, userId string,typeCode ...string) error
+	Remove(id, userId string,typeCode ...string) error
 	Lists(userId string, limit models.ListsParams) ([]*models.TravelNotes, models.ListsParams)
 }
 
@@ -28,7 +28,7 @@ func UserCollectionServiceOf() UserCollectionService {
 }
 
 // Add 添加收藏
-func (this *userCollectionServiceImpl) Add(id, userId string) error {
+func (this *userCollectionServiceImpl) Add(id, userId string,typeCode ...string) error {
 	if id == "" {
 		return common.NewErrors(common.ParamVerifyFailed, "作品ID为空")
 	}
@@ -36,7 +36,10 @@ func (this *userCollectionServiceImpl) Add(id, userId string) error {
 		return common.NewErrors(common.ParamVerifyFailed, "用户ID异常")
 	}
 	var collect = models.NewCollect()
-	collect.TargetType = models.CollectTargetTypePost
+	if len(typeCode) <=0 {
+			typeCode = append(typeCode,models.CollectTargetTypePost)
+	}
+	collect.TargetType = typeCode[0]
 	collect.UserId = userId
 	collect.TargetId = id
 	collect.Status = models.StatusOk
@@ -62,14 +65,18 @@ func (this *userCollectionServiceImpl) Add(id, userId string) error {
 }
 
 // Remove 移除收藏
-func (this *userCollectionServiceImpl) Remove(id, userId string) error {
+func (this *userCollectionServiceImpl) Remove(id, userId string,typeCode ...string) error {
 	var collect = models.NewCollect()
-	collect.TargetType = models.CollectTargetTypePost
+	if len(typeCode) <=0 {
+			typeCode = append(typeCode,models.CollectTargetTypePost)
+	}
 	collect.UserId = userId
 	collect.TargetId = id
 	collect.Status = models.StatusActivity
 	var query = bson.M{
-		"targetType": collect.TargetType,
+	  "targetType": bson.M{
+			"$in": typeCode,
+		},
 		"userId":     collect.UserId,
 		"targetId":   collect.TargetId,
 		"status":     collect.Status,
@@ -92,8 +99,15 @@ func (this *userCollectionServiceImpl) Lists(userId string, limit models.ListsPa
 			"status":     models.StatusActivity,
 		}
 		lists      = make([]*models.Collect, 0)
-		total, err = this.model.Lists(query, &lists, limit)
 	)
+	// 多类型收藏过滤
+	if v,ok:=limit.(models.ListParamsExtras);ok {
+			types:=v.GetArg("types")
+			if values,ok1:=types.([]string);ok1 && len(values)>0{
+					query = models.AppendQueryPostsCodesWithKey(query,values,"targetType")
+			}
+	}
+	total, err:= this.model.Lists(query, &lists, limit)
 	info, _ := json.Marshal(query)
 	log.Println("query", string(info), "limit", limit, "table", this.model.TableName(), "error", err)
 	if err != nil {

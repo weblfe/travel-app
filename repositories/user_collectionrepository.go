@@ -30,7 +30,7 @@ func NewUserCollectionRepository(ctx common.BaseRequestContext) UserCollectionRe
 
 // Add 添加
 func (this *userCollectionRepositoryImpl) Add(id string, userId string) common.ResponseJson {
-	var err = this.service.Add(id, userId)
+	var err = this.service.Add(id, userId,this.ctx.GetString("type",models.CollectTargetTypePost))
 	if err == nil {
 		return common.NewSuccessResp(beego.M{"timestamp": time.Now().Unix()}, "收藏成功")
 	}
@@ -42,7 +42,7 @@ func (this *userCollectionRepositoryImpl) Add(id string, userId string) common.R
 
 // Remove 移除
 func (this *userCollectionRepositoryImpl) Remove(id string, userId string) common.ResponseJson {
-	var err = this.service.Remove(id, userId)
+	var err = this.service.Remove(id, userId,this.ctx.GetString("type",models.CollectTargetTypePost))
 	if err == nil {
 		return common.NewSuccessResp(beego.M{"timestamp": time.Now().Unix()}, "移除成功")
 	}
@@ -52,6 +52,7 @@ func (this *userCollectionRepositoryImpl) Remove(id string, userId string) commo
 // Lists 列表
 func (this *userCollectionRepositoryImpl) Lists(userId string, page, limit int) common.ResponseJson {
 	var	param = models.NewListParam(page, limit)
+	param.SetArg("types",this.ctx.GetStrings("types"))
 	param.Order(`updatedAt`,`desc`)
 	var items, meta = this.service.Lists(userId,param)
 	if items != nil {
