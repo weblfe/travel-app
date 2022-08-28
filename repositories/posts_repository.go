@@ -484,6 +484,9 @@ func (this *postRepositoryImpl) ListsByPostType(typeQuery string) common.Respons
 	if len(types) != 0 {
 		extras["type"] = bson.M{"$in": types}
 	}
+	if values:=this.ctx.GetStrings("types");len(values)>0 {
+			extras = models.AppendQueryTypes(extras,values)
+	}
 	items, meta = this.service.GetRecommendLists(extras, limit)
 	if items != nil && len(items) > 0 && meta != nil {
 		var arr []beego.M
