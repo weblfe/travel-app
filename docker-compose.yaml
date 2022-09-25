@@ -7,7 +7,7 @@ services:
       context: .
       dockerfile: Dockerfile
     hostname: travel-server
-    image: weblinuxgame/travel-app:${IMG_VERSION:-v3.20}
+    image: weblinuxgame/travel-app:${IMG_VERSION:-v3.23}
     restart: always
     env_file:
       - ./data/.docker-pro.env
@@ -16,7 +16,7 @@ services:
       - ./data/envs/.pro.env:/data/www/app/.env
       - ./data/view:/data/www/app/view:rw
       - ./static:/data/www/app/static:rw
-      - /etc/localtime:/etc/localtime:ro
+      #- /etc/localtime:/etc/localtime:ro
     ports:
       - "18000:8080"
     networks:

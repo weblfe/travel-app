@@ -1,12 +1,12 @@
 package models
 
 import (
-		"github.com/astaxie/beego"
-		"github.com/globalsign/mgo"
-		"github.com/globalsign/mgo/bson"
-		"regexp"
-		"strconv"
-		"time"
+	"github.com/astaxie/beego"
+	"github.com/globalsign/mgo"
+	"github.com/globalsign/mgo/bson"
+	"regexp"
+	"strconv"
+	"time"
 )
 
 type PostsModel struct {
@@ -54,15 +54,16 @@ const (
 	StrategyType = 4
 	PostType     = 5
 
+	ImageTypeCode    = "image"
+	VideoTypeCode    = "video"
+	ContentTypeCode  = "content"
+	StrategyTypeCode = "strategy"
+	PostTypeCode     = "post"
+
 	StatusAuditNotPass = -1
 	StatusWaitAudit    = 0
 	StatusAuditOk      = 1
 	StatusAuditOff     = 2
-	ImageTypeCode      = "image"
-	VideoTypeCode      = "video"
-	ContentTypeCode    = "content"
-	StrategyTypeCode   = "strategy"
-	PostTypeCode       = "post"
 )
 
 var (
@@ -81,112 +82,112 @@ var (
 
 // GetPostTypesMap 获取文章码对应文章类型 映射表
 func GetPostTypesMap() map[string]uint {
-		return map[string]uint{
-				ImageTypeCode:ImageType,
-				VideoTypeCode:VideoType,
-				ContentTypeCode:ContentType,
-				StrategyTypeCode:StrategyType,
-				PostTypeCode:PostType,
-		}
+	return map[string]uint{
+		ImageTypeCode:    ImageType,
+		VideoTypeCode:    VideoType,
+		ContentTypeCode:  ContentType,
+		StrategyTypeCode: StrategyType,
+		PostTypeCode:     PostType,
+	}
 }
 
 // IncludesPostTypes 是否包含
-func IncludesPostTypes(t uint) bool  {
-		var table = GetPostCodesMap()
-		if len(table) <=0 {
-				return false
-		}
-		if _,ok:=table[t];ok {
-				return true
-		}
+func IncludesPostTypes(t uint) bool {
+	var table = GetPostCodesMap()
+	if len(table) <= 0 {
 		return false
+	}
+	if _, ok := table[t]; ok {
+		return true
+	}
+	return false
 }
 
 // GetPostCodesMap 获取文章类型对应类型码 映射表
 func GetPostCodesMap() map[uint]string {
-		var m = make(map[uint]string)
-		for k,v:=range GetPostTypesMap() {
-				m[v] = k
-		}
-		return m
+	var m = make(map[uint]string)
+	for k, v := range GetPostTypesMap() {
+		m[v] = k
+	}
+	return m
 }
 
 // ParsePostTypesByCodes 解析内容类型
-func ParsePostTypesByCodes(codes []string) []uint  {
-		if len(codes) <= 0 {
-				return nil
+func ParsePostTypesByCodes(codes []string) []uint {
+	if len(codes) <= 0 {
+		return nil
+	}
+	var types []uint
+	var cacheTypes = make(map[uint]struct{})
+	var typeTable, codeTable = GetPostTypesMap(), GetPostCodesMap()
+	for _, v := range codes {
+		if v == "" {
+			continue
 		}
-		var types []uint
-		var cacheTypes =make(map[uint]struct{})
-		var typeTable, codeTable = GetPostTypesMap(),GetPostCodesMap()
-		for _,v:=range codes {
-				if v == "" {
-						continue
-				}
-				tyv,ok:= typeTable[v]
-				if ok {
-						if _,exits:=cacheTypes[tyv];exits {
-								continue
-						}
-						types = append(types,tyv)
-						cacheTypes[tyv] = struct{}{}
-						continue
-				}
-				vn,err:=strconv.ParseUint(v,10,64)
-				if err!=nil {
-						continue
-				}
-				if _,ok= codeTable[uint(vn)];ok {
-						if _,exits:=cacheTypes[uint(vn)];exits {
-								continue
-						}
-						types = append(types,uint(vn))
-						cacheTypes[uint(vn)] = struct{}{}
-						continue
-				}
+		tyv, ok := typeTable[v]
+		if ok {
+			if _, exits := cacheTypes[tyv]; exits {
+				continue
+			}
+			types = append(types, tyv)
+			cacheTypes[tyv] = struct{}{}
+			continue
 		}
-		return types
+		vn, err := strconv.ParseUint(v, 10, 64)
+		if err != nil {
+			continue
+		}
+		if _, ok = codeTable[uint(vn)]; ok {
+			if _, exits := cacheTypes[uint(vn)]; exits {
+				continue
+			}
+			types = append(types, uint(vn))
+			cacheTypes[uint(vn)] = struct{}{}
+			continue
+		}
+	}
+	return types
 }
 
 // AppendQueryTypes 追加类型限定查询
-func AppendQueryTypes(query map[string]interface{},codes []string) map[string]interface{}  {
-		return AppendQueryTypesWithKey(query,codes,"type")
+func AppendQueryTypes(query map[string]interface{}, codes []string) map[string]interface{} {
+	return AppendQueryTypesWithKey(query, codes, "type")
 }
 
 // AppendQueryTypesWithKey 最近类型查询限定
-func AppendQueryTypesWithKey(query map[string]interface{},codes []string,key string) map[string]interface{}  {
-		var types = ParsePostTypesByCodes(codes)
-		if len(types) > 0 {
-				query[key] = bson.M{
-						"$in": types,
-				}
+func AppendQueryTypesWithKey(query map[string]interface{}, codes []string, key string) map[string]interface{} {
+	var types = ParsePostTypesByCodes(codes)
+	if len(types) > 0 {
+		query[key] = bson.M{
+			"$in": types,
 		}
-		return query
+	}
+	return query
 }
 
 // AppendQueryPostsCodesWithKey 最近类型查询限定
-func AppendQueryPostsCodesWithKey(query map[string]interface{},codes []string,key string) map[string]interface{}  {
-		var (
-			types = ParsePostTypesByCodes(codes)
-		)
-		if len(types) <= 0 {
-			 return query
-		}
-		var (
-			result []string
-			codeTable = GetPostCodesMap()
-		)
-		for _,v:=range types {
-				if c,ok:=codeTable[v];ok {
-						result = append(result,c)
-				}
-		}
-		if len(result) >0 {
-				query[key] = bson.M{
-						"$in": result,
-				}
-		}
+func AppendQueryPostsCodesWithKey(query map[string]interface{}, codes []string, key string) map[string]interface{} {
+	var (
+		types = ParsePostTypesByCodes(codes)
+	)
+	if len(types) <= 0 {
 		return query
+	}
+	var (
+		result    []string
+		codeTable = GetPostCodesMap()
+	)
+	for _, v := range types {
+		if c, ok := codeTable[v]; ok {
+			result = append(result, c)
+		}
+	}
+	if len(result) > 0 {
+		query[key] = bson.M{
+			"$in": result,
+		}
+	}
+	return query
 }
 
 func NewTravelNotes() *TravelNotes {

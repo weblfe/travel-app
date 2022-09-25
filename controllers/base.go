@@ -166,7 +166,7 @@ func (this *BaseController) GetString(key string, def ...string) string {
 	if len(def) == 0 {
 		def = append(def, "")
 	}
-	var v = this.Controller.GetString(key, def...)
+	var v = this.Controller.GetString(key)
 	if v != "" {
 		return v
 	}
