@@ -78,6 +78,7 @@ var (
 	PrivacyMapDesc  = map[int]string{PublicPrivacy: "公开", OnlySelfPrivacy: "仅自己可见"}
 	PostTypeMapDesc = map[int]string{ImageType: "图像", VideoType: "视频", ContentType: "文本", StrategyType: "攻略", PostType: "帖子"}
 	StatusMapDesc   = map[int]string{StatusAuditNotPass: "审核不通过", StatusWaitAudit: "待审核", StatusAuditOk: "审核通过", StatusAuditOff: "下架"}
+	PostTypeMapCodes = map[int]string{ImageType: ImageTypeCode, VideoType: VideoTypeCode, ContentType: ContentTypeCode, StrategyType: StrategyTypeCode, PostType: PostTypeCode}
 )
 
 // GetPostTypesMap 获取文章码对应文章类型 映射表
@@ -290,6 +291,7 @@ func (this *TravelNotes) M(filters ...func(m beego.M) beego.M) beego.M {
 		"content":     this.Content,
 		"type":        this.Type,
 		"typeText":    this.GetType(),
+		"typeCode" : this.GetTypeCode(),
 		"images":      this.getImages(),
 		"imagesInfo":  this.GetImages(),
 		"userId":      this.UserId,
@@ -453,6 +455,10 @@ func (this *TravelNotes) GetPrivacy() string {
 
 func (this *TravelNotes) GetType() string {
 	return PostTypeMapDesc[this.Type]
+}
+
+func (this *TravelNotes) GetTypeCode() string {
+		return PostTypeMapCodes[this.Type]
 }
 
 func (this *TravelNotes) GetState() string {
