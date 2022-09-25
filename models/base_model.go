@@ -753,7 +753,7 @@ func (this *BaseModel) Lists(query interface{}, result interface{}, limit ListsP
 	defer this.resetScopeQuery()
 	queryCond, _ := json.Marshal(query)
 	total, err := table.Find(query).Count()
-	log.Printf("query=%v, total=%v, error=%v", queryCond,total,err)
+	log.Printf("query=%v, total=%v, error=%v", string(queryCond),total,err)
 	if err != nil {
 		return 0, err
 	}
@@ -770,7 +770,7 @@ func (this *BaseModel) Lists(query interface{}, result interface{}, limit ListsP
 	if len(selects) > 0 {
 		return total, dbQuery.Select(selects[0]).All(result)
 	}
-	log.Printf("query=%v, total=%v, limit=%v, skip=%v, select=%v", queryCond,total,size,skip,selects)
+	log.Printf("query=%v, total=%v, limit=%v, skip=%v, select=%v", string(queryCond),total,size,skip,selects)
 	return total, dbQuery.All(result)
 }
 

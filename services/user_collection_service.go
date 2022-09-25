@@ -122,9 +122,6 @@ func (this *userCollectionServiceImpl) Lists(userId string, limit models.ListsPa
 		notes []*models.TravelNotes
 	)
 	for _, v := range lists {
-		if v.TargetType != models.CollectTargetTypePost {
-			continue
-		}
 		if v.TargetId == "" {
 			continue
 		}
