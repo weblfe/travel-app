@@ -130,7 +130,7 @@ func (this *userCollectionServiceImpl) Lists(userId string, limit models.ListsPa
 		}
 		ids = append(ids, v.TargetId)
 	}
-	log.Println("ids", ids)
+	log.Println("ids", ids,"total",total)
 	meta.Set("total", total)
 	defer meta.Boot()
 	notes = this.model.GetTravelNotesByIds(ids)

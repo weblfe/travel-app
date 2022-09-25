@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/astaxie/beego"
@@ -11,6 +12,7 @@ import (
 	"github.com/globalsign/mgo/bson"
 	"github.com/globalsign/mgo/txn"
 	"github.com/weblfe/travel-app/libs"
+	"log"
 	"math"
 	"math/rand"
 	"reflect"
@@ -45,10 +47,10 @@ type ListsParams interface {
 }
 
 type ListParamsExtras interface {
-		ListsParams
+	ListsParams
 
-		SetArg(string,interface{})
-		GetArg(string) interface{}
+	SetArg(string, interface{})
+	GetArg(string) interface{}
 }
 
 type OrderByParam interface {
@@ -161,13 +163,16 @@ func (this *ListsParamImpl) Page() int {
 }
 
 func (this *ListsParamImpl) Count() int {
-	if this.size <= 0 {
+	if this.size <= 0 || this.size >= 1000 {
 		return 20
 	}
 	return this.size
 }
 
 func (this *ListsParamImpl) Skip() int {
+	if this.page <= 0 {
+		return 0
+	}
 	return (this.page - 1) * this.size
 }
 
@@ -188,18 +193,18 @@ func (this *ListsParamImpl) Order(key, order string) {
 	this.orderBy[key] = order
 }
 
-func (this *ListsParamImpl)GetArg(key string) interface{} {
-		if len(this.extras) > 0 {
-				return this.extras[key]
-		}
-		return nil
+func (this *ListsParamImpl) GetArg(key string) interface{} {
+	if len(this.extras) > 0 {
+		return this.extras[key]
+	}
+	return nil
 }
 
-func (this *ListsParamImpl)SetArg(key string,v interface{})  {
-		if this.extras == nil {
-				this.extras = make(map[string]interface{})
-		}
-		this.extras[key] =v
+func (this *ListsParamImpl) SetArg(key string, v interface{}) {
+	if this.extras == nil {
+		this.extras = make(map[string]interface{})
+	}
+	this.extras[key] = v
 }
 
 func (this *ListsParamImpl) ParseOrder(query *mgo.Query) {
@@ -746,14 +751,17 @@ func (this *BaseModel) Lists(query interface{}, result interface{}, limit ListsP
 	defer this.destroy(table)
 	query = this.WrapperScopeQuery(query)
 	defer this.resetScopeQuery()
+	queryCond, _ := json.Marshal(query)
 	total, err := table.Find(query).Count()
+	log.Printf("query=%v, total=%v, error=%v", queryCond,total,err)
 	if err != nil {
 		return 0, err
 	}
 	if total == 0 {
 		return 0, nil
 	}
-	dbQuery:= table.Find(query).Limit(size).Skip(skip)
+
+	dbQuery := table.Find(query).Limit(size).Skip(skip)
 	switch limit.(type) {
 	case FullListsParams, OrderByParam:
 		orderBy := limit.(OrderByParam)
@@ -762,6 +770,7 @@ func (this *BaseModel) Lists(query interface{}, result interface{}, limit ListsP
 	if len(selects) > 0 {
 		return total, dbQuery.Select(selects[0]).All(result)
 	}
+	log.Printf("query=%v, total=%v, limit=%v, skip=%v, select=%v", queryCond,total,size,skip,selects)
 	return total, dbQuery.All(result)
 }
 
@@ -844,13 +853,15 @@ func (this *BaseModel) Count(query interface{}) int {
 
 // Sum 计算和
 // [
-//  '$match' => $map],
-//   [
-//   '$group' => [
-//        '_id' => null,
-//        'total_money' => ['$sum' => '$money'],
-//        'total_money_usd' => ['$sum' => '$money_usd']
-//    ]
+//
+//	'$match' => $map],
+//	 [
+//	 '$group' => [
+//	      '_id' => null,
+//	      'total_money' => ['$sum' => '$money'],
+//	      'total_money_usd' => ['$sum' => '$money_usd']
+//	  ]
+//
 // ]
 func (this *BaseModel) Sum(query bson.M, sum string) int {
 	var table = this.Document()
@@ -995,18 +1006,19 @@ func (this *BaseModel) Pipe(handler func(pipe *mgo.Pipe) interface{}) interface{
 
 // Txn 执行事务
 // 示例：
-//  ops := []txn.Op{{
-//				C:      "accounts",
-//				Id:     "aram",
-//				Assert: bson.M{"balance": bson.M{"$gte": 100}},
-//				Update: M{"$inc": M{"balance": -100}},
-//		}, {
-//				C:      "accounts",
-//				Id:     "ben",
-//				Assert: M{"valid": true},
-//				Update: M{"$inc": M{"balance": 100}},
-//		}}
-//	  runner.Run(ops, id, nil)
+//
+//	 ops := []txn.Op{{
+//					C:      "accounts",
+//					Id:     "aram",
+//					Assert: bson.M{"balance": bson.M{"$gte": 100}},
+//					Update: M{"$inc": M{"balance": -100}},
+//			}, {
+//					C:      "accounts",
+//					Id:     "ben",
+//					Assert: M{"valid": true},
+//					Update: M{"$inc": M{"balance": 100}},
+//			}}
+//		  runner.Run(ops, id, nil)
 func (this *BaseModel) Txn(handler func(runner *txn.Runner, txnId bson.ObjectId) error) error {
 	var (
 		table         = this.Document()

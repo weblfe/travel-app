@@ -29,7 +29,7 @@ func NewMeta() *Meta {
 }
 
 func (this *Meta) Skip() int {
-	panic("implement me")
+	return 0
 }
 
 func (this *Meta) SetTotal(i int) ListsParams {
