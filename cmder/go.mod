@@ -20,9 +20,8 @@ require (
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/viper v1.7.1
-	github.com/subosito/gotenv v1.2.0 // indirect
-	golang.org/x/net v0.0.0-20201016165138-7b1cca2348c0 // indirect
-	golang.org/x/sys v0.0.0-20201029080932-201ba4db2418 // indirect
+	github.com/subosito/gotenv v1.2.0
+	golang.org/x/net v0.7.0 // indirect
 	google.golang.org/grpc v1.26.0 // indirect
 	gotest.tools/v3 v3.0.2 // indirect
 	sigs.k8s.io/yaml v1.2.0 // indirect
