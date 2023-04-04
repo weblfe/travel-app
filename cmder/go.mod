@@ -8,7 +8,7 @@ require (
 	github.com/containerd/containerd v1.3.4 // indirect
 	github.com/containerd/continuity v0.0.0-20200928162600-f2cc35102c2a // indirect
 	github.com/coreos/etcd v3.3.25+incompatible
-	github.com/docker/docker v17.12.0-ce-rc1.0.20200505174321-1655290016ac+incompatible // indirect
+	github.com/docker/docker v20.10.24+incompatible // indirect
 	github.com/fsouza/go-dockerclient v1.6.3
 	github.com/globalsign/mgo v0.0.0-20181015135952-eeefdecb41b8
 	github.com/golang/protobuf v1.4.3 // indirect
@@ -20,9 +20,9 @@ require (
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/viper v1.7.1
-	github.com/subosito/gotenv v1.2.0 // indirect
+	github.com/subosito/gotenv v1.2.0
 	golang.org/x/net v0.0.0-20201016165138-7b1cca2348c0 // indirect
-	golang.org/x/sys v0.0.0-20201029080932-201ba4db2418 // indirect
+	golang.org/x/sys v0.7.0 // indirect
 	google.golang.org/grpc v1.26.0 // indirect
 	gotest.tools/v3 v3.0.2 // indirect
 	sigs.k8s.io/yaml v1.2.0 // indirect
