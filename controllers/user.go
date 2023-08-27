@@ -1,8 +1,10 @@
 package controllers
 
 import (
-	"github.com/weblfe/travel-app/common"
-	"github.com/weblfe/travel-app/repositories"
+		"github.com/weblfe/travel-app/common"
+		"github.com/weblfe/travel-app/middlewares"
+		"github.com/weblfe/travel-app/repositories"
+		"log"
 )
 
 type UserController struct {
@@ -105,7 +107,12 @@ func (this *UserController) GetUserFollows() {
 // GetFollows 获取关注列表接口
 // @router /follows [get]
 func (this *UserController) GetFollows() {
-	this.Send(repositories.NewBehaviorRepository(this).GetUserFollows())
+	session := this.GetRequestContext().GetSession()
+	userId := session.Get(middlewares.AuthUserId)
+	if userId == nil || userId== "" {
+		log.Printf("[Error] miss userId for follows")
+	}
+	this.Send(repositories.NewBehaviorRepository(this).GetUserFollows(userId.(string)))
 }
 
 // FocusOn 关注用户接口
@@ -152,7 +159,8 @@ func (this *UserController) Search() {
 }
 
 // GetProfile 用户个人页信息
-//  @router /user/profile [get]
+//
+//	@router /user/profile [get]
 func (this *UserController) GetProfile() {
 	this.Send(repositories.NewUserInfoRepository(this).GetProfile(this.GetString("userId")))
 }
