@@ -48,6 +48,7 @@ services:
     hostname: mongo-travel
     image: mongo:3.6.0
     restart: always
+    privileged: true
     environment:
       TZ: Asia/Shanghai
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT:-mongodb}
@@ -56,11 +57,12 @@ services:
       APP_DB_NAME: travel
       APP_DB_USER: travel
       APP_DB_PASSWORD: travel
+      APP_DB_RESTORE: false
     volumes:
-      - ./data/mongodb/db:/data/db:rw
       - ./data/mongodb/log:/var/log/mongodb:rw
+      #- ./data/mongodb/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh:ro
+      - ./data/mongodb/init.sh:/docker-entrypoint-initdb.d/mongo-init.sh:ro
       #- ./data/mongodb/travel:/data/init:rw
-      #- ./data/mongodb/init.sh:/docker-entrypoint-initdb.d/mongo-init.sh:ro
     ports:
       - "37017:27017"
     networks:
