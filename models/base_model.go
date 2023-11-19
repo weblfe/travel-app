@@ -1,25 +1,25 @@
 package models
 
 import (
-	"encoding/json"
-	"errors"
-	"fmt"
-	"github.com/astaxie/beego"
-	"github.com/astaxie/beego/cache"
-	"github.com/astaxie/beego/config/env"
-	"github.com/astaxie/beego/logs"
-	"github.com/globalsign/mgo"
-	"github.com/globalsign/mgo/bson"
-	"github.com/globalsign/mgo/txn"
-	"github.com/weblfe/travel-app/libs"
-	"log"
-	"math"
-	"math/rand"
-	"reflect"
-	"strconv"
-	"strings"
-	"sync"
-	"time"
+		"encoding/json"
+		"errors"
+		"fmt"
+		"github.com/astaxie/beego"
+		"github.com/astaxie/beego/cache"
+		"github.com/astaxie/beego/config/env"
+		"github.com/astaxie/beego/logs"
+		"github.com/globalsign/mgo"
+		"github.com/globalsign/mgo/bson"
+		"github.com/globalsign/mgo/txn"
+		"github.com/weblfe/travel-app/libs"
+		"log"
+		"math"
+		"math/rand"
+		"reflect"
+		"strconv"
+		"strings"
+		"sync"
+		"time"
 )
 
 type Model interface {
@@ -239,7 +239,7 @@ func (this *BaseModel) getConnOptions(name string) *mgo.DialInfo {
 	if name == "default" {
 		return &mgo.DialInfo{
 			Addrs:       []string{this.getString("db_host", "127.0.0.1:27017")},
-			Source:      this.getString("db_source", ""),
+			Source:      this.getString("db_source", "travel"),
 			Username:    this.getString("db_username"),
 			Password:    this.getString("db_password"),
 			PoolLimit:   this.getInt("db_pool_limit"),
@@ -375,10 +375,10 @@ func (this *BaseModel) getServer(serverName string) *mgo.Session {
 func (this *BaseModel) connection(server string) *mgo.Session {
 	var (
 		options = this.getConnOptions(server)
-		info    = fmt.Sprintf("%v", options)
+		connURI = fmt.Sprintf("mongodb://%s:%s@%s/%s", options.Username, options.Password, options.Addrs[0], options.Source)
 	)
-	logs.Info("server:%s, options: %s", server, info)
-	var sess, err = mgo.DialWithInfo(options)
+	logs.Info("server:%s, connURI: %s", server, connURI)
+	var sess, err = mgo.Dial(connURI)
 	if err != nil {
 		panic(err)
 	}
@@ -459,10 +459,11 @@ func (this *BaseModel) conn(servers ...string) *mgo.Session {
 	}
 	var (
 		info      = this.getConnOptions(server)
-		sess, err = mgo.DialWithInfo(info)
+		connURI   = fmt.Sprintf("mongodb://%s:%s@%s/%s", info.Username, info.Password, info.Addrs[0], info.Database)
+		sess, err = mgo.Dial(connURI)
 	)
 	if info != nil {
-		logs.Info("server:%s, options: %s", server, fmt.Sprintf("%v", info))
+		logs.Info("connURI: %s", connURI)
 	}
 	if err != nil {
 		panic(err)
@@ -753,7 +754,7 @@ func (this *BaseModel) Lists(query interface{}, result interface{}, limit ListsP
 	defer this.resetScopeQuery()
 	queryCond, _ := json.Marshal(query)
 	total, err := table.Find(query).Count()
-	log.Printf("query=%v, total=%v, error=%v", string(queryCond),total,err)
+	log.Printf("query=%v, total=%v, error=%v", string(queryCond), total, err)
 	if err != nil {
 		return 0, err
 	}
@@ -770,7 +771,7 @@ func (this *BaseModel) Lists(query interface{}, result interface{}, limit ListsP
 	if len(selects) > 0 {
 		return total, dbQuery.Select(selects[0]).All(result)
 	}
-	log.Printf("query=%v, total=%v, limit=%v, skip=%v, select=%v", string(queryCond),total,size,skip,selects)
+	log.Printf("query=%v, total=%v, limit=%v, skip=%v, select=%v", string(queryCond), total, size, skip, selects)
 	return total, dbQuery.All(result)
 }
 
