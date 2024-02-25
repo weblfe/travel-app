@@ -1,7 +1,8 @@
 package services
 
 import (
-	"fmt"
+		"encoding/json"
+		"fmt"
 	"github.com/astaxie/beego/cache"
 	"github.com/weblfe/travel-app/libs"
 	"os"
@@ -65,7 +66,7 @@ func (this *ticketServiceImpl) CreateTicket(data map[string]interface{}) string 
 	var (
 		err      error
 		ticket   = this.ticket()
-		_data, _ = libs.Json().Marshal(data)
+		_data, _ = json.Marshal(data)
 	)
 	err = this.storage.Put(ticket, string(_data), expire)
 	if err == nil {

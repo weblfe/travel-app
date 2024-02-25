@@ -1,6 +1,9 @@
 package libs
 
 import jsonApi "github.com/json-iterator/go"
+import "encoding/json"
+
+// import jsonApi "github.com/json-iterator/go"
 
 var (
 		_JsonErr error
@@ -13,7 +16,7 @@ func Json() jsonApi.API {
 // JsonEncode 编码
 func JsonEncode(v interface{}) []byte {
 		var (
-				data, err = Json().Marshal(v)
+				data, err = json.Marshal(v)
 		)
 		if err != nil {
 				_JsonErr = err
@@ -28,7 +31,7 @@ func JsonDecode(data []byte, bindTo ...interface{}) interface{} {
 				bindTo = append(bindTo, &d)
 		}
 		var (
-				err = Json().Unmarshal(data, bindTo[0])
+				err = json.Unmarshal(data, bindTo[0])
 		)
 		if err != nil {
 				_JsonErr = err
