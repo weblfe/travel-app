@@ -7,7 +7,7 @@ services:
       context: .
       dockerfile: Dockerfile
     hostname: travel-server
-    image: weblinuxgame/travel-app:${IMG_VERSION:-v3.35}
+    image: weblinuxgame/travel-app:${IMG_VERSION:-v3.39}
     restart: always
     env_file:
       - ./data/.docker-pro.env
@@ -60,8 +60,8 @@ services:
       APP_DB_RESTORE: false
     volumes:
       - ./data/mongodb/log:/var/log/mongodb:rw
-      #- ./data/mongodb/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh:ro
       - ./data/mongodb/init.sh:/docker-entrypoint-initdb.d/mongo-init.sh:ro
+      #- ./data/mongodb/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh:ro
       #- ./data/mongodb/travel:/data/init:rw
     ports:
       - "37017:27017"
