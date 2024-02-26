@@ -1,6 +1,7 @@
 package repositories
 
 import (
+		"fmt"
 		"github.com/astaxie/beego"
 		"github.com/weblfe/travel-app/common"
 		"github.com/weblfe/travel-app/libs"
@@ -9,6 +10,7 @@ import (
 		"github.com/weblfe/travel-app/services"
 		"github.com/weblfe/travel-app/transforms"
 		"github.com/weblfe/travel-app/transports"
+		"log"
 		"time"
 )
 
@@ -152,6 +154,7 @@ func (this *LoginRepositoryImpl) loginByMobilePassword(mobile string, password s
 				return common.NewErrorResp(common.NewErrors(common.PermissionCode, "账号禁用状态"))
 		}
 		if !libs.PasswordVerify(user.PasswordHash, password) {
+				log.Println(fmt.Sprintf("user.pass=%s,pwd=%s",user.PasswordHash,password))
 				return common.NewErrorResp(common.NewErrors(common.VerifyNotMatch, "密码不正确"))
 		}
 		token := this.authService.Token(user)

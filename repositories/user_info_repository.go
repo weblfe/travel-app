@@ -1,17 +1,19 @@
 package repositories
 
 import (
-	"github.com/astaxie/beego"
-	"github.com/globalsign/mgo/bson"
-	"github.com/weblfe/travel-app/common"
-	"github.com/weblfe/travel-app/libs"
-	"github.com/weblfe/travel-app/middlewares"
-	"github.com/weblfe/travel-app/models"
-	"github.com/weblfe/travel-app/services"
-	"github.com/weblfe/travel-app/transports"
-	"os"
-	"regexp"
-	"time"
+		"fmt"
+		"github.com/astaxie/beego"
+		"github.com/globalsign/mgo/bson"
+		"github.com/weblfe/travel-app/common"
+		"github.com/weblfe/travel-app/libs"
+		"github.com/weblfe/travel-app/middlewares"
+		"github.com/weblfe/travel-app/models"
+		"github.com/weblfe/travel-app/services"
+		"github.com/weblfe/travel-app/transports"
+		"log"
+		"os"
+		"regexp"
+		"time"
 )
 
 type UserInfoRepository interface {
@@ -417,6 +419,7 @@ func (this *UserInfoRepositoryImpl) resetPasswordByAdminCode(mobile string, pass
 		"resetPasswordTimes": user.ResetPasswordTimes + 1,
 		"modifies":           []string{"passwordHash", "updatedAt", "resetPasswordTimes"},
 	}
+	log.Println(fmt.Sprintf("更新密码：encodePwd=%s,pwd=%s",user.PasswordHash,password))
 	err := this.userService.UpdateByUid(user.Id.Hex(), data)
 	if err != nil {
 		return common.NewErrors(err)
