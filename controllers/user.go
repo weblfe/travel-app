@@ -198,3 +198,9 @@ func (this *UserController) RemoveCollects() {
 	}
 	this.Send(repositories.NewUserCollectionRepository(this).Remove(postId, userId))
 }
+
+// AdminResetUserPassword 管理员更新用户信息接口
+// @router /admin/reset/user/password [post]
+func (this *UserController) AdminResetUserPassword() {
+		this.Send(repositories.NewUserInfoRepository(this).AdminResetPassword())
+}
