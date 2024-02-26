@@ -2,6 +2,7 @@ package services
 
 import (
 		"context"
+		"encoding/json"
 		"errors"
 		"fmt"
 		"github.com/astaxie/beego"
@@ -646,7 +647,7 @@ func putPolicy(extras beego.M) *storage.PutPolicy {
 				body["h"] = "$(avinfo.video.height)"
 				body["duration"] = "$(avinfo.video.duration)"
 		}
-		var info, err = libs.Json().Marshal(body)
+		var info, err = json.Marshal(body)
 		if err != nil {
 				logs.Error(err)
 		}

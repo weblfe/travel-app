@@ -1,9 +1,9 @@
 package transports
 
 import (
+		"encoding/json"
 		"github.com/astaxie/beego"
 		"github.com/astaxie/beego/context"
-		"github.com/weblfe/travel-app/libs"
 		"github.com/weblfe/travel-app/transforms"
 )
 
@@ -32,12 +32,12 @@ func (this *UpdateUserRequest) Boot() {
 
 func (this *UpdateUserRequest) Load(data []byte) error {
 		this.Init()
-		return libs.Json().Unmarshal(data, this)
+		return json.Unmarshal(data, this)
 }
 
 func (this *UpdateUserRequest) ParseFrom(ctx *context.BeegoInput) error {
 		var (
-				err    = libs.Json().Unmarshal(ctx.RequestBody, this)
+				err    = json.Unmarshal(ctx.RequestBody, this)
 				mapper = map[string]interface{}{
 						"avatarId":          &this.AvatarId,
 						"nickname":          &this.NickName,
@@ -102,7 +102,7 @@ type ResetPassword struct {
 
 func (this *ResetPassword) Load(ctx *context.BeegoInput) *ResetPassword {
 		var (
-				_      = libs.Json().Unmarshal(ctx.RequestBody, this)
+				_      = json.Unmarshal(ctx.RequestBody, this)
 				mapper = map[string]interface{}{
 						"code":            &this.Code,
 						"mobile":          &this.Mobile,

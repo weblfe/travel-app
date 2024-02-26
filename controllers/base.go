@@ -1,18 +1,18 @@
 package controllers
 
 import (
-	"fmt"
-	"github.com/astaxie/beego"
-	"github.com/astaxie/beego/context"
-	"github.com/astaxie/beego/session"
-	"github.com/weblfe/travel-app/common"
-	"github.com/weblfe/travel-app/libs"
-	"github.com/weblfe/travel-app/middlewares"
-	"net/http"
-	"net/url"
-	"reflect"
-	"strconv"
-	"strings"
+		"encoding/json"
+		"fmt"
+		"github.com/astaxie/beego"
+		"github.com/astaxie/beego/context"
+		"github.com/astaxie/beego/session"
+		"github.com/weblfe/travel-app/common"
+		"github.com/weblfe/travel-app/middlewares"
+		"net/http"
+		"net/url"
+		"reflect"
+		"strconv"
+		"strings"
 )
 
 type BaseController struct {
@@ -79,7 +79,7 @@ func (this *BaseController) GetParam(key string, defaults ...interface{}) (inter
 func (this *BaseController) GetJson() (beego.M, error) {
 	var data = make(beego.M)
 	if this.IsJsonStream() {
-		decoder := libs.Json().NewDecoder(this.Ctx.Request.Body)
+		decoder := json.NewDecoder(this.Ctx.Request.Body)
 		if err := decoder.Decode(&data); err != nil {
 			return nil, err
 		}
@@ -104,7 +104,7 @@ func (this *BaseController) JsonDecode(v interface{}) error {
 	if !this.IsJsonStream() {
 		return fmt.Errorf("is not json stream")
 	}
-	return libs.Json().Unmarshal(this.GetBody(), v)
+	return json.Unmarshal(this.GetBody(), v)
 }
 
 func (this *BaseController) Session(key string, v ...interface{}) interface{} {
@@ -344,12 +344,12 @@ func (this *BaseController) parseArray(values interface{}) []string {
 			return strings.Split(v, ",")
 		}
 		var arr []string
-		if err := libs.Json().Unmarshal([]byte(v), &arr); err == nil {
+		if err := json.Unmarshal([]byte(v), &arr); err == nil {
 			return arr
 		}
 	case []byte:
 		var arr []string
-		if err := libs.Json().Unmarshal(values.([]byte), &arr); err == nil {
+		if err := json.Unmarshal(values.([]byte), &arr); err == nil {
 			return arr
 		}
 	}

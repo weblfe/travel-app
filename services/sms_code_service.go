@@ -113,7 +113,7 @@ func (this *SmsCodeServiceAliCloudImpl) Send(mobile string, content string, extr
 		log.Defaults()
 		log.Content = content
 		log.Type = typ
-		tmp, _ := libs.Json().Marshal(extras)
+		tmp, _ := json.Marshal(extras)
 		log.Extras = string(tmp)
 		if rep != nil {
 				log.Result = rep.GetHttpContentString()
@@ -164,7 +164,7 @@ func (this *SmsCodeServiceAliCloudImpl) CreateSmsRequest(mobile string, extras m
 		this.cleanExtras(extras)
 		if len(extras) > 0 {
 				req.FormParams = extras
-				tmp,_ := libs.Json().Marshal(extras)
+				tmp,_ := json.Marshal(extras)
 				if len(tmp) >0 {
 						req.TemplateParam = string(tmp)
 				}

@@ -1,8 +1,8 @@
 package services
 
 import (
-		"encoding/json"
-		"fmt"
+	"encoding/json"
+	"fmt"
 	"github.com/astaxie/beego/cache"
 	"github.com/weblfe/travel-app/libs"
 	"os"
@@ -84,7 +84,7 @@ func (this *ticketServiceImpl) GetTicketInfo(s string) (map[string]interface{}, 
 	if v == nil || v == "" {
 		return nil, fmt.Errorf("not found")
 	}
-	err = libs.Json().Unmarshal(v.([]byte), &data)
+	err = json.Unmarshal(v.([]byte), &data)
 	if err != nil {
 		return nil, err
 	}

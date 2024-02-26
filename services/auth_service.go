@@ -1,18 +1,19 @@
 package services
 
 import (
-	"fmt"
-	"github.com/astaxie/beego"
-	"github.com/astaxie/beego/cache"
-	_ "github.com/astaxie/beego/cache/memcache"
-	_ "github.com/astaxie/beego/cache/redis"
-	"github.com/astaxie/beego/config/env"
-	"github.com/globalsign/mgo/bson"
-	"github.com/weblfe/travel-app/common"
-	"github.com/weblfe/travel-app/libs"
-	"github.com/weblfe/travel-app/models"
-	"sync"
-	"time"
+		"encoding/json"
+		"fmt"
+		"github.com/astaxie/beego"
+		"github.com/astaxie/beego/cache"
+		_ "github.com/astaxie/beego/cache/memcache"
+		_ "github.com/astaxie/beego/cache/redis"
+		"github.com/astaxie/beego/config/env"
+		"github.com/globalsign/mgo/bson"
+		"github.com/weblfe/travel-app/common"
+		"github.com/weblfe/travel-app/libs"
+		"github.com/weblfe/travel-app/models"
+		"sync"
+		"time"
 )
 
 type AuthService interface {
@@ -112,7 +113,7 @@ func (this *AuthServiceImpl) data(user *models.User) ([]byte, time.Duration) {
 	now := time.Now().Unix()
 	alive := this.getAliveTime()
 	data := beego.M{IdKey: user.Id.Hex(), CacheAtKey: now, ExpiredAtKey: now + int64(alive)}
-	if str, err := libs.Json().Marshal(&data); err == nil {
+	if str, err := json.Marshal(&data); err == nil {
 		return str, alive
 	}
 	return nil, alive
@@ -195,7 +196,7 @@ func (this *AuthServiceImpl) getTokenData(token string) (beego.M, bool) {
 		return nil, false
 	}
 	if d, ok := data.([]byte); ok {
-		_ = libs.Json().Unmarshal(d, &mapper)
+		_ = json.Unmarshal(d, &mapper)
 	}
 	if len(mapper) == 0 {
 		return nil, false
@@ -224,7 +225,7 @@ func (this *AuthServiceImpl) Keep(token string, duration ...time.Duration) {
 		}
 		expire = int64(duration[0]) + expire
 		mapper[ExpiredAtKey] = expire
-		data, _ := libs.Json().Marshal(mapper)
+		data, _ := json.Marshal(mapper)
 		_ = this.GetCache().Put(token, data, time.Duration(expire-time.Now().Unix()))
 	}
 }

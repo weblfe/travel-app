@@ -7,7 +7,6 @@ import (
 		"github.com/astaxie/beego/logs"
 		"github.com/qiniu/api.v7/v7/auth/qbox"
 		"github.com/qiniu/api.v7/v7/storage"
-		"github.com/weblfe/travel-app/libs"
 		"io"
 		url2 "net/url"
 		"os"
@@ -136,7 +135,7 @@ func (this *OssPlugin) CreatePolicy(jsonData ...string) *OssPlugin {
 				return this
 		}
 		this.Policy = &storage.PutPolicy{}
-		var err = libs.Json().Unmarshal([]byte(jsonData[0]), this.Policy)
+		var err = json.Unmarshal([]byte(jsonData[0]), this.Policy)
 		if err != nil {
 				logs.Error(err)
 		}

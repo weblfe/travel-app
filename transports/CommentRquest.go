@@ -2,10 +2,10 @@ package transports
 
 import (
 		"encoding/gob"
+		"encoding/json"
 		"github.com/astaxie/beego/context"
 		"github.com/astaxie/beego/logs"
 		"github.com/globalsign/mgo/bson"
-		"github.com/weblfe/travel-app/libs"
 		"github.com/weblfe/travel-app/models"
 )
 
@@ -53,7 +53,7 @@ func (this *CommentRequest) Load(ctx *context.BeegoInput) *CommentRequest {
 }
 
 func (this *CommentRequest) GobEncode() ([]byte, error) {
-		return libs.Json().Marshal(this)
+		return json.Marshal(this)
 }
 
 func (this *CommentRequest) filter(m bson.M) bson.M {

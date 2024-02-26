@@ -1,10 +1,10 @@
 package transports
 
 import (
+		"encoding/json"
 		"github.com/astaxie/beego"
 		"github.com/astaxie/beego/context"
 		"github.com/globalsign/mgo/bson"
-		"github.com/weblfe/travel-app/libs"
 		"github.com/weblfe/travel-app/transforms"
 )
 
@@ -22,7 +22,7 @@ func (this *ThumbsUpRequest) Boot() {
 
 func (this *ThumbsUpRequest) Load(data []byte) error {
 		this.Init()
-		return libs.Json().Unmarshal(data, this)
+		return json.Unmarshal(data, this)
 }
 
 func NewThumbUpRequest() * ThumbsUpRequest {
@@ -31,7 +31,7 @@ func NewThumbUpRequest() * ThumbsUpRequest {
 
 func (this *ThumbsUpRequest) ParseFrom(ctx *context.BeegoInput) error {
 		var (
-				err    = libs.Json().Unmarshal(ctx.RequestBody, this)
+				err    = json.Unmarshal(ctx.RequestBody, this)
 				mapper = map[string]interface{}{
 						"type": &this.Type,
 						"id":   &this.Id,
