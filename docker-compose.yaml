@@ -7,7 +7,7 @@ services:
       context: .
       dockerfile: Dockerfile
     hostname: travel-server
-    image: weblinuxgame/travel-app:${IMG_VERSION:-v3.41}
+    image: weblinuxgame/travel-app:${IMG_VERSION:-v3.42}
     restart: always
     env_file:
       - ./data/.docker-pro.env

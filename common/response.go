@@ -1,11 +1,11 @@
 package common
 
 import (
+		"encoding/json"
 		"fmt"
 		"github.com/astaxie/beego"
 		"github.com/astaxie/beego/config/env"
 		"github.com/globalsign/mgo/bson"
-		jsonApi "github.com/json-iterator/go"
 		"strings"
 		"sync"
 )
@@ -50,11 +50,11 @@ type SetterEntry interface {
 }
 
 func (this *ResponseImpl) UnJson(bytes []byte) error {
-		return _json().Unmarshal(bytes, this)
+		return json.Unmarshal(bytes, this)
 }
 
 func (this *ResponseImpl) Json() ([]byte, error) {
-		return _json().Marshal(this)
+		return json.Marshal(this)
 }
 
 func (this *ResponseImpl) GetCode() int {
@@ -73,10 +73,6 @@ func (this *ResponseImpl) GetData() interface{} {
 		return this.Data
 }
 
-// json
-func _json() jsonApi.API {
-		return jsonApi.ConfigCompatibleWithStandardLibrary
-}
 
 func (this *ResponseImpl) Get(key string, defaults ...interface{}) interface{} {
 		switch key {
@@ -321,7 +317,7 @@ func (this *ResponseImpl) String() string {
 		if this.Code == NotFound {
 			this.Code = SuccessCode
 		}
-		if data, err := _json().Marshal(this); err == nil {
+		if data, err := json.Marshal(this); err == nil {
 				return string(data)
 		}
 		return fmt.Sprintf(
