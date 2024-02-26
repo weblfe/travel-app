@@ -3,6 +3,7 @@ package models
 import (
 		"crypto/md5"
 		"encoding/hex"
+		"encoding/json"
 		"fmt"
 		"github.com/astaxie/beego"
 		"github.com/globalsign/mgo"
@@ -195,13 +196,13 @@ func (this *UserAddress) setByText() bool {
 		return true
 }
 
-// 数据加载
+// Load 数据加载
 func (this *UserAddress) Load(data map[string]interface{}) *UserAddress {
 		this.setAttributes(data)
 		return this
 }
 
-// 设置器
+// Set 设置器
 func (this *UserAddress) Set(key string, v interface{}) *UserAddress {
 		switch key {
 		case "userId":
